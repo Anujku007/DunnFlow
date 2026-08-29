@@ -1,7 +1,5 @@
 const API_BASE = "";
 
-const DEMO_BATCH_ID = "e2e_api_card_expired_001";
-
 async function apiRequest(url, options = {}) {
     const response = await fetch(url, {
         ...options,

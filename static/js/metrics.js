@@ -1,5 +1,10 @@
 const runButton = document.getElementById("runBatchBtn");
 const pipelineStatus = document.getElementById("pipelineStatus");
+const batchSelect = document.getElementById("batchSelect");
+
+function getSelectedBatchId() {
+    return batchSelect.value;
+}
 
 function setStep(id, state) {
     const step = document.getElementById(id);
@@ -28,9 +33,13 @@ function formatINR(amount) {
     });
 }
 
-function updateMetrics(metrics) {
+function updateMetrics(metrics, riskAmount = null) {
     document.getElementById("riskAmount").textContent =
-        formatINR(metrics.historical_amount_at_risk);
+        formatINR(
+            riskAmount !== null
+                ? riskAmount
+                : metrics.historical_amount_at_risk
+        );
 
     document.getElementById("recoveredAmount").textContent =
         formatINR(metrics.amount_recovered);
@@ -40,6 +49,14 @@ function updateMetrics(metrics) {
 
     document.getElementById("inProgress").textContent =
         metrics.in_progress_count || 0;
+}
+
+function clearActivityFeed() {
+    const feed = document.getElementById("activityFeed");
+
+    if (feed) {
+        feed.innerHTML = "";
+    }
 }
 
 function addActivity(message) {
@@ -86,8 +103,24 @@ function renderCases(decisions) {
     }
 }
 
+function downloadReport() {
+    const batchId = getSelectedBatchId();
+
+    if (!batchId) {
+        addActivity("Please select a demo batch first.");
+        return;
+    }
+
+    addActivity(`Generating report for ${batchId}...`);
+
+    window.location.href =
+        `/api/batches/${encodeURIComponent(batchId)}/report`;
+}
+
 async function runRecovery() {
-    const batchId = DEMO_BATCH_ID;
+    const batchId = getSelectedBatchId();
+
+    clearActivityFeed();
 
     runButton.disabled = true;
     runButton.textContent = "RUNNING...";
@@ -159,7 +192,7 @@ async function runRecovery() {
 
         const metrics = await getMetrics(batchId);
 
-        updateMetrics(metrics);
+updateMetrics(metrics, detection.amount_at_risk);
 
         setStep("outcomeStep", "done");
 
@@ -197,6 +230,53 @@ async function runRecovery() {
 
 runButton.addEventListener("click", runRecovery);
 
+const downloadReportButton =
+      document.getElementById("downloadReportBtn");
+
+downloadReportButton.addEventListener("click", downloadReport);
+
+batchSelect.addEventListener("change", async () => {
+    const batchId = getSelectedBatchId();
+
+    // Clear previous batch activity
+    clearActivityFeed();
+
+    try {
+        const detection = await detectBatch(batchId);
+        const metrics = await getMetrics(batchId);
+
+        updateMetrics(metrics, detection.amount_at_risk);
+
+        renderCases([]);
+
+        pipelineStatus.textContent = "READY";
+
+        [
+            "detectStep",
+            "decideStep",
+            "executeStep",
+            "outcomeStep"
+        ].forEach(id => {
+            const step = document.getElementById(id);
+
+            if (step) {
+                step.dataset.state = "";
+                step.style.borderColor = "";
+            }
+        });
+
+        addActivity(
+            `Switched to batch ${batchId}.`
+        );
+
+    } catch (error) {
+        console.error(error);
+        addActivity(
+            `Unable to load batch ${batchId}.`
+        );
+    }
+});
+
 
 // Load initial metrics
 (async function initializeDashboard() {
@@ -207,9 +287,12 @@ runButton.addEventListener("click", runRecovery);
             addActivity("DunnFlow API connected.");
         }
 
-        const metrics = await getMetrics(DEMO_BATCH_ID);
+        const batchId = getSelectedBatchId();
 
-        updateMetrics(metrics);
+        const detection = await detectBatch(batchId);
+        const metrics = await getMetrics(batchId);
+
+        updateMetrics(metrics, detection.amount_at_risk);
 
     } catch (error) {
         console.error("Dashboard initialization failed:", error);

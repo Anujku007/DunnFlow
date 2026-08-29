@@ -4,6 +4,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from backend.modules.report import generate_batch_report
+
 from backend.data.db import (
     init_db,
     get_batch_run,
@@ -117,3 +119,16 @@ def batch_metrics(batch_id: str):
         )
 
     return metrics
+
+@app.get("/api/batches/{batch_id}/report")
+def download_batch_report(batch_id: str):
+    if not get_batch_run(batch_id):
+        raise HTTPException(status_code=404, detail="Batch not found")
+
+    report_path = generate_batch_report(batch_id)
+
+    return FileResponse(
+        path=report_path,
+        media_type="application/pdf",
+        filename=f"dunnflow_report_{batch_id}.pdf",
+    )
