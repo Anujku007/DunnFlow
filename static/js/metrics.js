@@ -1,10 +1,52 @@
+/* =========================================================
+   DUNNFLOW — DASHBOARD CONTROLLER
+   Recovery pipeline + dashboard rendering
+   ========================================================= */
+
+
+/* =========================================================
+   DOM REFERENCES
+   ========================================================= */
+
 const runButton = document.getElementById("runBatchBtn");
+const downloadReportButton = document.getElementById("downloadReportBtn");
 const pipelineStatus = document.getElementById("pipelineStatus");
 const batchSelect = document.getElementById("batchSelect");
 
+
+/* =========================================================
+   BATCH HELPERS
+   ========================================================= */
+
 function getSelectedBatchId() {
-    return batchSelect.value;
+    return batchSelect ? batchSelect.value : "";
 }
+
+
+/* =========================================================
+   PIPELINE UI
+   ========================================================= */
+
+function resetPipeline() {
+    [
+        "detectStep",
+        "decideStep",
+        "executeStep",
+        "outcomeStep"
+    ].forEach(id => {
+        const step = document.getElementById(id);
+
+        if (!step) return;
+
+        step.dataset.state = "";
+        step.style.borderColor = "";
+    });
+
+    if (pipelineStatus) {
+        pipelineStatus.textContent = "READY";
+    }
+}
+
 
 function setStep(id, state) {
     const step = document.getElementById(id);
@@ -13,43 +55,85 @@ function setStep(id, state) {
 
     step.dataset.state = state;
 
+    /*
+     * Keep these inline styles because they work with the
+     * current DunnFlow pipeline styling.
+     */
+
     if (state === "active") {
         step.style.borderColor = "#7c5cff";
-    }
-
-    if (state === "done") {
+    } else if (state === "done") {
         step.style.borderColor = "#39d98a";
-    }
-
-    if (state === "error") {
+    } else if (state === "error") {
         step.style.borderColor = "#ff647c";
+    } else {
+        step.style.borderColor = "";
     }
 }
 
+
+/* =========================================================
+   FORMATTING
+   ========================================================= */
+
 function formatINR(amount) {
-    return "INR " + (Number(amount || 0) / 100).toLocaleString("en-IN", {
+    const value = Number(amount || 0) / 100;
+
+    return "₹" + value.toLocaleString("en-IN", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
 }
 
-function updateMetrics(metrics, riskAmount = null) {
-    document.getElementById("riskAmount").textContent =
-        formatINR(
-            riskAmount !== null
-                ? riskAmount
-                : metrics.historical_amount_at_risk
-        );
 
-    document.getElementById("recoveredAmount").textContent =
-        formatINR(metrics.amount_recovered);
+function formatPercent(value) {
+    const number = Number(value || 0);
 
-    document.getElementById("recoveryRate").textContent =
-        `${metrics.recovery_rate_pct || 0}%`;
-
-    document.getElementById("inProgress").textContent =
-        metrics.in_progress_count || 0;
+    return `${number}%`;
 }
+
+
+/* =========================================================
+   METRICS
+   ========================================================= */
+
+function updateMetrics(metrics, riskAmount = null) {
+    if (!metrics) return;
+
+    const riskElement = document.getElementById("riskAmount");
+    const recoveredElement = document.getElementById("recoveredAmount");
+    const rateElement = document.getElementById("recoveryRate");
+    const progressElement = document.getElementById("inProgress");
+
+    const amountAtRisk =
+        riskAmount !== null
+            ? riskAmount
+            : metrics.historical_amount_at_risk;
+
+    if (riskElement) {
+        riskElement.textContent = formatINR(amountAtRisk);
+    }
+
+    if (recoveredElement) {
+        recoveredElement.textContent =
+            formatINR(metrics.amount_recovered);
+    }
+
+    if (rateElement) {
+        rateElement.textContent =
+            formatPercent(metrics.recovery_rate_pct);
+    }
+
+    if (progressElement) {
+        progressElement.textContent =
+            Number(metrics.in_progress_count || 0);
+    }
+}
+
+
+/* =========================================================
+   ACTIVITY FEED
+   ========================================================= */
 
 function clearActivityFeed() {
     const feed = document.getElementById("activityFeed");
@@ -59,155 +143,270 @@ function clearActivityFeed() {
     }
 }
 
-function addActivity(message) {
+
+function addActivity(message, type = "normal") {
     const feed = document.getElementById("activityFeed");
 
+    if (!feed) return;
+
     const item = document.createElement("div");
+
     item.className = "activity-item";
 
-    item.innerHTML = `
-        <span class="activity-dot"></span>
-        <span>${message}</span>
-    `;
+    if (type === "error") {
+        item.classList.add("activity-error");
+    }
+
+    if (type === "success") {
+        item.classList.add("activity-success");
+    }
+
+    if (type === "warning") {
+        item.classList.add("activity-warning");
+    }
+
+    const dot = document.createElement("span");
+    dot.className = "activity-dot";
+
+    const text = document.createElement("span");
+    text.textContent = message;
+
+    item.appendChild(dot);
+    item.appendChild(text);
 
     feed.prepend(item);
 }
 
+
+/* =========================================================
+   RECOVERY CASES
+   ========================================================= */
+
 function renderCases(decisions) {
     const table = document.getElementById("casesTable");
 
+    if (!table) return;
+
     table.innerHTML = "";
 
-    if (!decisions || decisions.length === 0) {
-        table.innerHTML = `
-            <tr>
-                <td colspan="4" class="empty">
-                    No recovery cases found.
-                </td>
-            </tr>
-        `;
+    if (!Array.isArray(decisions) || decisions.length === 0) {
+        const row = document.createElement("tr");
+
+        const cell = document.createElement("td");
+
+        cell.colSpan = 4;
+        cell.className = "empty";
+        cell.textContent = "No recovery cases found.";
+
+        row.appendChild(cell);
+        table.appendChild(row);
+
         return;
     }
 
-    for (const decision of decisions) {
+    decisions.forEach(decision => {
         const row = document.createElement("tr");
 
-        row.innerHTML = `
-            <td>${decision.action_type || "unknown"}</td>
-            <td>${decision.rationale || "-"}</td>
-            <td>${decision.priority || "-"}</td>
-            <td>${decision.decision || "-"}</td>
-        `;
+        const failureCell = document.createElement("td");
+        failureCell.textContent =
+            decision.action_type || "unknown";
+
+        const actionCell = document.createElement("td");
+        actionCell.textContent =
+            decision.rationale || "-";
+
+        const priorityCell = document.createElement("td");
+        priorityCell.textContent =
+            decision.priority || "-";
+
+        const statusCell = document.createElement("td");
+        statusCell.textContent =
+            decision.decision || "-";
+
+        row.appendChild(failureCell);
+        row.appendChild(actionCell);
+        row.appendChild(priorityCell);
+        row.appendChild(statusCell);
 
         table.appendChild(row);
-    }
+    });
 }
+
+
+/* =========================================================
+   REPORT DOWNLOAD
+   ========================================================= */
 
 function downloadReport() {
     const batchId = getSelectedBatchId();
 
     if (!batchId) {
-        addActivity("Please select a demo batch first.");
+        addActivity(
+            "Please select a demo batch first.",
+            "warning"
+        );
+
         return;
     }
 
-    addActivity(`Generating report for ${batchId}...`);
+    addActivity(
+        `Preparing recovery report for ${batchId}...`
+    );
 
-    window.location.href =
-        `/api/batches/${encodeURIComponent(batchId)}/report`;
+    /*
+     * getReportUrl() is provided by api.js.
+     */
+
+    window.location.href = getReportUrl(batchId);
 }
+
+
+/* =========================================================
+   RECOVERY PIPELINE
+   ========================================================= */
 
 async function runRecovery() {
     const batchId = getSelectedBatchId();
 
+    if (!batchId) {
+        addActivity(
+            "Please select a demo batch first.",
+            "warning"
+        );
+
+        return;
+    }
+
     clearActivityFeed();
+    resetPipeline();
 
-    runButton.disabled = true;
-    runButton.textContent = "RUNNING...";
-
-    pipelineStatus.textContent = "DETECTING";
+    if (runButton) {
+        runButton.disabled = true;
+        runButton.textContent = "RUNNING...";
+    }
 
     try {
-        // -----------------------------------------
-        // 1. DETECT
-        // -----------------------------------------
+
+        /* -----------------------------------------
+           1. DETECT
+           ----------------------------------------- */
+
+        pipelineStatus.textContent = "DETECTING";
 
         setStep("detectStep", "active");
 
-        addActivity("Detecting revenue at risk...");
+        addActivity(
+            "Detecting revenue at risk..."
+        );
 
         const detection = await detectBatch(batchId);
 
         setStep("detectStep", "done");
 
         addActivity(
-            `Detection complete: ${detection.detected_count} recoverable case(s).`
+            `Detection complete: ${Number(
+                detection.detected_count || 0
+            )} recoverable case(s).`,
+            "success"
         );
 
-        // -----------------------------------------
-        // 2. DECIDE
-        // -----------------------------------------
+
+        /* -----------------------------------------
+           2. DECIDE
+           ----------------------------------------- */
 
         pipelineStatus.textContent = "DECIDING";
 
         setStep("decideStep", "active");
 
-        addActivity("Running recovery decision engine...");
+        addActivity(
+            "Running recovery decision engine..."
+        );
 
         const decisionResult = await decideBatch(batchId);
 
+        const decisions =
+            Array.isArray(decisionResult.decisions)
+                ? decisionResult.decisions
+                : [];
+
         setStep("decideStep", "done");
 
-        renderCases(decisionResult.decisions);
+        renderCases(decisions);
 
         addActivity(
-            `Decision engine evaluated ${decisionResult.decisions.length} case(s).`
+            `Decision engine evaluated ${decisions.length} case(s).`
         );
 
-        // -----------------------------------------
-        // 3. EXECUTE
-        // -----------------------------------------
+
+        /* -----------------------------------------
+           3. EXECUTE
+           ----------------------------------------- */
 
         pipelineStatus.textContent = "EXECUTING";
 
         setStep("executeStep", "active");
 
-        addActivity("Executing approved recovery actions...");
+        addActivity(
+            "Executing approved recovery actions..."
+        );
 
         const execution = await executeBatch(batchId);
+
+        const actionsExecuted =
+            Number(execution.actions_executed || 0);
 
         setStep("executeStep", "done");
 
         addActivity(
-            `Execution complete: ${execution.actions_executed} action(s) executed.`
+            `Execution complete: ${actionsExecuted} action(s) executed.`,
+            actionsExecuted > 0 ? "success" : "warning"
         );
 
-        // -----------------------------------------
-        // 4. OUTCOME / METRICS
-        // -----------------------------------------
+
+        /* -----------------------------------------
+           4. OUTCOME
+           ----------------------------------------- */
 
         pipelineStatus.textContent = "TRACKING OUTCOME";
 
         setStep("outcomeStep", "active");
 
+        addActivity(
+            "Updating recovery metrics..."
+        );
+
         const metrics = await getMetrics(batchId);
 
-updateMetrics(metrics, detection.amount_at_risk);
+        updateMetrics(
+            metrics,
+            detection.amount_at_risk
+        );
 
         setStep("outcomeStep", "done");
 
         pipelineStatus.textContent = "COMPLETE";
 
         addActivity(
-            `Recovery metrics updated. Recovery rate: ${metrics.recovery_rate_pct}%.`
+            `Recovery metrics updated. Recovery rate: ${
+                metrics.recovery_rate_pct || 0
+            }%.`,
+            "success"
         );
 
     } catch (error) {
-        console.error(error);
+
+        console.error(
+            "DunnFlow recovery pipeline error:",
+            error
+        );
 
         pipelineStatus.textContent = "ERROR";
 
-        addActivity(`Pipeline error: ${error.message}`);
+        addActivity(
+            `Pipeline error: ${error.message}`,
+            "error"
+        );
 
         [
             "detectStep",
@@ -217,85 +416,145 @@ updateMetrics(metrics, detection.amount_at_risk);
         ].forEach(id => {
             const step = document.getElementById(id);
 
-            if (step && step.dataset.state === "active") {
+            if (
+                step &&
+                step.dataset.state === "active"
+            ) {
                 setStep(id, "error");
             }
         });
 
     } finally {
-        runButton.disabled = false;
-        runButton.textContent = "RUN RECOVERY";
+
+        if (runButton) {
+            runButton.disabled = false;
+            runButton.textContent = "RUN RECOVERY";
+        }
     }
 }
 
-runButton.addEventListener("click", runRecovery);
 
-const downloadReportButton =
-      document.getElementById("downloadReportBtn");
+/* =========================================================
+   BATCH SWITCHING
+   ========================================================= */
 
-downloadReportButton.addEventListener("click", downloadReport);
-
-batchSelect.addEventListener("change", async () => {
+async function handleBatchChange() {
     const batchId = getSelectedBatchId();
 
-    // Clear previous batch activity
+    if (!batchId) return;
+
     clearActivityFeed();
+    resetPipeline();
+
+    renderCases([]);
 
     try {
+
+        addActivity(
+            `Loading batch ${batchId}...`
+        );
+
         const detection = await detectBatch(batchId);
         const metrics = await getMetrics(batchId);
 
-        updateMetrics(metrics, detection.amount_at_risk);
-
-        renderCases([]);
-
-        pipelineStatus.textContent = "READY";
-
-        [
-            "detectStep",
-            "decideStep",
-            "executeStep",
-            "outcomeStep"
-        ].forEach(id => {
-            const step = document.getElementById(id);
-
-            if (step) {
-                step.dataset.state = "";
-                step.style.borderColor = "";
-            }
-        });
+        updateMetrics(
+            metrics,
+            detection.amount_at_risk
+        );
 
         addActivity(
             `Switched to batch ${batchId}.`
         );
 
     } catch (error) {
-        console.error(error);
+
+        console.error(
+            "Batch loading failed:",
+            error
+        );
+
         addActivity(
-            `Unable to load batch ${batchId}.`
+            `Unable to load batch ${batchId}: ${error.message}`,
+            "error"
         );
     }
-});
+}
 
 
-// Load initial metrics
-(async function initializeDashboard() {
+/* =========================================================
+   EVENT LISTENERS
+   ========================================================= */
+
+if (runButton) {
+    runButton.addEventListener(
+        "click",
+        runRecovery
+    );
+}
+
+
+if (downloadReportButton) {
+    downloadReportButton.addEventListener(
+        "click",
+        downloadReport
+    );
+}
+
+
+if (batchSelect) {
+    batchSelect.addEventListener(
+        "change",
+        handleBatchChange
+    );
+}
+
+
+/* =========================================================
+   INITIAL DASHBOARD LOAD
+   ========================================================= */
+
+async function initializeDashboard() {
+
     try {
+
         const health = await getHealth();
 
-        if (health.status === "ok") {
-            addActivity("DunnFlow API connected.");
+        if (health && health.status === "ok") {
+            addActivity(
+                "DunnFlow API connected.",
+                "success"
+            );
         }
 
         const batchId = getSelectedBatchId();
 
+        if (!batchId) {
+            return;
+        }
+
         const detection = await detectBatch(batchId);
         const metrics = await getMetrics(batchId);
 
-        updateMetrics(metrics, detection.amount_at_risk);
+        updateMetrics(
+            metrics,
+            detection.amount_at_risk
+        );
 
     } catch (error) {
-        console.error("Dashboard initialization failed:", error);
-        addActivity("Unable to connect to DunnFlow API.");
+
+        console.error(
+            "Dashboard initialization failed:",
+            error
+        );
+
+        addActivity(
+            "Unable to connect to DunnFlow API.",
+            "error"
+        );
     }
-})();
+}
+
+
+/* Start dashboard */
+
+initializeDashboard();

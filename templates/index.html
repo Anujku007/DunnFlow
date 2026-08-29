@@ -6,95 +6,136 @@
 
     <title>DunnFlow — Revenue Recovery Control Center</title>
 
+    <link rel="icon" href="/static/images/dunnflow-logo.png">
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 
 <body>
 
-<!-- =========================================================
-     TOP NAVIGATION
-========================================================= -->
-
 <header class="topbar">
+    <div class="topbar-inner">
 
-    <div class="brand-area">
-        <a href="#control-center" class="brand-link">
-
+        <a href="#control-center" class="brand nav-link">
             <img
                 src="/static/images/dunnflow-logo.png"
-                alt="DunnFlow logo"
+                alt="DunnFlow"
                 class="brand-logo"
             >
 
-            <div class="brand-text">
-                <div class="brand">DUNNFLOW</div>
-                <div class="subtitle">
+            <div class="brand-copy">
+                <div class="brand-name">DunnFlow</div>
+                <div class="brand-tagline">
                     Revenue Recovery Control Center
                 </div>
             </div>
-
         </a>
+
+        <nav class="main-nav" aria-label="Primary navigation">
+            <a href="#control-center" class="nav-link active">
+                CONTROL CENTER
+            </a>
+
+            <a href="#demo-lab" class="nav-link">
+                DEMO LAB
+            </a>
+
+            <a href="#reports" class="nav-link">
+                REPORTS
+            </a>
+
+            <a href="#audit-log" class="nav-link">
+                AUDIT LOG
+            </a>
+        </nav>
+
+        <div class="system-status">
+            <span class="status-dot"></span>
+            <span>SYSTEM OPERATIONAL</span>
+        </div>
+
     </div>
-
-    <nav class="main-nav" aria-label="Main navigation">
-
-        <a href="#control-center" class="nav-link active">
-            CONTROL CENTER
-        </a>
-
-        <a href="#demo-lab" class="nav-link">
-            DEMO LAB
-        </a>
-
-        <a href="#reports" class="nav-link">
-            REPORTS
-        </a>
-
-        <a href="#audit-log" class="nav-link">
-            AUDIT LOG
-        </a>
-
-    </nav>
-
-    <div class="system-status">
-        <span class="status-dot"></span>
-        SYSTEM OPERATIONAL
-    </div>
-
 </header>
 
-<!-- =========================================================
-     MAIN APPLICATION
-========================================================= -->
 
-<main class="container">
-
+<main>
 
     <!-- =====================================================
          CONTROL CENTER / HERO
     ====================================================== -->
 
-    <section
-        id="control-center"
-        class="hero"
-    >
+    <section id="control-center" class="hero-section">
 
-        <div class="hero-content">
+        <div class="hero-inner">
 
-            <div class="eyebrow">
-                AUTONOMOUS PAYMENT RECOVERY
+            <div class="hero-copy">
+
+                <div class="eyebrow">
+                    AUTONOMOUS PAYMENT RECOVERY
+                </div>
+
+                <h1>
+                    Recover revenue.
+                    <span>Intelligently.</span>
+                </h1>
+
+                <p>
+                    DunnFlow detects failed payments, diagnoses the failure,
+                    selects the safest recovery action, and executes it within
+                    defined guardrails.
+                </p>
+
+                <div class="hero-signals">
+                    <div>
+                        <span class="signal-number">01</span>
+                        <span>Detect</span>
+                    </div>
+
+                    <div>
+                        <span class="signal-number">02</span>
+                        <span>Decide</span>
+                    </div>
+
+                    <div>
+                        <span class="signal-number">03</span>
+                        <span>Execute</span>
+                    </div>
+
+                    <div>
+                        <span class="signal-number">04</span>
+                        <span>Recover</span>
+                    </div>
+                </div>
+
             </div>
 
-            <h1>
-                Recover revenue.<br>
-                <span>Intelligently.</span>
-            </h1>
+            <div class="hero-visual" aria-hidden="true">
 
-            <p>
-                DunnFlow detects failed payments, diagnoses the failure,
-                selects the safest recovery action, and executes it
-                within defined guardrails.
-            </p>
+                <div class="visual-grid"></div>
+
+                <div class="visual-panel">
+
+                    <div class="visual-shield">
+                        <span>✓</span>
+                    </div>
+
+                    <div class="visual-chart">
+                        <i></i>
+                        <i></i>
+                        <i></i>
+                        <i></i>
+                        <i></i>
+                        <i></i>
+                    </div>
+
+                    <div class="visual-line"></div>
+
+                </div>
+
+                <div class="visual-node node-one">+</div>
+                <div class="visual-node node-two">+</div>
+                <div class="visual-node node-three">+</div>
+
+            </div>
 
         </div>
 
@@ -105,119 +146,275 @@
          DEMO LAB
     ====================================================== -->
 
-    <section
-        id="demo-lab"
-        class="demo-section"
-    >
+    <section id="demo-lab" class="section demo-section">
 
-        <div class="section-heading">
+        <div class="section-shell">
 
-            <div>
+            <!-- Section heading -->
 
-                <div class="eyebrow">
-                    DEMO LAB
+            <div class="demo-header">
+
+                <div>
+                    <div class="section-kicker">
+                        DEMO LAB
+                    </div>
+
+                    <h2>
+                        Recovery controls
+                    </h2>
                 </div>
 
-                <h2>
-                    Recovery controls
-                </h2>
-
-            </div>
-
-            <div class="demo-mode">
-                SYNTHETIC TEST MODE
-            </div>
-
-        </div>
-
-
-        <div class="demo-controls">
-
-            <div class="batch-control">
-
-                <label for="batchSelect">
-                    DEMO BATCH
-                </label>
-
-                <select
-                    id="batchSelect"
-                    class="batch-select"
-                >
-
-                    <option value="e2e_demo_card_expired_002">
-                        Card Expired — Fresh Demo
-                    </option>
-
-                    <option value="e2e_api_card_expired_001">
-                        Card Expired — Guardrail Demo
-                    </option>
-
-                    <option value="e2e_api_unclassified_001">
-                        Unclassified — Manual Review
-                    </option>
-
-                </select>
+                <div class="mode-pill">
+                    <span></span>
+                    SYNTHETIC TEST MODE
+                </div>
 
             </div>
 
 
-            <button
-                id="runBatchBtn"
-                class="primary-btn"
-                type="button"
-            >
-                RUN RECOVERY
-            </button>
+            <!-- =================================================
+                 DEMO CONTROL PANEL
+            ================================================== -->
+
+            <div class="demo-console">
+
+                <div class="demo-console-header">
+
+                    <div class="demo-batch-block">
+
+                        <label for="batchSelect">
+                            DEMO BATCH
+                        </label>
+
+                        <div class="batch-select-wrapper">
+
+                            <span class="batch-select-icon">
+                                ◈
+                            </span>
+
+                            <select
+                                id="batchSelect"
+                                class="batch-select"
+                            >
+
+                                <option value="e2e_demo_card_expired_002">
+                                    Card Expired — Fresh Demo
+                                </option>
+
+                                <option value="e2e_demo_card_expired_001">
+                                    Card Expired — Guardrail Demo
+                                </option>
+
+                                <option value="e2e_demo_unclassified_001">
+                                    Unclassified — Manual Review
+                                </option>
+
+                            </select>
+
+                            <span class="batch-select-chevron">
+                               ⌄
+                            </span>
+
+                        </div>
+
+                    </div>
 
 
-            <button
-                id="downloadReportBtn"
-                class="secondary-btn"
-                type="button"
-            >
-                DOWNLOAD REPORT
-            </button>
+                    <div class="run-recovery-block">
 
-        </div>
+                        <button
+                            id="runBatchBtn"
+                            class="primary-button"
+                            type="button"
+                        >
 
+                            <span class="button-icon">
+                                ▶
+                            </span>
 
-        <div class="demo-explanations">
+                            <span class="button-label">
+                                RUN RECOVERY
+                            </span>
 
-            <div class="demo-explanation">
+                            <span class="button-arrow">
+                                →
+                            </span>
 
-                <strong>
-                    Fresh Demo
-                </strong>
+                        </button>
 
-                <span>
-                    Demonstrates an eligible recovery opportunity.
-                </span>
+                        <div class="run-recovery-caption">
+                            Executes the full recovery pipeline
+                            within defined guardrails.
+                        </div>
 
-            </div>
+                    </div>
 
-
-            <div class="demo-explanation">
-
-                <strong>
-                    Guardrail Demo
-                </strong>
-
-                <span>
-                    Demonstrates safe blocking of an unsafe action.
-                </span>
-
-            </div>
+                </div>
 
 
-            <div class="demo-explanation">
+                <!-- =================================================
+                     SCENARIO CARDS
+                ================================================== -->
 
-                <strong>
-                    Manual Review
-                </strong>
+                <div class="scenario-grid">
 
-                <span>
-                    Demonstrates escalation when the failure is unknown.
-                </span>
+
+                    <!-- FRESH DEMO -->
+
+                    <button
+                        type="button"
+                        class="scenario-card scenario-card-fresh is-selected"
+                        data-batch="e2e_demo_card_expired_002"
+                    >
+
+                        <span class="scenario-check">
+                            ✓
+                        </span>
+
+                        <div class="scenario-card-top">
+
+                            <div class="scenario-icon scenario-icon-green">
+                                ↻
+                            </div>
+
+                            <span class="scenario-number">
+                                01
+                            </span>
+
+                        </div>
+
+                        <div class="scenario-card-content">
+
+                            <div class="scenario-card-title">
+                                Fresh Demo
+                            </div>
+
+                            <p>
+                                Demonstrates an eligible recovery
+                                opportunity.
+                            </p>
+
+                        </div>
+
+                        <div class="scenario-card-footer">
+
+                            <span class="scenario-status status-eligible">
+                                ELIGIBLE RECOVERY
+                            </span>
+
+                            <span class="scenario-arrow">
+                                →
+                            </span>
+
+                        </div>
+
+                    </button>
+
+
+                    <!-- GUARDRAIL DEMO -->
+
+                    <button
+                        type="button"
+                        class="scenario-card scenario-card-guardrail"
+                        data-batch="e2e_demo_card_expired_001"
+                    >
+
+                        <span class="scenario-check">
+                            ✓
+                        </span>
+
+                        <div class="scenario-card-top">
+
+                            <div class="scenario-icon scenario-icon-amber">
+                                ⛨
+                            </div>
+
+                            <span class="scenario-number">
+                                02
+                            </span>
+
+                        </div>
+
+                        <div class="scenario-card-content">
+
+                            <div class="scenario-card-title">
+                                Guardrail Demo
+                            </div>
+
+                            <p>
+                                Demonstrates safe blocking of an
+                                unsafe action.
+                            </p>
+
+                        </div>
+
+                        <div class="scenario-card-footer">
+
+                            <span class="scenario-status status-blocked">
+                                SAFE BLOCKING
+                            </span>
+
+                            <span class="scenario-arrow">
+                                →
+                            </span>
+
+                        </div>
+
+                    </button>
+
+
+                    <!-- MANUAL REVIEW -->
+
+                    <button
+                        type="button"
+                        class="scenario-card scenario-card-manual"
+                        data-batch="e2e_demo_unclassified_001"
+                    >
+
+                        <span class="scenario-check">
+                            ✓
+                        </span>
+
+                        <div class="scenario-card-top">
+
+                            <div class="scenario-icon scenario-icon-purple">
+                                ◎
+                            </div>
+
+                            <span class="scenario-number">
+                                03
+                            </span>
+
+                        </div>
+
+                        <div class="scenario-card-content">
+
+                            <div class="scenario-card-title">
+                                Manual Review
+                            </div>
+
+                            <p>
+                                Demonstrates escalation when the
+                                failure is unknown.
+                            </p>
+
+                        </div>
+
+                        <div class="scenario-card-footer">
+
+                            <span class="scenario-status status-review">
+                                ESCALATION
+                            </span>
+
+                            <span class="scenario-arrow">
+                                →
+                            </span>
+
+                        </div>
+
+                    </button>
+
+                </div>
 
             </div>
 
@@ -230,84 +427,115 @@
          METRICS
     ====================================================== -->
 
-    <section class="metrics-grid">
+    <section class="metrics-section">
+
+        <div class="section-shell">
+
+            <div class="metrics-grid">
+
+                <article class="metric-card metric-risk">
+
+                    <div class="metric-top">
+                        <span class="metric-label">
+                            REVENUE AT RISK
+                        </span>
+
+                        <span class="metric-icon">
+                            ▰
+                        </span>
+                    </div>
+
+                    <div
+                        id="riskAmount"
+                        class="metric-value"
+                    >
+                        ₹0.00
+                    </div>
+
+                    <div class="metric-description">
+                        Detected recoverable revenue
+                    </div>
+
+                </article>
 
 
-        <div class="metric-card highlight">
+                <article class="metric-card metric-recovered">
 
-            <div class="metric-label">
-                REVENUE AT RISK
-            </div>
+                    <div class="metric-top">
+                        <span class="metric-label">
+                            RECOVERED
+                        </span>
 
-            <div
-                id="riskAmount"
-                class="metric-value"
-            >
-                ₹0
-            </div>
+                        <span class="metric-icon">
+                            ₹
+                        </span>
+                    </div>
 
-            <div class="metric-detail">
-                Detected recoverable revenue
-            </div>
+                    <div
+                        id="recoveredAmount"
+                        class="metric-value"
+                    >
+                        ₹0.00
+                    </div>
 
-        </div>
+                    <div class="metric-description">
+                        Successfully recovered
+                    </div>
 
-
-        <div class="metric-card">
-
-            <div class="metric-label">
-                RECOVERED
-            </div>
-
-            <div
-                id="recoveredAmount"
-                class="metric-value"
-            >
-                ₹0
-            </div>
-
-            <div class="metric-detail">
-                Successfully recovered
-            </div>
-
-        </div>
+                </article>
 
 
-        <div class="metric-card">
+                <article class="metric-card metric-rate">
 
-            <div class="metric-label">
-                RECOVERY RATE
-            </div>
+                    <div class="metric-top">
+                        <span class="metric-label">
+                            RECOVERY RATE
+                        </span>
 
-            <div
-                id="recoveryRate"
-                class="metric-value"
-            >
-                0%
-            </div>
+                        <span class="metric-icon">
+                            ◔
+                        </span>
+                    </div>
 
-            <div class="metric-detail">
-                Revenue recovery efficiency
-            </div>
+                    <div
+                        id="recoveryRate"
+                        class="metric-value"
+                    >
+                        0%
+                    </div>
 
-        </div>
+                    <div class="metric-description">
+                        Revenue recovery efficiency
+                    </div>
+
+                </article>
 
 
-        <div class="metric-card">
+                <article class="metric-card metric-progress">
 
-            <div class="metric-label">
-                CASES IN PROGRESS
-            </div>
+                    <div class="metric-top">
+                        <span class="metric-label">
+                            CASES IN PROGRESS
+                        </span>
 
-            <div
-                id="inProgress"
-                class="metric-value"
-            >
-                0
-            </div>
+                        <span class="metric-icon">
+                            ⌛
+                        </span>
+                    </div>
 
-            <div class="metric-detail">
-                Awaiting recovery outcome
+                    <div
+                        id="inProgress"
+                        class="metric-value"
+                    >
+                        0
+                    </div>
+
+                    <div class="metric-description">
+                        Awaiting recovery outcome
+                    </div>
+
+                </article>
+
             </div>
 
         </div>
@@ -319,125 +547,128 @@
          DECISION PIPELINE
     ====================================================== -->
 
-    <section class="pipeline-section">
+    <section class="section pipeline-section">
 
-        <div class="section-heading">
+        <div class="section-shell">
 
-            <div>
+            <div class="panel">
 
-                <div class="eyebrow">
-                    DECISION PIPELINE
+                <div class="panel-header">
+
+                    <div>
+
+                        <div class="section-kicker">
+                            DECISION PIPELINE
+                        </div>
+
+                        <h2>
+                            Recovery intelligence
+                        </h2>
+
+                    </div>
+
+                    <div
+                        id="pipelineStatus"
+                        class="pipeline-status"
+                    >
+                        READY
+                    </div>
+
                 </div>
 
-                <h2>
-                    Recovery intelligence
-                </h2>
 
-            </div>
+                <div class="pipeline">
 
-            <div
-                id="pipelineStatus"
-                class="pipeline-status"
-            >
-                READY
-            </div>
+                    <div
+                        id="detectStep"
+                        class="pipeline-step"
+                    >
 
-        </div>
+                        <div class="step-number step-green">
+                            01
+                        </div>
 
+                        <div class="step-copy">
+                            <strong>DETECT</strong>
+                            <span>
+                                Identify revenue at risk
+                            </span>
+                        </div>
 
-        <div class="pipeline">
-
-
-            <div
-                class="pipeline-step"
-                id="detectStep"
-            >
-
-                <div class="step-number">
-                    01
-                </div>
-
-                <div class="step-title">
-                    DETECT
-                </div>
-
-                <div class="step-description">
-                    Identify revenue at risk
-                </div>
-
-            </div>
+                    </div>
 
 
-            <div class="arrow">
-                →
-            </div>
+                    <div class="pipeline-arrow">
+                        →
+                    </div>
 
 
-            <div
-                class="pipeline-step"
-                id="decideStep"
-            >
+                    <div
+                        id="decideStep"
+                        class="pipeline-step"
+                    >
 
-                <div class="step-number">
-                    02
-                </div>
+                        <div class="step-number step-blue">
+                            02
+                        </div>
 
-                <div class="step-title">
-                    DECIDE
-                </div>
+                        <div class="step-copy">
+                            <strong>DECIDE</strong>
+                            <span>
+                                Choose safest recovery action
+                            </span>
+                        </div>
 
-                <div class="step-description">
-                    Choose safest recovery action
-                </div>
-
-            </div>
-
-
-            <div class="arrow">
-                →
-            </div>
+                    </div>
 
 
-            <div
-                class="pipeline-step"
-                id="executeStep"
-            >
-
-                <div class="step-number">
-                    03
-                </div>
-
-                <div class="step-title">
-                    EXECUTE
-                </div>
-
-                <div class="step-description">
-                    Execute within guardrails
-                </div>
-
-            </div>
+                    <div class="pipeline-arrow">
+                        →
+                    </div>
 
 
-            <div class="arrow">
-                →
-            </div>
+                    <div
+                        id="executeStep"
+                        class="pipeline-step"
+                    >
+
+                        <div class="step-number step-amber">
+                            03
+                        </div>
+
+                        <div class="step-copy">
+                            <strong>EXECUTE</strong>
+                            <span>
+                                Execute within guardrails
+                            </span>
+                        </div>
+
+                    </div>
 
 
-            <div
-                class="pipeline-step"
-                id="outcomeStep"
-            >
+                    <div class="pipeline-arrow">
+                        →
+                    </div>
 
-                <div class="step-number">
-                    04
-                </div>
 
-                <div class="step-title">
-                    OUTCOME
-                </div>
+                    <div
+                        id="outcomeStep"
+                        class="pipeline-step"
+                    >
 
-                <div class="step-description">
-                    Track recovery result
+                        <div class="step-number step-purple">
+                            04
+                        </div>
+
+                        <div class="step-copy">
+                            <strong>OUTCOME</strong>
+                            <span>
+                                Track recovery result
+                            </span>
+                        </div>
+
+                    </div>
+
                 </div>
 
             </div>
@@ -448,124 +679,123 @@
 
 
     <!-- =====================================================
-         RECOVERY CASES
+         RECOVERY CASES + REPORT
     ====================================================== -->
 
-    <section class="cases-section">
+    <section class="section operations-section">
 
-        <div class="section-heading">
+        <div class="section-shell operations-grid">
 
-            <div>
+            <div class="panel cases-panel">
 
-                <div class="eyebrow">
-                    RECOVERY CASES
-                </div>
+                <div class="panel-header compact">
 
-                <h2>
-                    Failure → Action
-                </h2>
+                    <div>
 
-            </div>
+                        <div class="section-kicker">
+                            RECOVERY CASES
+                        </div>
 
-        </div>
+                        <h2>
+                            Failure → Action
+                        </h2>
 
-
-        <div class="table-wrapper">
-
-            <table>
-
-                <thead>
-
-                    <tr>
-                        <th>FAILURE</th>
-                        <th>RECOMMENDED ACTION</th>
-                        <th>PRIORITY</th>
-                        <th>STATUS</th>
-                    </tr>
-
-                </thead>
-
-
-                <tbody id="casesTable">
-
-                    <tr>
-
-                        <td
-                            colspan="4"
-                            class="empty"
-                        >
-                            Run a batch to load recovery cases.
-                        </td>
-
-                    </tr>
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </section>
-
-
-    <!-- =====================================================
-         REPORTS
-    ====================================================== -->
-
-    <section
-        id="reports"
-        class="reports-section"
-    >
-
-        <div class="section-heading">
-
-            <div>
-
-                <div class="eyebrow">
-                    REPORTS
-                </div>
-
-                <h2>
-                    Recovery report
-                </h2>
-
-            </div>
-
-        </div>
-
-
-        <div class="report-card">
-
-            <div class="report-info">
-
-                <div class="report-icon">
-                    PDF
-                </div>
-
-                <div>
-
-                    <div class="report-title">
-                        Batch recovery report
-                    </div>
-
-                    <div class="report-description">
-                        Download a PDF containing detected cases,
-                        recovery decisions, guardrail evaluations,
-                        execution outcomes, and recovery metrics.
                     </div>
 
                 </div>
 
+
+                <div class="table-wrap">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+                                <th>FAILURE</th>
+                                <th>RECOMMENDED ACTION</th>
+                                <th>PRIORITY</th>
+                                <th>STATUS</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="casesTable">
+
+                            <tr>
+
+                                <td
+                                    colspan="4"
+                                    class="empty"
+                                >
+                                    Run a batch to load
+                                    recovery cases.
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
             </div>
 
 
-            <button
-                id="downloadReportBtnSecondary"
-                class="secondary-btn"
-                type="button"
+            <div
+                id="reports"
+                class="panel report-panel"
             >
-                DOWNLOAD REPORT
-            </button>
+
+                <div class="panel-header compact">
+
+                    <div>
+
+                        <div class="section-kicker">
+                            REPORTS
+                        </div>
+
+                        <h2>
+                            Recovery report
+                        </h2>
+
+                    </div>
+
+                </div>
+
+
+                <div class="report-card">
+
+                    <div class="pdf-icon">
+                        PDF
+                    </div>
+
+                    <div class="report-copy">
+
+                        <strong>
+                            Batch recovery report
+                        </strong>
+
+                        <p>
+                            Download a PDF containing detected cases,
+                            recovery decisions, guardrail evaluations,
+                            execution outcomes, and recovery metrics.
+                        </p>
+
+                    </div>
+
+                    <button
+                        id="downloadReportBtn"
+                        class="secondary-button"
+                        type="button"
+                    >
+                        ⇩ &nbsp; DOWNLOAD REPORT
+                    </button>
+
+                </div>
+
+            </div>
 
         </div>
 
@@ -578,42 +808,50 @@
 
     <section
         id="audit-log"
-        class="activity-section"
+        class="section audit-section"
     >
 
-        <div class="section-heading">
+        <div class="section-shell">
 
-            <div>
+            <div class="panel audit-panel">
 
-                <div class="eyebrow">
-                    AUDIT LOG
+                <div class="panel-header">
+
+                    <div>
+
+                        <div class="section-kicker">
+                            AUDIT LOG
+                        </div>
+
+                        <h2>
+                            Live recovery feed
+                        </h2>
+
+                    </div>
+
+                    <div class="audit-label">
+                        TRACEABLE ACTIVITY
+                    </div>
+
                 </div>
 
-                <h2>
-                    Live recovery feed
-                </h2>
 
-            </div>
+                <div
+                    id="activityFeed"
+                    class="activity-feed"
+                >
 
-            <div class="audit-label">
-                TRACEABLE ACTIVITY
-            </div>
+                    <div class="activity-item">
 
-        </div>
+                        <span class="activity-dot"></span>
 
+                        <span>
+                            DunnFlow ready for recovery analysis.
+                        </span>
 
-        <div
-            id="activityFeed"
-            class="activity-feed"
-        >
+                    </div>
 
-            <div class="activity-item">
-
-                <span class="activity-dot"></span>
-
-                <span>
-                    DunnFlow ready for recovery analysis.
-                </span>
+                </div>
 
             </div>
 
@@ -624,17 +862,19 @@
 </main>
 
 
-<!-- =========================================================
-     FOOTER
-========================================================= -->
+<footer class="footer">
 
-<footer>
+    <div class="section-shell">
 
-    DunnFlow
-    <span>·</span>
-    Autonomous Revenue Recovery
-    <span>·</span>
-    Synthetic Test Mode
+        <span>
+            DUNNFLOW
+        </span>
+
+        <span>
+            Autonomous payment recovery control center
+        </span>
+
+    </div>
 
 </footer>
 
@@ -643,7 +883,9 @@
      JAVASCRIPT
 ========================================================= -->
 
-
+<script src="/static/js/api.js"></script>
+<script src="/static/js/navigation.js"></script>
+<script src="/static/js/metrics.js"></script>
 
 </body>
 </html>
