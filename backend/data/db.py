@@ -1068,18 +1068,22 @@ def get_batch_metrics(batch_id: str) -> dict:
         for event in recovery_events
     )
 
-    # ------------------------------------------------------------------
-    # Revenue at risk
+        # ------------------------------------------------------------------
+    # Current revenue at risk
+    #
+    # revenue_at_risk events are historical facts.
+    # Current risk must be calculated from the invoice's current status.
+    # A recovered/paid invoice is no longer currently at risk.
     # ------------------------------------------------------------------
 
     at_risk = _fetchone(
         """
         SELECT
-            COUNT(DISTINCT invoice_id) AS invoice_count,
+            COUNT(*) AS invoice_count,
             COALESCE(SUM(amount), 0) AS amount
-        FROM revenue_events
+        FROM invoices
         WHERE batch_id = ?
-          AND event_type = 'revenue_at_risk'
+          AND status != 'paid'
         """,
         (batch_id,),
     )
@@ -1093,8 +1097,42 @@ def get_batch_metrics(batch_id: str) -> dict:
     )
 
     # ------------------------------------------------------------------
-    # All invoices in benchmark
+# Current revenue at risk
+#
+# revenue_at_risk events are historical facts.
+# Current risk must be calculated from the invoice's current status.
+# A recovered/paid invoice is no longer currently at risk.
+# ------------------------------------------------------------------
+
+# ------------------------------------------------------------------
+# All invoices in benchmark
+# ------------------------------------------------------------------
     # ------------------------------------------------------------------
+# Historical revenue-at-risk baseline
+#
+# This is the amount that was originally exposed to failure.
+# It is used as the denominator for recovery rate.
+# ------------------------------------------------------------------
+
+    historical_risk = _fetchone(
+    """
+    SELECT
+        COUNT(DISTINCT invoice_id) AS invoice_count,
+        COALESCE(SUM(amount), 0) AS amount
+    FROM revenue_events
+    WHERE batch_id = ?
+      AND event_type = 'revenue_at_risk'
+    """,
+    (batch_id,),
+)
+
+    historical_invoices_at_risk = int(
+    historical_risk["invoice_count"] or 0
+)
+
+    historical_amount_at_risk = int(
+    historical_risk["amount"] or 0
+)
 
     invoices = get_invoices(
         batch_id=batch_id
@@ -1184,17 +1222,17 @@ def get_batch_metrics(batch_id: str) -> dict:
     # ------------------------------------------------------------------
 
     recovery_rate_pct = (
-        round(
-            (
-                amount_recovered
-                / amount_at_risk
-            )
-            * 100,
-            1,
+    round(
+        (
+            amount_recovered
+            / historical_amount_at_risk
         )
-        if amount_at_risk
-        else 0.0
+        * 100,
+        1,
     )
+    if historical_amount_at_risk
+    else 0.0
+)
 
     # ------------------------------------------------------------------
     # Failure category metrics
@@ -1347,8 +1385,8 @@ def get_batch_metrics(batch_id: str) -> dict:
         # Financial metrics
         # --------------------------------------------------------------
 
-        "total_invoices": total_invoices,
-        "amount_at_risk": amount_at_risk,
+        "historical_invoices_at_risk": historical_invoices_at_risk,
+        "historical_amount_at_risk": historical_amount_at_risk,
 
         "recovered_count": recovered_count,
         "amount_recovered": amount_recovered,

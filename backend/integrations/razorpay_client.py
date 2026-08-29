@@ -82,51 +82,51 @@ class RazorpayClient:
     """
 
     def __init__(
-    self,
-    key_id: str | None = None,
-    key_secret: str | None = None,
-    mode: str | None = None,
-) -> None:
+        self,
+        key_id: str | None = None,
+        key_secret: str | None = None,
+        mode: str | None = None,
+    ) -> None:
 
-     self.key_id = key_id or RAZORPAY_KEY_ID
-     self.key_secret = key_secret or RAZORPAY_KEY_SECRET
+        self.key_id = key_id or RAZORPAY_KEY_ID
+        self.key_secret = key_secret or RAZORPAY_KEY_SECRET
 
-     self.mode = (
-        mode or RAZORPAY_MODE
-    ).strip().lower()
+        self.mode = (
+            mode or RAZORPAY_MODE
+        ).strip().lower()
 
-     if self.mode not in {"test", "live"}:
-        raise RazorpayConfigurationError(
-            "RAZORPAY_MODE must be either 'test' or 'live'."
+        if self.mode not in {"test", "live"}:
+            raise RazorpayConfigurationError(
+                "RAZORPAY_MODE must be either 'test' or 'live'."
+            )
+
+        self.base_url = RAZORPAY_BASE_URL
+
+        self.configured = bool(
+            self.key_id and self.key_secret
         )
 
-     self.base_url = RAZORPAY_BASE_URL
+        self.session = requests.Session()
 
-     self.configured = bool(
-        self.key_id and self.key_secret
-    )
+        if self.configured:
+            self.session.auth = (
+                self.key_id,
+                self.key_secret,
+            )
 
-     self.session = requests.Session()
-
-     if self.configured:
-        self.session.auth = (
-            self.key_id,
-            self.key_secret,
+        self.session.headers.update(
+            {
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "User-Agent": "DunnFlow/1.0",
+            }
         )
-
-     self.session.headers.update(
-        {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-            "User-Agent": "DunnFlow/1.0",
-        }
-    )
 
     def _require_credentials(self) -> None:
-     if not self.configured:
-        raise RazorpayConfigurationError(
-            "Razorpay credentials are not configured."
-        )  
+        if not self.configured:
+            raise RazorpayConfigurationError(
+                "Razorpay credentials are not configured."
+            )
 
     # -----------------------------------------------------------------------
     # Configuration helpers
@@ -159,6 +159,8 @@ class RazorpayClient:
         params: dict[str, Any] | None = None,
         json: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+
+        self._require_credentials()
 
         url = f"{self.base_url}{endpoint}"
 
@@ -367,29 +369,25 @@ class RazorpayClient:
             "payment_id": payment.get("id"),
             "order_id": payment.get("order_id"),
             "amount": payment.get("amount"),
-            "currency": payment.get("currency", "INR"),
+            "currency": payment.get("currency"),
             "status": payment.get("status"),
             "method": payment.get("method"),
             "captured": payment.get("captured"),
             "description": payment.get("description"),
             "email": payment.get("email"),
             "contact": payment.get("contact"),
+
             "error_code": payment.get("error_code"),
-            "error_description": payment.get(
-                "error_description"
-            ),
-            "error_reason": payment.get(
-                "error_reason"
-            ),
-            "error_source": payment.get(
-                "error_source"
-            ),
-            "error_step": payment.get(
-                "error_step"
-            ),
-            "created_at": payment.get(
-                "created_at"
-            ),
+            "error_description": payment.get("error_description"),
+            "error_reason": payment.get("error_reason"),
+            "error_source": payment.get("error_source"),
+            "error_step": payment.get("error_step"),
+
+            "created_at": payment.get("created_at"),
+
+            # IMPORTANT
+            "notes": payment.get("notes") or {},
+
             "raw": payment,
         }
 

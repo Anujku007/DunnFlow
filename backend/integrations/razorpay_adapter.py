@@ -1,5 +1,4 @@
-"""python
-
+"""
 DunnFlow - Razorpay Adapter
 
 This module sits between the Razorpay API client and DunnFlow's
@@ -243,106 +242,98 @@ class RazorpayAdapter:
         payment: dict[str, Any],
     ) -> dict[str, Any]:
         """
-        Convert one Razorpay payment response into a DunnFlow payment
-        record.
+        Normalize a Razorpay payment into the DunnFlow payment format.
 
-        The returned structure intentionally matches the fields used
-        by DunnFlow's existing data/recovery pipeline.
+        Razorpay's raw payment ID is mapped to both:
+            - payment_id
+            - razorpay_payment_id
+
+        This keeps the internal DunnFlow representation consistent
+        while preserving the original Razorpay identifiers.
         """
 
-        payment_id = payment.get("id")
+        # Standard Razorpay API returns 'id'; fallback to 'payment_id'
+        # if pre-processed.
+        payment_id = payment.get("id") or payment.get("payment_id")
+        order_id = payment.get("order_id")
 
-        amount = self._safe_int(
-            payment.get("amount")
-        )
-
-        currency = (
-            payment.get("currency")
-            or "INR"
-        )
-
-        status = self._normalize_status(
-            payment.get("status")
-        )
-
-        error_code = self._extract_error_code(
-            payment
-        )
-
-        failure_reason = self._extract_failure_reason(
-            payment
-        )
-
-        failure_category = self._classify_failure(
-            error_code,
-            failure_reason,
-        )
-
-        # Razorpay normally uses email/contact information directly
-        # on the payment response when available.
-        customer_email = payment.get("email")
-
-        customer_contact = payment.get("contact")
-
-        notes = payment.get("notes")
-
-        if not isinstance(notes, dict):
-            notes = {}
-
-        customer_id = (
-            notes.get("customer_id")
-            or payment.get("customer_id")
-            or customer_contact
-            or "unknown_customer"
-        )
-
-        customer_name = (
-            notes.get("customer_name")
-            or payment.get("customer_name")
-        )
-
-        # DunnFlow primarily processes failed payments.
-        is_failed = status in {
-            "failed",
-            "failure",
-        }
+        error_code = self._extract_error_code(payment)
+        failure_reason = self._extract_failure_reason(payment)
 
         return {
-            "payment_id": payment_id,
-            "customer_id": customer_id,
-            "customer_name": customer_name,
-            "customer_email": customer_email,
-            "amount": amount,
-            "currency": currency,
-            "raw_error_code": error_code,
-            "failure_reason": failure_reason,
-            "failure_category": (
-                failure_category
-                if is_failed
-                else None
-            ),
-            "status": (
-                "failed"
-                if is_failed
-                else status or "unknown"
-            ),
-            "retry_count": 0,
-            "last_attempt_at": None,
+    "payment_id": payment.get("payment_id"),
 
-            # Preserve useful Razorpay information for debugging,
-            # auditing, and future expansion.
-            "razorpay_payment_id": payment_id,
-            "razorpay_order_id": payment.get(
-                "order_id"
-            ),
-            "method": payment.get("method"),
-            "captured": payment.get("captured"),
-            "amount_refunded": self._safe_int(
-                payment.get("amount_refunded")
-            ),
-            "created": payment.get("created_at")
-            or payment.get("created"),
-        }
+    "customer_id": (
+        payment.get("contact")
+        or payment.get("customer_id")
+    ),
+
+    "customer_name": payment.get("customer_name"),
+
+    "customer_email": (
+        payment.get("email")
+        or payment.get("customer_email")
+    ),
+
+    "amount": payment.get("amount"),
+    "currency": payment.get("currency"),
+
+    "raw_error_code": (
+        payment.get("error_code")
+        or payment.get("raw_error_code")
+    ),
+
+    "failure_reason": (
+        payment.get("error_description")
+        or payment.get("failure_reason")
+        or payment.get("error_reason")
+    ),
+
+    "failure_category": (
+        payment.get("failure_category")
+        or "unclassified"
+    ),
+
+    "status": payment.get("status"),
+
+    "retry_count": payment.get(
+        "retry_count",
+        0,
+    ),
+
+    "last_attempt_at": payment.get(
+        "last_attempt_at"
+    ),
+
+    "razorpay_payment_id": (
+        payment.get("razorpay_payment_id")
+        or payment.get("payment_id")
+    ),
+
+    "razorpay_order_id": (
+        payment.get("razorpay_order_id")
+        or payment.get("order_id")
+    ),
+
+    "method": payment.get("method"),
+
+    "captured": payment.get("captured"),
+
+    "amount_refunded": payment.get(
+        "amount_refunded",
+        0,
+    ),
+
+    "created": (
+        payment.get("created")
+        or payment.get("created_at")
+    ),
+
+    # IMPORTANT:
+    # Preserve Razorpay notes so the ingestion
+    # layer can resolve DunnFlow invoice mappings.
+    "notes": payment.get("notes") or {},
+}
 
     # ------------------------------------------------------------------
     # Fetch one payment
@@ -554,4 +545,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

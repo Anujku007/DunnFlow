@@ -196,6 +196,7 @@ def _parse_timestamp(value: str | None) -> datetime | None:
     except ValueError:
         return None
 
+
 def _get_batch_start_time(batch_id: str) -> datetime:
     """
     Return the benchmark's canonical T0.
@@ -350,16 +351,17 @@ def _last_message_time(
 
 def _check_payment_retry_guardrails(
     invoice_id: str,
+    *,
+    as_of=None,
 ) -> str | None:
     """
     Check guardrails that apply ONLY to payment retry actions.
 
-    This function uses payment_attempt history rather than the subscription's
-    retry_count field.
+    `as_of` is the virtual/demo clock. When provided, it is used
+    instead of wall-clock time.
 
-    Returns:
-        guardrail name if blocked
-        None if allowed
+    This function uses payment_attempt history rather than the
+    subscription's retry_count field.
     """
 
     retry_count = _automated_retry_count(
@@ -379,7 +381,22 @@ def _check_payment_retry_guardrails(
 
     if last_retry:
 
-        elapsed = _now() - last_retry
+        current_time = as_of or _now()
+
+        if current_time.tzinfo is None:
+            current_time = current_time.replace(
+                tzinfo=timezone.utc
+            )
+
+        current_time = current_time.astimezone(
+            timezone.utc
+        )
+
+        last_retry = last_retry.astimezone(
+            timezone.utc
+        )
+
+        elapsed = current_time - last_retry
 
         minimum_gap = timedelta(
             hours=MIN_RETRY_GAP_HOURS
@@ -408,10 +425,15 @@ def _check_payment_retry_guardrails(
 
 def _check_message_guardrails(
     invoice_id: str,
+    *,
+    as_of = None,
 ) -> str | None:
     """
-    Check guardrails that apply ONLY to customer communications.
-    """
+Check guardrails that apply ONLY to customer communications.
+
+`as_of` is the virtual/demo clock. When provided, it is used
+instead of wall-clock time.
+"""
 
     message_count = _customer_message_count(
         invoice_id
@@ -429,7 +451,22 @@ def _check_message_guardrails(
 
     if last_message:
 
-        elapsed = _now() - last_message
+        current_time = as_of or _now()
+
+        if current_time.tzinfo is None:
+            current_time = current_time.replace(
+                tzinfo=timezone.utc
+            )
+
+        current_time = current_time.astimezone(
+            timezone.utc
+        )  
+
+        last_message = last_message.astimezone(
+            timezone.utc
+        )  
+
+        elapsed = current_time - last_message
 
         minimum_gap = timedelta(
             hours=MIN_MESSAGE_GAP_HOURS
@@ -459,16 +496,20 @@ def _check_message_guardrails(
 def _check_guardrails(
     invoice_id: str,
     resource_type: str,
+    *,
+    as_of = None,
 ) -> str | None:
 
     if resource_type == "payment_retry":
         return _check_payment_retry_guardrails(
-            invoice_id
+            invoice_id,
+            as_of=as_of,
         )
 
     if resource_type == "customer_message":
         return _check_message_guardrails(
-            invoice_id
+            invoice_id,
+            as_of=as_of,
         )
 
     # Manual review / non-automated action.
@@ -483,6 +524,7 @@ def decide_for_invoice(
     invoice_id: str,
     *,
     persist: bool = True,
+    as_of = None,
 ) -> dict:
     """
     Generate a bounded recovery decision for one invoice.
@@ -629,6 +671,7 @@ def decide_for_invoice(
     guardrail_hit = _check_guardrails(
         invoice_id,
         policy["resource_type"],
+        as_of=as_of,
     )
 
     if guardrail_hit:
@@ -663,18 +706,25 @@ def decide_for_invoice(
     # Schedule allowed action
     # ---------------------------------------------------------------
 
-    batch_start = _get_batch_start_time(
-    invoice["batch_id"]
-)
+    current_time = as_of or _now()
+
+    if current_time.tzinfo is None:
+        current_time = current_time.replace(
+            tzinfo=timezone.utc
+        )
+
+    current_time = current_time.astimezone(
+        timezone.utc
+    )
 
     scheduled_time = (
-    batch_start
-    + policy["delay"]
-)
+        current_time
+        + policy["delay"]
+    )
 
     scheduled_for = scheduled_time.isoformat(
-    timespec="seconds"
-)
+        timespec="seconds"
+    )
 
     result = {
         "invoice_id": invoice_id,
@@ -800,6 +850,8 @@ def _persist_decision(
 
 def decide_batch(
     batch_id: str,
+    *,
+    as_of = None,
 ) -> dict:
     """
     Generate decisions for every unpaid invoice in a batch.
@@ -824,7 +876,8 @@ def decide_batch(
             continue
 
         decision = decide_for_invoice(
-            invoice["invoice_id"]
+            invoice["invoice_id"],
+            as_of=as_of,
         )
 
         decisions.append(

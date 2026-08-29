@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DunnFlow - Revenue Recovery</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+
+<header class="topbar">
+    <div>
+        <div class="brand">DUNNFLOW</div>
+        <div class="subtitle">Revenue Recovery Control Center</div>
+    </div>
+
+    <div class="system-status">
+        <span class="status-dot"></span>
+        SYSTEM OPERATIONAL
+    </div>
+</header>
+
+<main class="container">
+
+    <section class="hero">
+        <div>
+            <div class="eyebrow">AUTONOMOUS PAYMENT RECOVERY</div>
+
+            <h1>
+                Recover revenue.<br>
+                <span>Intelligently.</span>
+            </h1>
+
+            <p>
+                DunnFlow detects failed payments, diagnoses the failure,
+                selects the safest recovery action, and executes it with
+                guardrails.
+            </p>
+        </div>
+
+        <button id="runBatchBtn" class="primary-btn">
+            RUN RECOVERY
+        </button>
+    </section>
+
+    <section class="metrics-grid">
+
+        <div class="metric-card highlight">
+            <div class="metric-label">REVENUE AT RISK</div>
+            <div id="riskAmount" class="metric-value">₹0</div>
+            <div class="metric-detail">
+                Detected recoverable revenue
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-label">RECOVERED</div>
+            <div id="recoveredAmount" class="metric-value">₹0</div>
+            <div class="metric-detail">
+                Successfully recovered
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-label">RECOVERY RATE</div>
+            <div id="recoveryRate" class="metric-value">0%</div>
+            <div class="metric-detail">
+                Revenue recovery efficiency
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-label">CASES IN PROGRESS</div>
+            <div id="inProgress" class="metric-value">0</div>
+            <div class="metric-detail">
+                Awaiting recovery outcome
+            </div>
+        </div>
+
+    </section>
+
+    <section class="pipeline-section">
+
+        <div class="section-heading">
+            <div>
+                <div class="eyebrow">DECISION PIPELINE</div>
+                <h2>Recovery intelligence</h2>
+            </div>
+
+            <div id="pipelineStatus" class="pipeline-status">
+                READY
+            </div>
+        </div>
+
+        <div class="pipeline">
+
+            <div class="pipeline-step" id="detectStep">
+                <div class="step-number">01</div>
+                <div class="step-title">DETECT</div>
+                <div class="step-description">
+                    Identify revenue at risk
+                </div>
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="pipeline-step" id="decideStep">
+                <div class="step-number">02</div>
+                <div class="step-title">DECIDE</div>
+                <div class="step-description">
+                    Choose safest recovery action
+                </div>
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="pipeline-step" id="executeStep">
+                <div class="step-number">03</div>
+                <div class="step-title">EXECUTE</div>
+                <div class="step-description">
+                    Execute within guardrails
+                </div>
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="pipeline-step" id="outcomeStep">
+                <div class="step-number">04</div>
+                <div class="step-title">OUTCOME</div>
+                <div class="step-description">
+                    Track recovery result
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="cases-section">
+
+        <div class="section-heading">
+            <div>
+                <div class="eyebrow">RECOVERY CASES</div>
+                <h2>Failure → Action</h2>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>FAILURE</th>
+                        <th>RECOMMENDED ACTION</th>
+                        <th>PRIORITY</th>
+                        <th>STATUS</th>
+                    </tr>
+                </thead>
+
+                <tbody id="casesTable">
+                    <tr>
+                        <td colspan="4" class="empty">
+                            Run a batch to load recovery cases.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+
+    </section>
+
+    <section class="activity-section">
+
+        <div class="section-heading">
+            <div>
+                <div class="eyebrow">SYSTEM ACTIVITY</div>
+                <h2>Live recovery feed</h2>
+            </div>
+        </div>
+
+        <div id="activityFeed" class="activity-feed">
+
+            <div class="activity-item">
+                <span class="activity-dot"></span>
+                <span>
+                    DunnFlow ready for recovery analysis.
+                </span>
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+<footer>
+    DunnFlow · Autonomous Revenue Recovery · Synthetic Test Mode
+</footer>
+
+<script src="/static/js/api.js"></script>
+<script src="/static/js/metrics.js"></script>
+<script src="/static/js/live-feed.js"></script>
+<script src="/static/js/audit-trail.js"></script>
+
+</body>
+</html>
