@@ -1,102 +1,195 @@
 """
-Orchestrator for DunnFlow.
+DunnFlow Autonomous Recovery Orchestrator.
 
-This is the single entrypoint that ties every module together into the
-full pipeline the buildathon track asks for:
+Single entrypoint for the current invoice/subscription recovery pipeline:
 
-    detect -> diagnose -> decide -> execute -> track outcome -> audit
+    detect
+        ->
+    decide
+        ->
+    schedule
+        ->
+    execute due actions
+        ->
+    customer response
+        ->
+    outcome reconciliation
+        ->
+    metrics
 
-It's intentionally thin — no business logic lives here, it just calls each
-module in the right order and returns a batch-level summary. This is also
-what the API's POST /api/run-batch endpoint calls, and what your demo
-video's "click Run Batch" moment triggers live.
-
-Design choice: each payment moves through the full pipeline one at a time
-(detect -> diagnose -> decide -> execute -> track) rather than running each
-stage as a separate pass over all payments. This keeps the per-payment audit
-trail chronologically coherent (all of one customer's log entries happen
-together), which is easier to read and demo than interleaved batch stages.
+The orchestrator contains no recovery business logic.
+It only coordinates the existing modules.
 """
 
-from backend.data.db import init_db, get_failed_payments, log_audit_entry
-from backend.modules.diagnosis import diagnose_payment
-from backend.modules.decision_engine import decide
-from backend.modules.execution import execute
-from backend.modules.outcome_tracker import summarize_payment_outcome
-from backend.reports.metrics import get_metrics_report
+from __future__ import annotations
+
+from backend.data.db import (
+    init_db,
+    get_batch_run,
+    get_batch_metrics,
+)
+
+from backend.modules.detection import (
+    detect_revenue_at_risk,
+)
+
+from backend.modules.decision_engine import (
+    decide_batch,
+)
+
+from backend.modules.scheduler import (
+    schedule_batch,
+)
+
+from backend.modules.execution import (
+    execute_due_actions,
+)
+
+from backend.modules.customer_response import (
+    process_customer_responses,
+)
+
+from backend.modules.outcome_tracker import (
+    summarize_batch_outcomes,
+)
 
 
-def run_pipeline_for_payment(payment: dict) -> dict:
-    """Run one payment through the full pipeline. Returns a per-payment result."""
-    log_audit_entry({
-        "payment_id": payment["payment_id"],
-        "customer_id": payment["customer_id"],
-        "stage": "detect",
-        "failure_category": None,
-        "action_taken": "none",
-        "guardrail_hit": None,
-        "result": "n/a",
-        "detail": f"Detected failed payment: raw_error_code="
-                  f"'{payment['raw_error_code']}', amount=₹{payment['amount']/100:.2f}.",
-    })
-
-    # 1. Diagnose (skip if already diagnosed — pipeline is idempotent)
-    if not payment.get("failure_category"):
-        payment = diagnose_payment(payment)
-
-    # 2. Decide
-    decision = decide(payment)
-
-    # 3. Execute — only if the decision engine actually scheduled an action
-    execution_result = None
-    if decision["decision"] == "scheduled":
-        execution_result = execute(decision)
-
-    # 4. Track outcome (always — even manual_review/blocked payments get a
-    #    reconciled outcome entry so nothing falls through silently)
-    outcome = summarize_payment_outcome(payment["payment_id"])
-
-    return {
-        "payment_id": payment["payment_id"],
-        "decision": decision["decision"],
-        "action_type": decision.get("action_type"),
-        "execution_result": execution_result,
-        "outcome": outcome["outcome"],
-    }
-
-
-def run_batch(status_filter: str = "failed") -> dict:
+def run_batch(
+    batch_id: str,
+    *,
+    as_of=None,
+) -> dict:
     """
-    Run the full pipeline across every payment matching status_filter
-    (default: only untouched failed payments — so re-running a batch
-    doesn't reprocess already-recovered/exhausted payments).
+    Run one batch through the complete DunnFlow recovery pipeline.
 
-    Returns a batch-level summary dict, ready to hand straight to the API
-    layer / UI, plus the final metrics report.
+    Pipeline:
+
+        detect
+        -> decide
+        -> schedule
+        -> execute due actions
+        -> customer response
+        -> outcome reconciliation
+        -> metrics
+
+    Args:
+        batch_id:
+            Existing DunnFlow batch to process.
+
+        as_of:
+            Optional virtual/current timestamp used by the scheduler
+            and execution layer. When omitted, the system uses the
+            actual current time.
+
+    Returns:
+        Complete batch-level orchestration report.
     """
+
     init_db()
-    payments = get_failed_payments(status=status_filter)
 
-    results = [run_pipeline_for_payment(p) for p in payments]
+    batch = get_batch_run(batch_id)
 
-    decision_counts = {}
-    outcome_counts = {}
-    for r in results:
-        decision_counts[r["decision"]] = decision_counts.get(r["decision"], 0) + 1
-        outcome_counts[r["outcome"]] = outcome_counts.get(r["outcome"], 0) + 1
+    if not batch:
+        raise ValueError(
+            f"Batch '{batch_id}' does not exist."
+        )
+
+    # ================================================================
+    # 1. DETECT
+    # ================================================================
+
+    detection = detect_revenue_at_risk(
+        batch_id
+    )
+
+    # ================================================================
+    # 2. DECIDE
+    # ================================================================
+
+    decisions = decide_batch(
+        batch_id,
+        as_of=as_of,
+    )
+
+    # ================================================================
+    # 3. SCHEDULE
+    # ================================================================
+
+    schedule = schedule_batch(
+        batch_id,
+        as_of=as_of,
+    )
+
+    # ================================================================
+    # 4. EXECUTE ONLY DUE ACTIONS
+    # ================================================================
+
+    execution = execute_due_actions(
+        batch_id,
+        as_of=as_of,
+    )
+
+    # ================================================================
+    # 5. CUSTOMER RESPONSE
+    # ================================================================
+
+    customer_response = process_customer_responses(
+        batch_id
+    )
+
+    # ================================================================
+    # 6. FINAL OUTCOME RECONCILIATION
+    # ================================================================
+
+    outcomes = summarize_batch_outcomes(
+        batch_id
+    )
+
+    # ================================================================
+    # 7. FINAL SOURCE-OF-TRUTH METRICS
+    # ================================================================
+
+    metrics = get_batch_metrics(
+        batch_id
+    )
 
     return {
-        "processed": len(results),
-        "decision_counts": decision_counts,
-        "outcome_counts": outcome_counts,
-        "results": results,
-        "metrics": get_metrics_report(),
+        "batch_id": batch_id,
+        "pipeline": [
+            "detect",
+            "decide",
+            "schedule",
+            "execute",
+            "customer_response",
+            "outcome",
+            "metrics",
+        ],
+        "detection": detection,
+        "decisions": decisions,
+        "schedule": schedule,
+        "execution": execution,
+        "customer_response": customer_response,
+        "outcomes": outcomes,
+        "metrics": metrics,
     }
 
 
 if __name__ == "__main__":
-    summary = run_batch()
-    print(f"Processed {summary['processed']} payments.")
-    print("Decisions:", summary["decision_counts"])
-    print("Outcomes:", summary["outcome_counts"])
-    print("Metrics:", summary["metrics"])
+    import sys
+    import pprint
+
+    if len(sys.argv) != 2:
+        print(
+            "Usage: python orchestrator.py <batch_id>"
+        )
+        raise SystemExit(1)
+
+    batch_id = sys.argv[1]
+
+    report = run_batch(
+        batch_id
+    )
+
+    pprint.pp(
+        report
+    )
