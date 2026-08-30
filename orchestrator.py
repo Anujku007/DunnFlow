@@ -62,27 +62,15 @@ def run_batch(
     """
     Run one batch through the complete DunnFlow recovery pipeline.
 
-    Pipeline:
+    The benchmark uses the deterministic demo clock:
 
-        detect
-        -> decide
-        -> schedule
-        -> execute due actions
-        -> customer response
-        -> outcome reconciliation
-        -> metrics
+        now
+        -> one_hour
+        -> one_day
 
-    Args:
-        batch_id:
-            Existing DunnFlow batch to process.
-
-        as_of:
-            Optional virtual/current timestamp used by the scheduler
-            and execution layer. When omitted, the system uses the
-            actual current time.
-
-    Returns:
-        Complete batch-level orchestration report.
+    Decisions are created once. Execution is then advanced through the
+    virtual timeline so scheduled actions can become due without waiting
+    in real time.
     """
 
     init_db()
@@ -103,7 +91,7 @@ def run_batch(
     )
 
     # ================================================================
-    # 2. DECIDE
+    # 2. DECIDE ONCE
     # ================================================================
 
     decisions = decide_batch(
@@ -112,25 +100,51 @@ def run_batch(
     )
 
     # ================================================================
-    # 3. SCHEDULE
+    # 3. GET DETERMINISTIC DEMO CLOCK
     # ================================================================
 
-    schedule = schedule_batch(
-        batch_id,
-        as_of=as_of,
+    from backend.modules.scheduler import (
+        get_batch_demo_timestamps,
+        schedule_batch,
+    )
+
+    demo_times = get_batch_demo_timestamps(
+        batch_id
     )
 
     # ================================================================
-    # 4. EXECUTE ONLY DUE ACTIONS
+    # 4. SCHEDULE AT T0
     # ================================================================
 
-    execution = execute_due_actions(
+    schedule_now = schedule_batch(
         batch_id,
-        as_of=as_of,
+        as_of=(
+            as_of
+            if as_of is not None
+            else demo_times["now"]
+        ),
     )
 
     # ================================================================
-    # 5. CUSTOMER RESPONSE
+    # 5. EXECUTE AT ONE-HOUR STAGE
+    # ================================================================
+
+    execution_one_hour = execute_due_actions(
+        batch_id,
+        as_of=demo_times["one_hour"],
+    )
+
+    # ================================================================
+    # 6. EXECUTE AT ONE-DAY STAGE
+    # ================================================================
+
+    execution_one_day = execute_due_actions(
+        batch_id,
+        as_of=demo_times["one_day"],
+    )
+
+    # ================================================================
+    # 7. CUSTOMER RESPONSE
     # ================================================================
 
     customer_response = process_customer_responses(
@@ -138,7 +152,7 @@ def run_batch(
     )
 
     # ================================================================
-    # 6. FINAL OUTCOME RECONCILIATION
+    # 8. FINAL OUTCOME RECONCILIATION
     # ================================================================
 
     outcomes = summarize_batch_outcomes(
@@ -146,7 +160,7 @@ def run_batch(
     )
 
     # ================================================================
-    # 7. FINAL SOURCE-OF-TRUTH METRICS
+    # 9. FINAL SOURCE-OF-TRUTH METRICS
     # ================================================================
 
     metrics = get_batch_metrics(
@@ -155,21 +169,33 @@ def run_batch(
 
     return {
         "batch_id": batch_id,
+
         "pipeline": [
             "detect",
             "decide",
             "schedule",
-            "execute",
+            "execute_one_hour",
+            "execute_one_day",
             "customer_response",
             "outcome",
             "metrics",
         ],
+
         "detection": detection,
+
         "decisions": decisions,
-        "schedule": schedule,
-        "execution": execution,
+
+        "schedule": schedule_now,
+
+        "execution": {
+            "one_hour": execution_one_hour,
+            "one_day": execution_one_day,
+        },
+
         "customer_response": customer_response,
+
         "outcomes": outcomes,
+
         "metrics": metrics,
     }
 
