@@ -241,103 +241,57 @@ class RazorpayAdapter:
         self,
         payment: dict[str, Any],
     ) -> dict[str, Any]:
-        """
-        Normalize a Razorpay payment into the DunnFlow payment format.
+        """Normalize a Razorpay payment into the DunnFlow format."""
 
-        Razorpay's raw payment ID is mapped to both:
-            - payment_id
-            - razorpay_payment_id
+        payment_id = (
+            payment.get("id")
+            or payment.get("payment_id")
+            or payment.get("razorpay_payment_id")
+        )
 
-        This keeps the internal DunnFlow representation consistent
-        while preserving the original Razorpay identifiers.
-        """
-
-        # Standard Razorpay API returns 'id'; fallback to 'payment_id'
-        # if pre-processed.
-        payment_id = payment.get("id") or payment.get("payment_id")
-        order_id = payment.get("order_id")
+        order_id = (
+            payment.get("order_id")
+            or payment.get("razorpay_order_id")
+        )
 
         error_code = self._extract_error_code(payment)
         failure_reason = self._extract_failure_reason(payment)
+        failure_category = self._classify_failure(
+            error_code,
+            failure_reason,
+        )
 
         return {
-    "payment_id": payment.get("payment_id"),
-
-    "customer_id": (
-        payment.get("contact")
-        or payment.get("customer_id")
-    ),
-
-    "customer_name": payment.get("customer_name"),
-
-    "customer_email": (
-        payment.get("email")
-        or payment.get("customer_email")
-    ),
-
-    "amount": payment.get("amount"),
-    "currency": payment.get("currency"),
-
-    "raw_error_code": (
-        payment.get("error_code")
-        or payment.get("raw_error_code")
-    ),
-
-    "failure_reason": (
-        payment.get("error_description")
-        or payment.get("failure_reason")
-        or payment.get("error_reason")
-    ),
-
-    "failure_category": (
-        payment.get("failure_category")
-        or "unclassified"
-    ),
-
-    "status": payment.get("status"),
-
-    "retry_count": payment.get(
-        "retry_count",
-        0,
-    ),
-
-    "last_attempt_at": payment.get(
-        "last_attempt_at"
-    ),
-
-    "razorpay_payment_id": (
-        payment.get("razorpay_payment_id")
-        or payment.get("payment_id")
-    ),
-
-    "razorpay_order_id": (
-        payment.get("razorpay_order_id")
-        or payment.get("order_id")
-    ),
-
-    "method": payment.get("method"),
-
-    "captured": payment.get("captured"),
-
-    "amount_refunded": payment.get(
-        "amount_refunded",
-        0,
-    ),
-
-    "created": (
-        payment.get("created")
-        or payment.get("created_at")
-    ),
-
-    # IMPORTANT:
-    # Preserve Razorpay notes so the ingestion
-    # layer can resolve DunnFlow invoice mappings.
-    "notes": payment.get("notes") or {},
-}
-
-    # ------------------------------------------------------------------
-    # Fetch one payment
-    # ------------------------------------------------------------------
+            "payment_id": payment_id,
+            "customer_id": (
+                payment.get("contact")
+                or payment.get("customer_id")
+            ),
+            "customer_name": payment.get("customer_name"),
+            "customer_email": (
+                payment.get("email")
+                or payment.get("customer_email")
+            ),
+            "amount": payment.get("amount"),
+            "currency": payment.get("currency"),
+            "raw_error_code": error_code,
+            "failure_reason": failure_reason,
+            "failure_category": failure_category,
+            "status": self._normalize_status(payment.get("status")),
+            "retry_count": payment.get("retry_count", 0),
+            "last_attempt_at": payment.get("last_attempt_at"),
+            "razorpay_payment_id": payment_id,
+            "razorpay_order_id": order_id,
+            "razorpay_invoice_id": payment.get("invoice_id"),
+            "method": payment.get("method"),
+            "captured": payment.get("captured"),
+            "amount_refunded": payment.get("amount_refunded", 0),
+            "created": (
+                payment.get("created")
+                or payment.get("created_at")
+            ),
+            "notes": payment.get("notes") or {},
+        }
 
     def get_payment(
         self,

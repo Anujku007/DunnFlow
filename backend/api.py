@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -40,6 +40,53 @@ def startup():
 @app.get("/")
 def home():
     return FileResponse(BASE_DIR / "templates" / "index.html")
+
+
+@app.post("/api/webhooks/razorpay")
+async def razorpay_webhook(request: Request):
+    """Receive and authenticate Razorpay webhooks."""
+    from fastapi import Header
+    from backend.webhooks.verifier import (
+        WebhookVerificationError,
+        verify_razorpay_signature,
+    )
+
+    body = await request.body()
+    signature = request.headers.get("x-razorpay-signature")
+
+    try:
+        valid = verify_razorpay_signature(body, signature or "")
+    except WebhookVerificationError as exc:
+        raise HTTPException(status_code=401, detail=str(exc))
+
+    if not valid:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid webhook signature.",
+        )
+
+    try:
+        payload = await request.json()
+    except Exception:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid JSON webhook payload.",
+        )
+
+    from backend.webhooks.handler import (
+        WebhookHandlerError,
+        handle_razorpay_webhook,
+    )
+
+    try:
+        result = handle_razorpay_webhook(
+            payload,
+            event_id=request.headers.get("x-razorpay-event-id"),
+        )
+    except WebhookHandlerError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    return result
 
 
 @app.get("/api/health")
