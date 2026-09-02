@@ -53,11 +53,19 @@ from backend.modules.outcome_tracker import (
     summarize_batch_outcomes,
 )
 
+from backend.ai.ai_policy_reconciliation import (
+    reconcile_invoice,
+)
+from backend.ai.recovery_advisor import (
+    RecoveryAdvisor,
+)
+
 
 def run_batch(
     batch_id: str,
     *,
     as_of=None,
+    ai_advisor: RecoveryAdvisor | None = None,
 ) -> dict:
     """
     Run one batch through the complete DunnFlow recovery pipeline.
@@ -100,7 +108,54 @@ def run_batch(
     )
 
     # ================================================================
-    # 3. GET DETERMINISTIC DEMO CLOCK
+    # 3. AI ADVISORY RECONCILIATION
+    # ================================================================
+    #
+    # AI observes each deterministic decision and provides advisory
+    # intelligence. It does NOT authorize, modify, schedule, or
+    # execute the recovery action.
+    #
+    # The deterministic decision remains the sole authority for
+    # downstream scheduling and execution.
+    #
+    # Passing ai_advisor explicitly enables controlled AI integration
+    # tests without forcing live provider calls during normal runs.
+    # ================================================================
+
+    ai_reconciliation = {
+        "enabled": ai_advisor is not None,
+        "checked": 0,
+        "agreements": 0,
+        "disagreements": 0,
+        "ai_unavailable": 0,
+        "results": [],
+    }
+
+    if ai_advisor is not None:
+        for deterministic_decision in decisions["decisions"]:
+            reconciliation = reconcile_invoice(
+                invoice_id=deterministic_decision["invoice_id"],
+                deterministic_decision=deterministic_decision,
+                advisor=ai_advisor,
+                as_of=as_of,
+            )
+
+            ai_reconciliation["checked"] += 1
+            ai_reconciliation["results"].append(
+                reconciliation.to_dict()
+            )
+
+            if reconciliation.result == "agreement":
+                ai_reconciliation["agreements"] += 1
+
+            elif reconciliation.result == "disagreement":
+                ai_reconciliation["disagreements"] += 1
+
+            elif reconciliation.result == "ai_unavailable":
+                ai_reconciliation["ai_unavailable"] += 1
+
+    # ================================================================
+    # 4. GET DETERMINISTIC DEMO CLOCK
     # ================================================================
 
     from backend.modules.scheduler import (
@@ -113,7 +168,7 @@ def run_batch(
     )
 
     # ================================================================
-    # 4. SCHEDULE AT T0
+    # 5. SCHEDULE AT T0
     # ================================================================
 
     schedule_now = schedule_batch(
@@ -126,7 +181,7 @@ def run_batch(
     )
 
     # ================================================================
-    # 5. EXECUTE AT ONE-HOUR STAGE
+    # 6. EXECUTE AT ONE-HOUR STAGE
     # ================================================================
 
     execution_one_hour = execute_due_actions(
@@ -135,7 +190,7 @@ def run_batch(
     )
 
     # ================================================================
-    # 6. EXECUTE AT ONE-DAY STAGE
+    # 7. EXECUTE AT ONE-DAY STAGE
     # ================================================================
 
     execution_one_day = execute_due_actions(
@@ -144,7 +199,7 @@ def run_batch(
     )
 
     # ================================================================
-    # 7. CUSTOMER RESPONSE
+    # 8. CUSTOMER RESPONSE
     # ================================================================
 
     customer_response = process_customer_responses(
@@ -152,7 +207,7 @@ def run_batch(
     )
 
     # ================================================================
-    # 8. FINAL OUTCOME RECONCILIATION
+    # 9. FINAL OUTCOME RECONCILIATION
     # ================================================================
 
     outcomes = summarize_batch_outcomes(
@@ -160,7 +215,7 @@ def run_batch(
     )
 
     # ================================================================
-    # 9. FINAL SOURCE-OF-TRUTH METRICS
+    # 10. FINAL SOURCE-OF-TRUTH METRICS
     # ================================================================
 
     metrics = get_batch_metrics(
@@ -173,6 +228,7 @@ def run_batch(
         "pipeline": [
             "detect",
             "decide",
+            "ai_policy_reconciliation",
             "schedule",
             "execute_one_hour",
             "execute_one_day",
@@ -184,6 +240,8 @@ def run_batch(
         "detection": detection,
 
         "decisions": decisions,
+
+        "ai_reconciliation": ai_reconciliation,
 
         "schedule": schedule_now,
 

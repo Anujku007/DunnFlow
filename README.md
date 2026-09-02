@@ -1,51 +1,45 @@
-DunnFlow
+# DunnFlow
 
-AI-Driven Subscription Revenue Recovery Agent
+**AI-Driven Subscription Revenue Recovery Agent**
 
-DunnFlow is a revenue-recovery system built for the Razorpay AI Buildathon — Track 03: AI Revenue Recovery.
+DunnFlow is a revenue-recovery system built for the **Razorpay AI Buildathon — Track 03: AI Revenue Recovery**.
 
-Track 03 goal: Find revenue that is slipping away and win it back.
+> **Track 03 goal:** Find revenue that is slipping away and win it back.
 
 DunnFlow detects revenue at risk, diagnoses why a payment is failing, decides on a bounded intervention, executes the recovery workflow, verifies the real payment outcome through Razorpay webhooks, and measures the recovered money.
 
-Current Project Status
+---
 
-Date: September 2, 2026
-Buildathon: Razorpay AI Buildathon
-Track: Track 03 — AI Revenue Recovery
-Current Phase: Phase 1 — Real Razorpay lifecycle
-Overall state: Phase 1 webhook/recovery foundation is substantially complete; moving toward the full AI-agent automation and demo layer.
+## Current Project Status
 
-Phase 1 checklist
+**Date:** September 3, 2026  
+**Buildathon:** Razorpay AI Buildathon  
+**Track:** Track 03 — AI Revenue Recovery  
+**Current Phase:** Phase 5.12 - Demo-Ready Recovery Flow: COMPLETE
+**Overall state:** Phases 1-5 are complete; final hardening, demo preparation, and submission are next.
 
-Razorpay connectivity
+### Phase 1 checklist
 
-Webhook signature verification
+- [x] Razorpay connectivity
+- [x] Webhook signature verification
+- [x] `payment.failed`
+- [x] `payment.captured`
+- [x] `payment.authorized`
+- [x] `order.paid`
+- [x] Failed → captured lifecycle
+- [x] Duplicate webhook / event-id idempotency
+- [x] Out-of-order webhook handling
+- [x] Payment downtime / gateway failure handling
+- [x] Real Razorpay Test Mode recovery
+- [x] Real payment → webhook → invoice paid → measured recovery
 
-payment.failed
+---
 
-payment.captured
-
-payment.authorized
-
-order.paid
-
-Failed → captured lifecycle
-
-Duplicate webhook / event-id idempotency
-
-Out-of-order webhook handling
-
-Payment downtime / gateway failure handling
-
-Real Razorpay Test Mode recovery
-
-Real payment → webhook → invoice paid → measured recovery
-
-1. Product Concept
+# 1. Product Concept
 
 DunnFlow is designed around this recovery loop:
 
+```text
 Revenue at Risk
       ↓
 Detection
@@ -69,13 +63,17 @@ Invoice / Subscription Recovery
 Measured ₹ Recovered
       ↓
 Audit Trail
+```
 
 The key principle is:
 
-DunnFlow does not count an attempted intervention as recovered revenue. Revenue is recovered only after a successful payment outcome is verified.
+> **DunnFlow does not count an attempted intervention as recovered revenue. Revenue is recovered only after a successful payment outcome is verified.**
 
-2. Architecture
+---
 
+# 2. Architecture
+
+```text
                          ┌──────────────────────┐
                          │      Razorpay        │
                          │   Test Mode Gateway  │
@@ -123,89 +121,107 @@ DunnFlow does not count an attempted intervention as recovered revenue. Revenue 
                          │ events        │
                          │ audit trail   │
                          └───────────────┘
+```
 
-3. Razorpay Integration
+---
+
+# 3. Razorpay Integration
 
 DunnFlow uses a dedicated Razorpay client layer.
 
-Integration responsibilities
+### Integration responsibilities
 
-backend/integrations/razorpay_client.py
+`backend/integrations/razorpay_client.py`
 
-Razorpay credential loading
-
-Test/Live mode configuration
-
-Razorpay Orders API
-
-Payment communication
-
-Razorpay-specific API error handling
-
-Response normalization
+- Razorpay credential loading
+- Test/Live mode configuration
+- Razorpay Orders API
+- Payment communication
+- Razorpay-specific API error handling
+- Response normalization
 
 DunnFlow's business modules do not directly communicate with Razorpay APIs.
 
-Test Mode execution
+### Test Mode execution
 
 The current real execution mode is:
 
+```text
 DUNNFLOW_EXECUTION_MODE=razorpay_test_mode
+```
 
-DunnFlow creates real Razorpay Test Mode Orders and attaches the resulting order_id to the corresponding DunnFlow invoice.
+DunnFlow creates real **Razorpay Test Mode Orders** and attaches the resulting `order_id` to the corresponding DunnFlow invoice.
 
 This gives the system a real:
 
+```text
 DunnFlow invoice
       ↕
 Razorpay order
       ↕
 Razorpay payment
+```
 
 correlation.
 
-4. Real Razorpay Payment Lifecycle
+---
+
+# 4. Real Razorpay Payment Lifecycle
 
 The implemented lifecycle supports:
 
+```text
 payment.authorized
         ↓
 payment.captured
         ↓
 order.paid
+```
 
 and failed payment events:
 
+```text
 payment.failed
+```
 
 DunnFlow also handles a payment becoming captured after a failed state.
 
-Important behavior
+### Important behavior
 
-order.paid is treated as a paid-order lifecycle event and is reconciled into DunnFlow's payment/invoice state.
+`order.paid` is treated as a paid-order lifecycle event and is reconciled into DunnFlow's payment/invoice state.
 
 Successful capture results in:
 
+```text
 payment attempt → succeeded
 invoice → paid
 subscription → active
 recovery_confirmed event
+```
 
-5. Webhook Security
+---
+
+# 5. Webhook Security
 
 DunnFlow validates Razorpay webhooks using:
 
+```text
 HMAC-SHA256
+```
 
-The signature is calculated against the raw request body before JSON parsing.
+The signature is calculated against the **raw request body** before JSON parsing.
 
 The webhook endpoint:
 
+```text
 POST /api/webhooks/razorpay
+```
 
 uses:
 
+```text
 x-razorpay-signature
+```
 
 for verification.
 
@@ -213,28 +229,37 @@ Invalid signatures are rejected.
 
 A separate webhook secret is used through:
 
+```text
 RAZORPAY_WEBHOOK_SECRET
+```
 
 Secrets are not stored in source code.
 
-6. Webhook Idempotency
+---
+
+# 6. Webhook Idempotency
 
 Razorpay webhooks can be delivered more than once.
 
 DunnFlow now persists Razorpay event IDs in:
 
+```text
 razorpay_webhook_events
+```
 
 with:
 
+```text
 event_id PRIMARY KEY
 event_type
 received_at
+```
 
 The handler checks whether an event ID has already been processed.
 
 Verified behavior:
 
+```text
 First delivery:
 200
 status = processed
@@ -242,40 +267,52 @@ status = processed
 Second delivery with same event ID:
 200
 status = duplicate
+```
 
 This prevents duplicate processing of the same Razorpay webhook event.
 
-7. Out-of-Order Webhooks
+---
+
+# 7. Out-of-Order Webhooks
 
 Webhook ordering cannot be assumed.
 
 DunnFlow now uses monotonic payment-state handling:
 
+```text
 failed     = 0
 authorized = 1
 captured   = 2
+```
 
 A later event cannot downgrade a payment that has already reached a higher state.
 
 Verified case:
 
+```text
 payment.captured
       ↓
 late payment.authorized
+```
 
 The late authorized event was processed without downgrading the stored payment state.
 
 Final verified state:
 
+```text
 gateway_status = captured
 result = succeeded
 invoice = paid
 subscription = active
+```
 
-8. Real Razorpay Recovery Flow
+---
+
+# 8. Real Razorpay Recovery Flow
 
 The clean end-to-end proof currently uses:
 
+```text
 Batch:
 benchmark_60_subscription_failures
 
@@ -296,9 +333,11 @@ pay_TX5Zhxz2SqH31x
 
 Amount:
 ₹299
+```
 
 Flow:
 
+```text
 Revenue at risk
       ↓
 DunnFlow recovery action
@@ -320,45 +359,63 @@ subscription activated
 recovery_confirmed
       ↓
 ₹299 measured as recovered
+```
 
 Verified state:
 
+```text
 invoice status       = paid
 payment result       = succeeded
 gateway status       = captured
 subscription status  = active
+```
 
 Revenue events:
 
+```text
 payment_captured
 invoice_paid
 recovery_confirmed
+```
 
-9. Measured Recovery
+---
+
+# 9. Measured Recovery
 
 Before the clean real Razorpay recovery:
 
-Recovered count:       30
-Amount recovered:      ₹31,77,000
-Recovery rate:         49.8%
+```text
+Invoices at risk:       60
+Historical risk:        ₹63,540
+Recovered count:        29
+Amount recovered:       ₹31,471
+Recovery rate:          49.5%
+```
 
 After the verified ₹299 recovery:
 
-Recovered count:       31
-Amount recovered:      ₹32,06,900
-Recovery rate:         50.2%
-In progress:           15
-Active:                31
-Pending:               26
+```text
+Invoices at risk:       60
+Historical risk:        ₹63,540
+Recovered count:        29
+Amount recovered:       ₹31,471
+Recovery rate:          49.5%
+In progress:            21
+Blocked:                 4
+Manual review:           6
+```
 
-This is important Track 03 proof because the system demonstrates measured money recovered, not merely an attempted action.
+This is important Track 03 proof because the system demonstrates **measured money recovered**, not merely an attempted action.
 
-10. Payment Downtime / Gateway Failure
+---
+
+# 10. Payment Downtime / Gateway Failure
 
 DunnFlow now handles a transient Razorpay API failure safely.
 
 The behavior is:
 
+```text
 Razorpay API unavailable
         ↓
 catch RazorpayAPIError
@@ -375,48 +432,62 @@ razorpay_gateway_unavailable
 audit entry recorded
         ↓
 retry_scheduled returned
+```
 
-Controlled test
+### Controlled test
 
 Test action:
 
+```text
 Action: 780
 Invoice: inv_dunnflow_013
 Amount: ₹999
+```
 
 The Razorpay client was deliberately made to raise:
 
+```text
 CONTROLLED TEST:
 Razorpay gateway unavailable / timeout
+```
 
 Result:
 
+```text
 result = retry_scheduled
 status = planned
 attempt_id = None
 razorpay_order_id = None
 recovered = False
 amount_recovered = 0
+```
 
 Database verification:
 
+```text
 status = planned
 guardrail_hit = razorpay_gateway_unavailable
 payment attempt #3 = none
+```
 
 Audit trail recorded:
 
+```text
 stage = execute
 result = retry_scheduled
 guardrail_hit = razorpay_gateway_unavailable
 payment_attempt_id = None
+```
 
 The retry was rescheduled 30 minutes later.
 
 This demonstrates that DunnFlow does not manufacture a payment attempt when the gateway is unavailable.
 
-11. Backend Structure
+---
 
+# 11. Backend Structure
+
+```text
 backend/
 ├── api.py
 ├── data/
@@ -435,9 +506,11 @@ backend/
 └── webhooks/
     ├── handler.py
     └── verifier.py
+```
 
 Frontend:
 
+```text
 templates/
 └── index.html
 
@@ -448,9 +521,13 @@ static/js/
 ├── live-feed.js
 ├── metrics.js
 └── scenario-cards.js
+```
 
-12. API Endpoints
+---
 
+# 12. API Endpoints
+
+```text
 GET  /
 GET  /api/health
 
@@ -466,86 +543,83 @@ GET  /api/batches/{batch_id}/metrics
 GET  /api/batches/{batch_id}/report
 
 GET  /api/batches/{batch_id}/razorpay-checkout
+```
 
-13. Execution Model
+---
+
+# 13. Execution Model
 
 DunnFlow supports synthetic execution for deterministic benchmarking and Razorpay Test Mode execution for real payment lifecycle validation.
 
+```text
 synthetic_test_mode
         OR
 razorpay_test_mode
+```
 
 The Razorpay Test Mode path creates an actual Razorpay Test Mode Order and waits for customer/test payment completion.
 
 It does not count order creation itself as recovered revenue.
 
-14. Database Concepts
+---
 
-Invoices
+# 14. Database Concepts
 
-Tracks:
-
-invoice amount
-
-invoice status
-
-failure category
-
-Razorpay order ID
-
-paid timestamp
-
-Payment Attempts
+### Invoices
 
 Tracks:
 
-attempt number
+- invoice amount
+- invoice status
+- failure category
+- Razorpay order ID
+- paid timestamp
 
-attempt type
-
-Razorpay payment ID
-
-result
-
-gateway status
-
-failure information
-
-execution timestamps
-
-Recovery Actions
+### Payment Attempts
 
 Tracks:
 
-action type
+- attempt number
+- attempt type
+- Razorpay payment ID
+- result
+- gateway status
+- failure information
+- execution timestamps
 
-reason
+### Recovery Actions
 
-priority
+Tracks:
 
-scheduled time
+- action type
+- reason
+- priority
+- scheduled time
+- execution state
+- guardrail hit
 
-execution state
-
-guardrail hit
-
-Revenue Events
+### Revenue Events
 
 Tracks concrete financial lifecycle events:
 
+```text
 payment_captured
 invoice_paid
 recovery_confirmed
 revenue_at_risk
+```
 
-Audit Log
+### Audit Log
 
 Provides an execution trail for detection, decisions, guardrails, payment actions, and failures.
 
-15. Track 03 Alignment
+---
+
+# 15. Track 03 Alignment
 
 DunnFlow is built around:
 
+```text
 Detect revenue at risk
         ↓
 Diagnose root cause
@@ -563,103 +637,111 @@ Measure money recovered
 Stop / retry / escalate
         ↓
 Maintain audit trail
+```
 
 Completed foundation:
 
-Real Razorpay connectivity
+- Real Razorpay connectivity
+- Real Test Mode payment flow
+- Webhook verification
+- Lifecycle reconciliation
+- Event-ID idempotency
+- Out-of-order protection
+- Gateway downtime resilience
+- Measured recovered revenue
+- Auditability
 
-Real Test Mode payment flow
+---
 
-Webhook verification
+# 16. Next Phase — AI Recovery Automation
 
-Lifecycle reconciliation
+The next major milestone is the **AI Revenue Recovery Agent**.
 
-Event-ID idempotency
-
-Out-of-order protection
-
-Gateway downtime resilience
-
-Measured recovered revenue
-
-Auditability
-
-16. Next Phase — AI Recovery Automation
-
-The next major milestone is the AI Revenue Recovery Agent.
-
-1. Revenue-at-risk detection
+### 1. Revenue-at-risk detection
 
 Turn the existing detection pipeline into a clear agent input.
 
-2. AI diagnosis
+### 2. AI diagnosis
 
 Determine why revenue is at risk:
 
+```text
 insufficient funds
 temporary gateway problem
 payment method problem
 repeated failure
 customer action required
+```
 
-3. AI intervention decision
+### 3. AI intervention decision
 
 Choose among bounded actions:
 
+```text
 retry payment
 delay retry
 request payment-method update
 customer notification
 manual review
 no action
+```
 
-4. Guardrails
+### 4. Guardrails
 
 Examples:
 
+```text
 maximum automated payment retries
 minimum retry interval
 already-paid protection
 gateway outage protection
 customer-action escalation
 manual-review escalation
+```
 
-5. Bounded execution
+### 5. Bounded execution
 
 Execute only actions explicitly allowed by the recovery policy.
 
-6. Recovery verification
+### 6. Recovery verification
 
 No recovery is counted until a successful payment outcome is observed.
 
-7. Stopping rules
+### 7. Stopping rules
 
 Examples:
 
+```text
 payment succeeds
 retry budget exhausted
 gateway unavailable
 customer action required
 manual review required
 invoice no longer eligible
+```
 
-8. Escalation
+### 8. Escalation
 
 Cases that cannot be safely automated should move to manual review.
 
-9. Audit trail
+### 9. Audit trail
 
 Every agent decision should explain:
 
+```text
 why this customer was selected
 why this intervention was selected
 which guardrails were evaluated
 what was executed
 what happened
 how much revenue was recovered
+```
 
-17. Planned Final Demo
+---
 
+# 17. Planned Final Demo
+
+```text
 60 failed subscriptions
         ↓
 DunnFlow detects revenue at risk
@@ -685,9 +767,11 @@ Subscription becomes active
 ₹ recovered increases
         ↓
 Dashboard shows measurable result
+```
 
 Resilience case:
 
+```text
 Razorpay unavailable
         ↓
 DunnFlow does NOT fabricate recovery
@@ -695,35 +779,32 @@ DunnFlow does NOT fabricate recovery
 retry scheduled
         ↓
 guardrail + audit trail
+```
 
-18. Development Rules
+---
 
-Preserve the existing architecture.
+# 18. Development Rules
 
-Make small, checkpointed changes.
+1. Preserve the existing architecture.
+2. Make small, checkpointed changes.
+3. Prefer terminal-driven changes.
+4. Compile/test after each change.
+5. Never expose Razorpay secrets.
+6. Do not count attempted actions as recovered revenue.
+7. Use real Razorpay Test Mode for payment lifecycle proof.
+8. Keep webhook processing idempotent.
+9. Never assume webhook ordering.
+10. Keep recovery execution bounded and auditable.
 
-Prefer terminal-driven changes.
+---
 
-Compile/test after each change.
+# 19. Current Checkpoint
 
-Never expose Razorpay secrets.
-
-Do not count attempted actions as recovered revenue.
-
-Use real Razorpay Test Mode for payment lifecycle proof.
-
-Keep webhook processing idempotent.
-
-Never assume webhook ordering.
-
-Keep recovery execution bounded and auditable.
-
-19. Current Checkpoint
-
-Phase 1 — Real Razorpay lifecycle: COMPLETE ✅
+## Phase 1 — Real Razorpay lifecycle: COMPLETE ✅
 
 Most important verified proof:
 
+```text
 DunnFlow recovery
       ↓
 Real Razorpay Test Mode Order
@@ -739,9 +820,11 @@ Subscription active
 recovery_confirmed
       ↓
 ₹299 measured recovery
+```
 
 Resilience proof:
 
+```text
 Razorpay API outage
       ↓
 No fake payment attempt
@@ -751,101 +834,48 @@ Action remains planned
 30-minute retry
       ↓
 Guardrail + audit trail
+```
 
-Immediate next milestone
+### Current milestone
 
-Build the AI-driven detection → diagnosis → decision → guarded execution loop on top of the now-proven Razorpay lifecycle.
+**Phases 1-5 are complete. The next work is final hardening, demo preparation, architecture/pitch presentation, and buildathon submission.**
 
-Repository
+---
 
-GitHub: https://github.com/Anujku007/DunnFlow
+## Repository
 
-Status Summary
+GitHub: `https://github.com/Anujku007/DunnFlow`
 
-Capability
+---
 
-Status
+## Status Summary
 
-Razorpay connectivity
-
-✅
-
-Test Mode Orders
-
-✅
-
-Webhook signature verification
-
-✅
-
-payment.failed
-
-✅
-
-payment.authorized
-
-✅
-
-payment.captured
-
-✅
-
-order.paid
-
-✅
-
-Failed → Captured lifecycle
-
-✅
-
-Event-ID idempotency
-
-✅
-
-Out-of-order handling
-
-✅
-
-Gateway downtime handling
-
-✅
-
-Real Razorpay recovery
-
-✅
-
-Measured recovered revenue
-
-✅
-
-Audit trail
-
-✅
-
-AI diagnosis
-
-🔄 Next
-
-AI intervention decision
-
-🔄 Next
-
-Automated bounded recovery agent
-
-🔄 Next
-
-Escalation/stopping policy
-
-🔄 Next
-
-Final dashboard/polish
-
-⏳
-
-Architecture/pitch/demo
-
-⏳
-
-Buildathon submission
-
-⏳
+| Capability | Status |
+|---|---|
+| Razorpay connectivity | ✅ |
+| Test Mode Orders | ✅ |
+| Webhook signature verification | ✅ |
+| `payment.failed` | ✅ |
+| `payment.authorized` | ✅ |
+| `payment.captured` | ✅ |
+| `order.paid` | ✅ |
+| Failed → Captured lifecycle | ✅ |
+| Event-ID idempotency | ✅ |
+| Out-of-order handling | ✅ |
+| Gateway downtime handling | ✅ |
+| Real Razorpay recovery | ✅ |
+| Measured recovered revenue | ✅ |
+| Audit trail | ✅ |
+| AI diagnosis | ✅ |
+| AI intervention decision | ✅ |
+| AI prioritization | ✅ |
+| Deterministic authorization | ✅ |
+| Automated bounded recovery agent | ✅ |
+| Guarded execution | ✅ |
+| Stopping policy | ✅ |
+| Escalation / manual review | ✅ |
+| Recovery verification | ✅ |
+| Revenue measurement | ✅ |
+| Final dashboard/polish | 🔄 Next |
+| Architecture/pitch/demo | 🔄 Next |
+| Buildathon submission | ⏳ |
