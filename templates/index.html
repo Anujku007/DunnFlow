@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+ <script src='https://checkout.razorpay.com/v1/checkout.js'></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -198,6 +199,8 @@
 
                             >
 
+                            <option value="benchmark_60_subscription_failures">Razorpay Test - Existing 299 Recovery</option>
+
                             <option value="e2e_phase_e_card_expired_success_043">
                               Card Expired — Synthetic Success Demo
                             </option>
@@ -249,9 +252,16 @@
 
                         </button>
 
+                        <button
+                            id="payExistingOrderBtn"
+                            class="secondary-button"
+                            type="button"
+                        >
+                            PAY EXISTING ORDER
+                        </button>
+
                         <div class="run-recovery-caption">
-                            Executes the full recovery pipeline
-                            within defined guardrails.
+                            Opens the existing Razorpay recovery order.
                         </div>
 
                     </div>
@@ -903,4 +913,9 @@
 
 </body>
 </html>
+
+
+
+
+
 

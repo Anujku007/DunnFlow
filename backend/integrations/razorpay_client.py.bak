@@ -201,44 +201,6 @@ class RazorpayClient:
             ) from exc
 
     # -----------------------------------------------------------------------
-    # Orders
-    # -----------------------------------------------------------------------
-
-    def create_order(
-        self,
-        amount: int,
-        *,
-        currency: str = "INR",
-        receipt: str | None = None,
-        notes: dict[str, str] | None = None,
-    ) -> dict[str, Any]:
-        """Create one Razorpay order."""
-
-        if not isinstance(amount, int) or amount <= 0:
-            raise ValueError("amount must be a positive integer in paise.")
-
-        if not currency:
-            raise ValueError("currency cannot be empty.")
-
-        payload: dict[str, Any] = {
-            "amount": amount,
-            "currency": currency.upper(),
-            "payment_capture": 1,
-        }
-
-        if receipt:
-            payload["receipt"] = receipt
-
-        if notes:
-            payload["notes"] = notes
-
-        return self._request(
-            "POST",
-            "/orders",
-            json=payload,
-        )
-
-    # -----------------------------------------------------------------------
     # Payments
     # -----------------------------------------------------------------------
 

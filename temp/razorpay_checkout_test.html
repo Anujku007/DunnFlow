@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DunnFlow Razorpay Test Checkout</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 80px auto;
+            padding: 30px;
+        }
+
+        button {
+            padding: 14px 24px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        pre {
+            margin-top: 25px;
+            padding: 15px;
+            background: #f4f4f4;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>DunnFlow Test Payment</h1>
+
+    <p><strong>Invoice:</strong> inv_e2e_phase_e_card_expired_retry_001</p>
+    <p><strong>Amount:</strong> ₹299</p>
+    <p><strong>Order:</strong> order_TWg37zova7TQcM</p>
+
+    <button id="pay-button">
+        Pay ₹299 — Test Mode
+    </button>
+
+    <pre id="result">Waiting for payment...</pre>
+
+    <script>
+        const options = {
+            key: "rzp_test_TV5DJESrQda5nM",
+
+            amount: 29900,
+            currency: "INR",
+
+            name: "DunnFlow",
+            description: "DunnFlow Test Payment",
+
+            order_id: "order_TWg37zova7TQcM",
+
+            handler: function (response) {
+                document.getElementById("result").textContent =
+                    "Razorpay Checkout SUCCESS\n\n" +
+                    JSON.stringify(response, null, 2);
+
+                console.log("Razorpay payment response:", response);
+            },
+
+            prefill: {
+                name: "Phase E Card Retry Customer",
+                email: "phasee_card_retry@example.com"
+            },
+
+            notes: {
+                dunnflow_invoice_id:
+                    "inv_e2e_phase_e_card_expired_retry_001",
+
+                dunnflow_subscription_id:
+                    "sub_e2e_phase_e_card_expired_retry_001"
+            },
+
+            theme: {
+                color: "#3399cc"
+            },
+
+            modal: {
+                ondismiss: function () {
+                    document.getElementById("result").textContent =
+                        "Checkout closed.";
+                }
+            }
+        };
+
+        const razorpay = new Razorpay(options);
+
+        document.getElementById("pay-button").onclick = function (event) {
+            event.preventDefault();
+
+            document.getElementById("result").textContent =
+                "Opening Razorpay Checkout...";
+
+            razorpay.open();
+        };
+    </script>
+
+</body>
+</html>

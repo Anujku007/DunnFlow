@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
@@ -10,6 +10,7 @@ from backend.data.db import (
     init_db,
     get_batch_run,
     get_invoices,
+    get_invoice,
     get_batch_metrics,
 )
 from backend.modules.detection import detect_revenue_at_risk
@@ -155,6 +156,36 @@ def execute_batch(batch_id: str):
     return execute_due_actions(batch_id)
 
 
+@app.get("/api/batches/{batch_id}/razorpay-checkout")
+def razorpay_checkout(batch_id: str):
+    if not get_batch_run(batch_id):
+        raise HTTPException(status_code=404, detail="Batch not found")
+
+    invoices = get_invoices(batch_id=batch_id)
+
+    invoice = next((invoice for invoice in invoices if invoice.get("razorpay_order_id") and invoice.get("status") != "paid"), None)
+
+    if not invoice:
+        raise HTTPException(
+            status_code=404,
+            detail="No Razorpay Checkout order found for this batch",
+        )
+
+    from backend.integrations.razorpay_client import RazorpayClient
+
+    client = RazorpayClient()
+
+    return {
+        "batch_id": batch_id,
+        "invoice_id": invoice["invoice_id"],
+        "razorpay_order_id": invoice["razorpay_order_id"],
+        "razorpay_key_id": client.key_id,
+        "amount": invoice["amount"],
+        "currency": invoice["currency"],
+        "status": invoice["status"],
+    }
+
+
 @app.get("/api/batches/{batch_id}/metrics")
 def batch_metrics(batch_id: str):
     metrics = get_batch_metrics(batch_id)
@@ -179,3 +210,5 @@ def download_batch_report(batch_id: str):
         media_type="application/pdf",
         filename=f"dunnflow_report_{batch_id}.pdf",
     )
+
+

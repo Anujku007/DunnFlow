@@ -1,4 +1,4 @@
--- DunnFlow
+﻿-- DunnFlow
 -- Razorpay-aligned subscription revenue recovery schema
 
 PRAGMA foreign_keys = ON;
@@ -260,6 +260,18 @@ CREATE TABLE IF NOT EXISTS audit_log (
 );
 
 -- ============================================================
+-- ============================================================
+-- RAZORPAY WEBHOOK EVENTS
+-- One row = one unique Razorpay webhook delivery event.
+-- Used for webhook-level idempotency.
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS razorpay_webhook_events (
+    event_id       TEXT PRIMARY KEY,
+    event_type     TEXT NOT NULL,
+    received_at    TEXT NOT NULL
+);
+
 -- INDEXES
 -- ============================================================
 

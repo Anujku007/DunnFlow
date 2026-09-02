@@ -9,6 +9,55 @@
    ========================================================= */
 
 
+async function openExistingRazorpayCheckout(batchId) {
+    const response = await fetch(
+                `/api/batches/${encodeURIComponent(batchId)}/razorpay-checkout`
+            );
+
+            if (!response.ok) {
+                throw new Error("No existing Razorpay Checkout order found.");
+            }
+
+            const checkout = await response.json();
+
+            if (!window.Razorpay) {
+                throw new Error("Razorpay Checkout SDK is not loaded.");
+            }
+
+            addActivity("Opening Razorpay Checkout for existing recovery order...");
+
+            const options = {
+                key: checkout.razorpay_key_id,
+                amount: checkout.amount,
+                currency: checkout.currency || "INR",
+                name: "DunnFlow",
+                description: "Subscription revenue recovery",
+                order_id: checkout.razorpay_order_id,
+                handler: function (response) {
+                    console.log("Razorpay Checkout success:", response);
+                    addActivity(
+                        "Customer payment submitted successfully.",
+                        "success"
+                    );
+                },
+                modal: {
+                    ondismiss: function () {
+                        addActivity(
+                            "Razorpay Checkout was closed before payment.",
+                            "warning"
+                        );
+                    }
+                }
+            };
+
+            const razorpay = new Razorpay(options);
+            razorpay.open();
+        }
+
+
+
+
+
 /* =========================================================
    DOM REFERENCES
    ========================================================= */
@@ -16,6 +65,32 @@
 const runButton = document.getElementById("runBatchBtn");
 const downloadReportButton = document.getElementById("downloadReportBtn");
 const pipelineStatus = document.getElementById("pipelineStatus");
+const payExistingOrderBtn =
+    document.getElementById("payExistingOrderBtn");
+
+if (payExistingOrderBtn) {
+    payExistingOrderBtn.addEventListener("click", async function () {
+        const batchId = getSelectedBatchId();
+
+        try {
+            payExistingOrderBtn.disabled = true;
+            payExistingOrderBtn.textContent = "OPENING CHECKOUT...";
+
+            await openExistingRazorpayCheckout(batchId);
+        } catch (error) {
+            console.error("Existing Razorpay Checkout error:", error);
+            addActivity(
+                `Unable to open existing Razorpay Checkout: ${error.message}`,
+                "error"
+            );
+        } finally {
+            payExistingOrderBtn.disabled = false;
+            payExistingOrderBtn.textContent = "PAY EXISTING ORDER";
+        }
+    });
+}
+
+
 const batchSelect = document.getElementById("batchSelect");
 
 
@@ -576,6 +651,8 @@ async function runRecovery() {
                 ? "success"
                 : "warning"
         );
+
+
 
 
         /* =====================================================

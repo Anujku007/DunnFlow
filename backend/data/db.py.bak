@@ -398,7 +398,6 @@ def upsert_invoice(invoice: dict) -> None:
                 batch_id,
                 subscription_id,
                 razorpay_invoice_id,
-                razorpay_order_id,
                 amount,
                 currency,
                 status,
@@ -414,7 +413,6 @@ def upsert_invoice(invoice: dict) -> None:
                 :batch_id,
                 :subscription_id,
                 :razorpay_invoice_id,
-                :razorpay_order_id,
                 :amount,
                 :currency,
                 :status,
@@ -427,7 +425,6 @@ def upsert_invoice(invoice: dict) -> None:
             )
             ON CONFLICT(invoice_id) DO UPDATE SET
                 razorpay_invoice_id = excluded.razorpay_invoice_id,
-                razorpay_order_id = excluded.razorpay_order_id,
                 amount = excluded.amount,
                 currency = excluded.currency,
                 status = excluded.status,
@@ -441,7 +438,6 @@ def upsert_invoice(invoice: dict) -> None:
                 "batch_id": invoice["batch_id"],
                 "subscription_id": invoice["subscription_id"],
                 "razorpay_invoice_id": invoice.get("razorpay_invoice_id"),
-                "razorpay_order_id": invoice.get("razorpay_order_id"),
                 "amount": invoice["amount"],
                 "currency": invoice.get("currency", "INR"),
                 "status": invoice.get("status", "issued"),
@@ -481,20 +477,6 @@ def get_invoice_by_razorpay_id(
     )
 
 
-def get_invoice_by_razorpay_order_id(
-    razorpay_order_id: str,
-) -> dict | None:
-    """Return one invoice by Razorpay order ID."""
-    return _fetchone(
-        """
-        SELECT *
-        FROM invoices
-        WHERE razorpay_order_id = ?
-        """,
-        (razorpay_order_id,),
-    )
-
-
 def get_invoices(
     *,
     batch_id: str | None = None,
@@ -528,28 +510,6 @@ def get_invoices(
         """,
         tuple(params),
     )
-
-
-def attach_razorpay_order_to_invoice(
-    invoice_id: str,
-    razorpay_order_id: str,
-) -> None:
-    """Attach a Razorpay order ID to an existing DunnFlow invoice."""
-    if not invoice_id:
-        raise ValueError("invoice_id cannot be empty.")
-    if not razorpay_order_id:
-        raise ValueError("razorpay_order_id cannot be empty.")
-
-    with get_conn() as conn:
-        conn.execute(
-            """
-            UPDATE invoices
-            SET razorpay_order_id = ?,
-                updated_at = ?
-            WHERE invoice_id = ?
-            """,
-            (razorpay_order_id, _now(), invoice_id),
-        )
 
 
 def update_invoice_status(
@@ -647,54 +607,6 @@ def create_payment_attempt(attempt: dict) -> int:
             },
         )
         return int(cur.lastrowid)
-
-
-def update_payment_attempt(
-    attempt_id: int,
-    updates: dict,
-) -> None:
-    """Update an existing payment attempt."""
-
-    allowed_fields = {
-        "razorpay_payment_id",
-        "attempt_number",
-        "attempt_type",
-        "action_type",
-        "scheduled_for",
-        "executed_at",
-        "result",
-        "raw_error_code",
-        "failure_reason",
-        "gateway_status",
-        "result_detail",
-        "created_at",
-    }
-
-    fields = {
-        key: value
-        for key, value in updates.items()
-        if key in allowed_fields
-    }
-
-    if not fields:
-        return
-
-    assignments = ", ".join(
-        f"{key} = :{key}"
-        for key in fields
-    )
-
-    fields["attempt_id"] = attempt_id
-
-    with get_conn() as conn:
-        conn.execute(
-            f"""
-            UPDATE payment_attempts
-            SET {assignments}
-            WHERE attempt_id = :attempt_id
-            """,
-            fields,
-        )
 
 
 def get_payment_attempt(attempt_id: int) -> dict | None:
@@ -883,7 +795,6 @@ def update_recovery_action(
     *,
     status: str | None = None,
     executed_at: str | None = None,
-    scheduled_for: str | None = None,
     guardrail_hit: str | None = None,
 ) -> None:
     """Update execution state for a recovery action."""
@@ -897,10 +808,6 @@ def update_recovery_action(
     if executed_at is not None:
         updates.append("executed_at = ?")
         values.append(executed_at)
-
-    if scheduled_for is not None:
-        updates.append("scheduled_for = ?")
-        values.append(scheduled_for)
 
     if guardrail_hit is not None:
         updates.append("guardrail_hit = ?")
@@ -1064,19 +971,6 @@ def log_audit_entry(entry: dict) -> int:
             },
         )
         return int(cur.lastrowid)
-
-
-def webhook_event_exists(event_id: str) -> bool:
-    with get_conn() as conn:
-        row = conn.execute("SELECT 1 FROM razorpay_webhook_events WHERE event_id = ? LIMIT 1", (event_id,)).fetchone()
-    return row is not None
-
-
-def record_webhook_event(event_id: str, event_type: str, received_at: str) -> bool:
-    with get_conn() as conn:
-        cursor = conn.execute("INSERT OR IGNORE INTO razorpay_webhook_events (event_id, event_type, received_at) VALUES (?, ?, ?)", (event_id, event_type, received_at))
-        conn.commit()
-    return cursor.rowcount == 1
 
 
 def get_audit_log(

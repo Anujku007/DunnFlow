@@ -28,12 +28,10 @@ from backend.data.db import (
     create_payment_attempt,
     get_invoice,
     get_invoice_by_razorpay_id,
-    get_invoice_by_razorpay_order_id,
     get_payment_attempts,
     get_revenue_events,
     record_revenue_event,
     update_invoice_status,
-    update_payment_attempt,
     update_subscription_status,
 )
 
@@ -157,231 +155,29 @@ class RazorpayIngestion:
         self,
         razorpay_payment_id: str,
     ) -> bool:
-        """Check whether revenue events already exist for a Razorpay payment."""
+        """
+        Check whether a revenue event has already been recorded.
+        """
 
         if not razorpay_payment_id:
             return False
 
         events = get_revenue_events()
 
+        marker = (
+            f"Razorpay payment "
+            f"{razorpay_payment_id}"
+        )
+
         for event in events:
-            if event.get("razorpay_event_id") == razorpay_payment_id:
+
+            detail = event.get("detail") or ""
+
+            if marker in detail:
                 return True
 
         return False
 
-    def _find_existing_razorpay_attempt(
-        self,
-        razorpay_payment_id: str,
-    ) -> dict[str, Any] | None:
-        """Find an existing external Razorpay payment attempt."""
-
-        if not razorpay_payment_id:
-            return None
-
-        for attempt in get_payment_attempts():
-            if (
-                attempt.get("razorpay_payment_id")
-                == razorpay_payment_id
-                and attempt.get("attempt_type")
-                == "external_razorpay"
-            ):
-                return attempt
-
-        return None
-    # -----------------------------------------------------------------------
-    # Reconcile existing Razorpay payment attempt
-    # -----------------------------------------------------------------------
-
-    def _find_existing_razorpay_attempt_by_order(
-        self,
-        razorpay_order_id: str,
-    ) -> dict[str, Any] | None:
-        """Find a pending external Razorpay attempt through its invoice order."""
-
-        if not razorpay_order_id:
-            return None
-
-        invoice = get_invoice_by_razorpay_order_id(
-            razorpay_order_id
-        )
-
-        if not invoice:
-            return None
-
-        invoice_id = invoice.get("invoice_id")
-
-        if not invoice_id:
-            return None
-
-        for attempt in get_payment_attempts():
-            if (
-                attempt.get("invoice_id") == invoice_id
-                and attempt.get("attempt_type") == "external_razorpay"
-                and not attempt.get("razorpay_payment_id")
-                and attempt.get("result") == "pending"
-            ):
-                return attempt
-
-        return None
-    def _reconcile_existing_razorpay_attempt(
-        self,
-        payment: dict[str, Any],
-        existing_attempt: dict[str, Any],
-    ) -> dict[str, Any]:
-        """Update an existing external Razorpay payment attempt."""
-
-        payment_id = (
-            payment.get("razorpay_payment_id")
-            or payment.get("payment_id")
-        )
-
-        status = payment.get("status") or "unknown"
-
-        existing_gateway_status = existing_attempt.get("gateway_status")
-
-        status_rank = {
-            "failed": 0,
-            "authorized": 1,
-            "captured": 2,
-        }
-
-        if (
-            existing_gateway_status in status_rank
-            and status in status_rank
-            and status_rank[existing_gateway_status] > status_rank[status]
-        ):
-            status = existing_gateway_status
-
-        attempt_id = int(existing_attempt["attempt_id"])
-
-        created_at = _timestamp_from_epoch(
-            payment.get("created")
-            or payment.get("created_at")
-        )
-
-        failure_reason = (
-            payment.get("failure_reason")
-            or payment.get("error_description")
-            or payment.get("error_reason")
-        )
-
-        raw_error_code = (
-            payment.get("raw_error_code")
-            or payment.get("error_code")
-        )
-
-        if status in {"captured", "authorized"}:
-            result = "succeeded"
-        elif status == "failed":
-            result = "failed"
-        else:
-            result = status
-
-        update_payment_attempt(
-            attempt_id,
-            {
-                "executed_at": created_at,
-                "result": result,
-                "razorpay_payment_id": payment_id,
-                "raw_error_code": raw_error_code,
-                "failure_reason": failure_reason,
-                "gateway_status": status,
-                "result_detail": (
-                    "Updated from Razorpay webhook. "
-                    f"Razorpay payment={payment_id}."
-                ),
-            },
-        )
-
-        result_data = {
-            "status": "reconciled",
-            "razorpay_payment_id": payment_id,
-            "payment_attempt_id": attempt_id,
-            "payment_status": status,
-            "amount": _safe_int(payment.get("amount")),
-        }
-
-        if status == "captured":
-
-            invoice_id = existing_attempt.get("invoice_id")
-            subscription_id = existing_attempt.get("subscription_id")
-
-            if invoice_id:
-                update_invoice_status(
-                    invoice_id,
-                    "paid",
-                    paid_at=created_at,
-                )
-
-            if subscription_id:
-                update_subscription_status(
-                    subscription_id,
-                    "active",
-                )
-
-            amount = _safe_int(payment.get("amount"))
-            resolved_batch_id = existing_attempt.get("batch_id")
-
-            if not self._revenue_event_already_recorded(payment_id):
-                record_revenue_event(
-                    {
-                        "batch_id": resolved_batch_id,
-                        "subscription_id": subscription_id,
-                        "invoice_id": invoice_id,
-                        "payment_attempt_id": attempt_id,
-                        "event_type": "payment_captured",
-                        "amount": amount,
-                        "razorpay_event_id": payment_id,
-                        "event_timestamp": created_at,
-                        "detail": (
-                            f"Razorpay payment {payment_id} "
-                            "captured successfully."
-                        ),
-                    }
-                )
-
-                record_revenue_event(
-                    {
-                        "batch_id": resolved_batch_id,
-                        "subscription_id": subscription_id,
-                        "invoice_id": invoice_id,
-                        "payment_attempt_id": attempt_id,
-                        "event_type": "invoice_paid",
-                        "amount": amount,
-                        "razorpay_event_id": payment_id,
-                        "event_timestamp": created_at,
-                        "detail": (
-                            f"Invoice {invoice_id} marked paid "
-                            f"by Razorpay payment {payment_id}."
-                        ),
-                    }
-                )
-
-                record_revenue_event(
-                    {
-                        "batch_id": resolved_batch_id,
-                        "subscription_id": subscription_id,
-                        "invoice_id": invoice_id,
-                        "payment_attempt_id": attempt_id,
-                        "event_type": "recovery_confirmed",
-                        "amount": amount,
-                        "razorpay_event_id": payment_id,
-                        "event_timestamp": created_at,
-                        "detail": (
-                            f"Recovery confirmed from "
-                            f"Razorpay payment {payment_id}."
-                        ),
-                    }
-                )
-
-
-            result_data["invoice_status"] = "paid"
-            result_data["subscription_status"] = (
-                "active" if subscription_id else None
-            )
-
-        return result_data
     # -----------------------------------------------------------------------
     # Payment attempt creation
     # -----------------------------------------------------------------------
@@ -550,8 +346,7 @@ class RazorpayIngestion:
         Resolution order:
             1. Explicit normalized invoice_id
             2. Razorpay invoice ID
-            3. Razorpay order ID
-            4. DunnFlow invoice marker in Razorpay notes
+            3. DunnFlow invoice marker in Razorpay notes
 
         Returns:
             (invoice_id, subscription_id)
@@ -593,24 +388,7 @@ class RazorpayIngestion:
                 )
 
         # ---------------------------------------------------------------
-        # 3. Razorpay order ID
-        # ---------------------------------------------------------------
-
-        razorpay_order_id = payment.get("razorpay_order_id")
-
-        if razorpay_order_id:
-            invoice = get_invoice_by_razorpay_order_id(
-                razorpay_order_id
-            )
-
-            if invoice:
-                return (
-                    invoice["invoice_id"],
-                    invoice.get("subscription_id"),
-                )
-
-        # ---------------------------------------------------------------
-        # 4. DunnFlow mapping marker in Razorpay notes
+        # 3. DunnFlow mapping marker in Razorpay notes
         #
         # Example:
         # {
@@ -672,40 +450,7 @@ class RazorpayIngestion:
             }
 
         # ---------------------------------------------------------------
-        # Existing external Razorpay attempt reconciliation
-        # ---------------------------------------------------------------
-
-        existing_attempt = (
-            self._find_existing_razorpay_attempt(
-                payment_id
-            )
-        )
-
-        if existing_attempt:
-            return self._reconcile_existing_razorpay_attempt(
-                payment,
-                existing_attempt,
-            )
-
-        
-        razorpay_order_id = (
-            payment.get("razorpay_order_id")
-            or payment.get("order_id")
-        )
-
-        existing_attempt = (
-            self._find_existing_razorpay_attempt_by_order(
-                razorpay_order_id
-            )
-        )
-
-        if existing_attempt:
-            return self._reconcile_existing_razorpay_attempt(
-                payment,
-                existing_attempt,
-            )
-# ---------------------------------------------------------------
-        # Idempotency for already-ingested non-external attempts
+        # Idempotency
         # ---------------------------------------------------------------
 
         if self._payment_already_ingested(
@@ -717,6 +462,7 @@ class RazorpayIngestion:
                 "reason": "already_ingested",
                 "razorpay_payment_id": payment_id,
             }
+
         # ---------------------------------------------------------------
         # DunnFlow invoice mapping
         #
@@ -1049,12 +795,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-

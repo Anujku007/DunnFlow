@@ -1,4 +1,4 @@
-"""
+﻿"""
 DunnFlow execution engine.
 
 Pipeline:
@@ -29,14 +29,18 @@ Important rules:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+import os
+from datetime import datetime, timedelta, timezone
 
 
 # ============================================================================
 # DATABASE
 # ============================================================================
 
+from backend.integrations.razorpay_client import RazorpayAPIError, RazorpayClient
+
 from backend.data.db import (
+    attach_razorpay_order_to_invoice,
     create_payment_attempt,
     get_batch_metrics,
     get_batch_run,
@@ -59,7 +63,10 @@ from backend.data.db import (
 # CONFIGURATION
 # ============================================================================
 
-EXECUTION_MODE = "synthetic_test_mode"
+EXECUTION_MODE = os.getenv(
+    "DUNNFLOW_EXECUTION_MODE",
+    "synthetic_test_mode",
+)
 
 MAX_AUTOMATED_PAYMENT_RETRIES = 3
 
@@ -855,6 +862,172 @@ def _execute_payment_retry(
 
 
 # ============================================================================
+# REAL RAZORPAY TEST-MODE EXECUTION
+# ============================================================================
+
+def _execute_razorpay_payment(
+    action: dict,
+    invoice: dict,
+    subscription: dict,
+    *,
+    as_of=None,
+) -> dict:
+    """Create one real Razorpay Test Mode order for a DunnFlow recovery."""
+
+    executed_at = as_of or _now()
+
+    if isinstance(executed_at, str):
+        executed_at = datetime.fromisoformat(
+            executed_at.replace("Z", "+00:00")
+        )
+
+    payment_attempt_number = _next_payment_attempt_number(
+        invoice["invoice_id"]
+    )
+
+    client = RazorpayClient()
+
+    try:
+        order = client.create_order(
+            amount=int(invoice["amount"]),
+            currency="INR",
+            receipt=(
+                f"dunnflow_{invoice['invoice_id']}_"
+                f"{payment_attempt_number}"
+            ),
+            notes={
+                "dunnflow_invoice_id": str(invoice["invoice_id"]),
+                "dunnflow_subscription_id": str(
+                    subscription["subscription_id"]
+                ),
+                "dunnflow_batch_id": str(invoice["batch_id"]),
+            },
+        )
+    except RazorpayAPIError as exc:
+        retry_at = executed_at + timedelta(minutes=30)
+
+        update_recovery_action(
+            action["action_id"],
+            status="planned",
+            scheduled_for=retry_at.isoformat(),
+            guardrail_hit="razorpay_gateway_unavailable",
+        )
+
+        log_audit_entry(
+            {
+                "batch_id": invoice["batch_id"],
+                "subscription_id": subscription["subscription_id"],
+                "invoice_id": invoice["invoice_id"],
+                "payment_attempt_id": None,
+                "stage": "execute",
+                "failure_category": invoice.get("failure_category"),
+                "action_taken": action["action_type"],
+                "guardrail_hit": "razorpay_gateway_unavailable",
+                "result": "retry_scheduled",
+                "detail": (
+                    "Razorpay was unavailable while creating the recovery order. "
+                    f"Retry scheduled for {retry_at.isoformat()}. "
+                    f"Gateway error: {exc}"
+                ),
+            }
+        )
+
+        return {
+            "action_id": action["action_id"],
+            "invoice_id": invoice["invoice_id"],
+            "action_type": action["action_type"],
+            "payment_attempt_number": payment_attempt_number,
+            "attempt_id": None,
+            "result": "retry_scheduled",
+            "status": "planned",
+            "recovered": False,
+            "amount_recovered": 0,
+            "razorpay_order_id": None,
+            "detail": (
+                "Razorpay is temporarily unavailable. "
+                "No payment attempt was created; recovery was rescheduled "
+                f"for {retry_at.isoformat()}."
+            ),
+        }
+
+    razorpay_order_id = order["id"]
+
+    attach_razorpay_order_to_invoice(
+        invoice["invoice_id"],
+        razorpay_order_id,
+    )
+
+    attempt_id = create_payment_attempt(
+        {
+            "batch_id": invoice["batch_id"],
+            "invoice_id": invoice["invoice_id"],
+            "subscription_id": subscription["subscription_id"],
+            "razorpay_payment_id": None,
+            "attempt_number": payment_attempt_number,
+            "attempt_type": "external_razorpay",
+            "action_type": action["action_type"],
+            "scheduled_for": action.get("scheduled_for"),
+            "executed_at": executed_at,
+            "result": "pending",
+            "raw_error_code": None,
+            "failure_reason": None,
+            "gateway_status": "created",
+            "result_detail": (
+                f"Razorpay order {razorpay_order_id} created; "
+                "awaiting customer payment."
+            ),
+            "created_at": executed_at,
+        }
+    )
+
+    update_recovery_action(
+        action["action_id"],
+        status="executed",
+        executed_at=executed_at,
+    )
+
+    log_audit_entry(
+        {
+            "batch_id": invoice["batch_id"],
+            "subscription_id": subscription["subscription_id"],
+            "invoice_id": invoice["invoice_id"],
+            "payment_attempt_id": attempt_id,
+            "stage": "execute",
+            "failure_category": invoice.get("failure_category"),
+            "action_taken": action["action_type"],
+            "guardrail_hit": None,
+            "result": "pending",
+            "detail": (
+                f"Razorpay Test Mode order "
+                f"{razorpay_order_id} created for "
+                f"INR {invoice['amount'] / 100:,.2f}. "
+                "Awaiting customer payment."
+            ),
+        }
+    )
+
+    return {
+        "action_id": action["action_id"],
+        "invoice_id": invoice["invoice_id"],
+        "action_type": action["action_type"],
+        "payment_attempt_number": payment_attempt_number,
+        "attempt_id": attempt_id,
+        "result": "pending",
+        "status": "awaiting_payment",
+        "recovered": False,
+        "amount_recovered": 0,
+        "razorpay_order_id": razorpay_order_id,
+        "razorpay_key_id": client.key_id,
+        "amount": int(invoice["amount"]),
+        "currency": "INR",
+        "detail": (
+            "Razorpay Test Mode order created. "
+            "Customer payment is required to complete recovery."
+        ),
+    }
+
+
+# ============================================================================
 # EXECUTE ONE ACTION
 # ============================================================================
 
@@ -1084,6 +1257,15 @@ def execute_recovery_action(
     # ------------------------------------------------------------------
 
     if action["action_type"] in PAYMENT_RETRY_ACTIONS:
+
+        if EXECUTION_MODE == "razorpay_test_mode":
+
+            return _execute_razorpay_payment(
+                action=action,
+                invoice=invoice,
+                subscription=subscription,
+                as_of=as_of,
+            )
 
         return _execute_payment_retry(
             action=action,
