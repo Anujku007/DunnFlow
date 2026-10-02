@@ -759,6 +759,10 @@ def _persist_decision(
 ) -> int:
     """
     Persist a decision as a recovery action and audit event.
+
+    Persistence is idempotent for an invoice's currently active action:
+    repeated decision calls must not create duplicate planned recovery
+    actions for the same recovery step.
     """
 
     if decision["decision"] == "blocked":
@@ -773,34 +777,70 @@ def _persist_decision(
     else:
         action_status = "planned"
 
-    action_id = create_recovery_action(
-        {
-            "batch_id": invoice["batch_id"],
-            "subscription_id": invoice[
-                "subscription_id"
-            ],
-            "invoice_id": invoice[
-                "invoice_id"
-            ],
-            "action_type": decision[
-                "action_type"
-            ],
-            "reason": decision[
-                "rationale"
-            ],
-            "priority": decision[
-                "priority"
-            ],
-            "scheduled_for": decision[
-                "scheduled_for"
-            ],
-            "executed_at": None,
-            "status": action_status,
-            "guardrail_hit": decision[
-                "guardrail_hit"
-            ],
-        }
+    # ---------------------------------------------------------------
+    # Idempotency guard
+    # ---------------------------------------------------------------
+    #
+    # A repeated decision call must reuse an already-planned action
+    # instead of inserting another recovery action for the same invoice.
+    #
+    # This protects the scheduler and execution layer from duplicate
+    # recovery work caused by repeated UI/API requests.
+    #
+    existing_actions = get_recovery_actions(
+        invoice_id=invoice["invoice_id"],
     )
+
+    active_actions = [
+        action
+        for action in existing_actions
+        if action.get("status") in {
+            "planned",
+            "awaiting_customer",
+        }
+    ]
+
+    matching_actions = [
+        action
+        for action in active_actions
+        if action.get("action_type")
+        == decision["action_type"]
+    ]
+
+    if matching_actions:
+        existing_action = matching_actions[-1]
+        action_id = int(
+            existing_action["action_id"]
+        )
+    else:
+        action_id = create_recovery_action(
+            {
+                "batch_id": invoice["batch_id"],
+                "subscription_id": invoice[
+                    "subscription_id"
+                ],
+                "invoice_id": invoice[
+                    "invoice_id"
+                ],
+                "action_type": decision[
+                    "action_type"
+                ],
+                "reason": decision[
+                    "rationale"
+                ],
+                "priority": decision[
+                    "priority"
+                ],
+                "scheduled_for": decision[
+                    "scheduled_for"
+                ],
+                "executed_at": None,
+                "status": action_status,
+                "guardrail_hit": decision[
+                    "guardrail_hit"
+                ],
+            }
+        )
 
     audit_stage = "decide"
 

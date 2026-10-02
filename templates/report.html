@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>DunnFlow — Benchmark Report</title>
+
+    <link
+        rel="stylesheet"
+        href="/static/css/style.css?v=20260904"
+    >
+</head>
+
+<body>
+
+    <main class="report-page">
+
+        <header class="report-page-header">
+
+            <div>
+                <div class="section-kicker">
+                    DUNNFLOW / REPORT
+                </div>
+
+                <h1>
+                    Benchmark recovery report
+                </h1>
+
+                <p class="report-page-subtitle">
+                    60-case revenue recovery performance,
+                    strategy outcomes, and deterministic safety controls.
+                </p>
+            </div>
+
+            <div class="report-page-header-meta">
+                <span class="report-status-dot"></span>
+                <span>BENCHMARK_60</span>
+            </div>
+
+        </header>
+
+
+        <section class="report-page-section">
+
+            <div class="report-page-section-header">
+                <div>
+                    <span class="report-detail-kicker">
+                        EXECUTIVE METRICS
+                    </span>
+
+                    <h2>
+                        Recovery performance
+                    </h2>
+                </div>
+            </div>
+
+
+            <div class="report-metrics-grid">
+
+                <article class="report-metric-card">
+                    <span class="report-metric-label">
+                        REVENUE AT RISK
+                    </span>
+
+                    <strong id="reportRevenueAtRisk">
+                        —
+                    </strong>
+
+                    <span>
+                        Benchmark exposure
+                    </span>
+                </article>
+
+
+                <article class="report-metric-card">
+                    <span class="report-metric-label">
+                        RECOVERED REVENUE
+                    </span>
+
+                    <strong id="reportRecoveredAmount">
+                        —
+                    </strong>
+
+                    <span>
+                        Verified recovery
+                    </span>
+                </article>
+
+
+                <article class="report-metric-card">
+                    <span class="report-metric-label">
+                        RECOVERY RATE
+                    </span>
+
+                    <strong id="reportRecoveryRate">
+                        —
+                    </strong>
+
+                    <span>
+                        Cases recovered
+                    </span>
+                </article>
+
+
+                <article class="report-metric-card">
+                    <span class="report-metric-label">
+                        RECOVERED CASES
+                    </span>
+
+                    <strong id="reportRecoveredCases">
+                        —
+                    </strong>
+
+                    <span>
+                        Successful recoveries
+                    </span>
+                </article>
+
+            </div>
+
+        </section>
+
+
+        <section class="report-page-section">
+
+            <div class="report-page-section-header">
+                <div>
+                    <span class="report-detail-kicker">
+                        FAILURE ANALYSIS
+                    </span>
+
+                    <h2>
+                        Recovery by failure category
+                    </h2>
+                </div>
+            </div>
+
+
+            <div
+                id="reportCategoryBreakdown"
+                class="report-breakdown-list"
+            >
+                <div class="report-empty-state">
+                    Loading category metrics...
+                </div>
+            </div>
+
+        </section>
+
+
+        <section class="report-page-section">
+
+            <div class="report-page-section-header">
+                <div>
+                    <span class="report-detail-kicker">
+                        RECOVERY STRATEGIES
+                    </span>
+
+                    <h2>
+                        Deterministic action outcomes
+                    </h2>
+                </div>
+            </div>
+
+
+            <div
+                id="reportActionBreakdown"
+                class="report-breakdown-list"
+            >
+                <div class="report-empty-state">
+                    Loading strategy metrics...
+                </div>
+            </div>
+
+        </section>
+
+
+        <section class="report-page-section">
+
+            <div class="report-page-section-header">
+                <div>
+                    <span class="report-detail-kicker">
+                        SAFETY
+                    </span>
+
+                    <h2>
+                        Deterministic controls
+                    </h2>
+                </div>
+            </div>
+
+
+            <div class="report-safety-card">
+
+                <div class="report-safety-copy">
+
+                    <span class="report-detail-kicker">
+                        POLICY AUTHORITY
+                    </span>
+
+                    <h3>
+                        AI recommends. Deterministic policy authorizes.
+                    </h3>
+
+                    <p>
+                        Recovery execution remains bounded by retry budgets,
+                        retry spacing, paid-invoice protection, customer
+                        messaging limits, and gateway-outage safeguards.
+                    </p>
+
+                </div>
+
+
+                <div class="report-safety-stats">
+
+                    <div>
+                            <span class="report-safety-stat-icon" aria-hidden="true">&#128274;</span>
+
+                        <span>
+                            BLOCKED CASES
+                        </span>
+
+                        <strong id="reportBlockedCases">
+                            —
+                        </strong>
+                    </div>
+
+
+                    <div>
+                            <span class="report-safety-stat-icon" aria-hidden="true">&#128737;</span>
+
+                        <span>
+                            GUARDRAIL BLOCKS
+                        </span>
+
+                        <strong id="reportGuardrailBlocks">
+                            —
+                        </strong>
+                    </div>
+
+
+                    <div>
+                            <span class="report-safety-stat-icon" aria-hidden="true">&#128196;</span>
+
+                        <span>
+                            MANUAL REVIEWS
+                        </span>
+
+                        <strong id="reportManualReviews">
+                            —
+                        </strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="report-page-section report-export-section">
+
+            <div class="report-export-card">
+
+                <div>
+
+                    <span class="report-detail-kicker">
+                        COMPLETE REPORT
+                    </span>
+
+                    <h2>
+                        Download benchmark evidence
+                    </h2>
+
+                    <p>
+                        Export the complete benchmark report including
+                        recovery metrics, recovery cases, and audit trail.
+                    </p>
+
+                </div>
+
+
+                <button
+                    id="downloadReportBtn"
+                    class="secondary-button report-launch-button"
+                    type="button"
+                >
+                    &#8595;&nbsp; DOWNLOAD PDF REPORT
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <footer class="report-page-footer">
+
+            <span>
+                DUNNFLOW
+            </span>
+
+            <span>
+                BENCHMARK_60
+            </span>
+
+            <a href="/">
+                &#8592;&nbsp; BACK TO CONTROL CENTER
+            </a>
+
+        </footer>
+
+    </main>
+
+
+    <script src="/static/js/api.js?v=20260904"></script>
+    <script src="/static/js/report-page.js?v=20260904"></script>
+
+</body>
+</html>

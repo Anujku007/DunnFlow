@@ -125,6 +125,9 @@ class AIConfig:
         elif provider == "openai":
             api_key = os.getenv("OPENAI_API_KEY")
             default_model = DEFAULT_MODEL
+        elif provider == "gemini":
+            api_key = os.getenv("GEMINI_API_KEY")
+            default_model = "gemini-2.5-flash"
         else:
             raise AIConfigurationError(
                 f"Unsupported AI provider: {provider}"
@@ -189,6 +192,81 @@ class AIProvider:
         user_prompt: str,
     ) -> str:
         raise NotImplementedError
+
+
+class GeminiProvider(AIProvider):
+    """
+    Google Gemini provider.
+
+    This class contains provider-specific code only.
+    It does not know anything about invoices, payments,
+    Razorpay, or recovery authorization.
+
+    AI output remains advisory and is validated by the
+    existing DunnFlow AI recommendation boundary.
+    """
+
+    def __init__(self, config: AIConfig):
+        self.config = config
+
+        if not config.api_key:
+            raise AIConfigurationError(
+                "GEMINI_API_KEY is not configured."
+            )
+
+        try:
+            from google import genai
+        except ImportError as exc:
+            raise AIConfigurationError(
+                "The 'google-genai' package is not installed."
+            ) from exc
+
+        self._genai = genai
+
+        try:
+            self._client = genai.Client(
+                api_key=config.api_key
+            )
+        except Exception as exc:
+            raise AIConfigurationError(
+                f"Gemini client initialization failed: {exc}"
+            ) from exc
+
+    def generate(
+        self,
+        *,
+        system_prompt: str,
+        user_prompt: str,
+    ) -> str:
+        try:
+            response = self._client.models.generate_content(
+                model=self.config.model,
+                contents=user_prompt,
+                config=__import__("google.genai", fromlist=["types"]).types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    response_mime_type="application/json",
+                ),
+            )
+
+        except Exception as exc:
+            raise AIProviderError(
+                f"Gemini request failed: {exc}"
+            ) from exc
+
+        output_text = getattr(
+            response,
+            "text",
+            None,
+        )
+
+        if not output_text:
+            raise AIProviderError(
+                "Gemini returned an empty response."
+            )
+
+        return output_text
+
+
 
 
 class OpenAIProvider(AIProvider):
@@ -382,6 +460,10 @@ class RecoveryAdvisor:
                     )
                 elif self.config.provider == "openai":
                     self.provider = OpenAIProvider(
+                        self.config
+                    )
+                elif self.config.provider == "gemini":
+                    self.provider = GeminiProvider(
                         self.config
                     )
                 else:
@@ -582,6 +664,7 @@ class RecoveryAdvisor:
             "customer_action",
             "payment_method_update",
             "manual_review",
+            "no_action",
         }
 
         if not isinstance(recommended_action, str):

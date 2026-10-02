@@ -51,6 +51,7 @@ from backend.data.db import (
 
 CATEGORY_MAP = {
     "insufficient_fund": "insufficient_funds",
+    "insufficient_funds": "insufficient_funds",
     "payment_timed_out": "bank_timeout",
     "authentication_failed": "auth_failed",
     "card_expired": "card_expired",

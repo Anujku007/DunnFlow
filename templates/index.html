@@ -1,14 +1,14 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
- <script src='https://checkout.razorpay.com/v1/checkout.js'></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>DunnFlow — Revenue Recovery Control Center</title>
+    <title>DunnFlow â€” Revenue Recovery Control Center</title>
 
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <link rel="icon" href="/static/images/dunnflow-logo.png">
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=20260905">
 </head>
 
 <body>
@@ -116,7 +116,7 @@
                 <div class="visual-panel">
 
                     <div class="visual-shield">
-                        <span>✓</span>
+                        <span>âœ“</span>
                     </div>
 
                     <div class="visual-chart">
@@ -165,9 +165,9 @@
                     </h2>
                 </div>
 
-                <div class="mode-pill">
+                <div class="mode-pill" id="executionModePill">
                     <span></span>
-                    SYNTHETIC TEST MODE
+                    RAZORPAY TEST MODE
                 </div>
 
             </div>
@@ -190,39 +190,16 @@
                         <div class="batch-select-wrapper">
 
                             <span class="batch-select-icon">
-                                ◈
+                                â—ˆ
                             </span>
 
-                            <select
-                                id="batchSelect"
-                                class="batch-select"
-
-                            >
-
-                            <option value="benchmark_60_subscription_failures">Razorpay Test - Existing 299 Recovery</option>
-
-                            <option value="e2e_phase_e_card_expired_success_043">
-                              Card Expired — Synthetic Success Demo
-                            </option>
-
-                            <option value="e2e_phase_e_card_expired_retry_001">
-                               Card Expired — Fresh Demo
-                            </option>
-
-                            <option value="e2e_phase_e_card_expired_001">
-                              Card Expired — Guardrail Demo
-                            </option>
-
-                            <option value="e2e_phase_e_unclassified_001">
-                              Unclassified — Manual Review
-                            </option>
-
-
-
+                            <select id="batchSelect" class="batch-select">
+    <option value="razorpay_isolated_test_001">Razorpay Test Mode — ₹299 Recovery</option>
+                                <option value="benchmark_60_subscription_failures">Benchmark â€” 60 Subscription Failures</option>
                             </select>
 
                             <span class="batch-select-chevron">
-                               ⌄
+                               âŒ„
                             </span>
 
                         </div>
@@ -239,7 +216,7 @@
                         >
 
                             <span class="button-icon">
-                                ▶
+                                â–¶
                             </span>
 
                             <span class="button-label">
@@ -247,7 +224,7 @@
                             </span>
 
                             <span class="button-arrow">
-                                →
+                                â†’
                             </span>
 
                         </button>
@@ -257,11 +234,11 @@
                             class="secondary-button"
                             type="button"
                         >
-                            PAY EXISTING ORDER
+                            PAY WITH RAZORPAY TEST MODE
                         </button>
 
                         <div class="run-recovery-caption">
-                            Opens the existing Razorpay recovery order.
+                            Pay the existing â‚¹299 Razorpay Test Mode recovery order.
                         </div>
 
                     </div>
@@ -275,160 +252,213 @@
 
                 <div class="scenario-grid">
 
-
                     <!-- FRESH DEMO -->
-
                     <button
                         type="button"
-                        class="scenario-card scenario-card-fresh is-selected"
-                        data-batch="e2e_phase_e_card_expired_retry_001"
+                        class="scenario-card scenario-card-fresh"
+                        data-invoice="inv_dunnflow_006"
                     >
-
-                        <span class="scenario-check">
-                            ✓
-                        </span>
+                        <span class="scenario-check">?</span>
 
                         <div class="scenario-card-top">
-
-                            <div class="scenario-icon scenario-icon-green">
-                                ↻
-                            </div>
-
-                            <span class="scenario-number">
-                                01
-                            </span>
-
+                            <div class="scenario-icon scenario-icon-green">&#8635;</div>
+                            <span class="scenario-number">01</span>
                         </div>
 
                         <div class="scenario-card-content">
-
                             <div class="scenario-card-title">
+                                INSUFFICIENT FUNDS
+                            </div>
+
+                            <div class="scenario-card-name">
                                 Fresh Demo
                             </div>
 
                             <p>
-                                Demonstrates an eligible recovery
-                                opportunity.
+                                Customer balance issue
                             </p>
 
+                            <div class="scenario-policy">
+                                <span>POLICY</span>
+                                <strong>Delayed retry</strong>
+                            </div>
                         </div>
 
                         <div class="scenario-card-footer">
-
                             <span class="scenario-status status-eligible">
                                 ELIGIBLE RECOVERY
                             </span>
 
-                            <span class="scenario-arrow">
-                                →
-                            </span>
-
+                            <span class="scenario-arrow">&#8594;</span>
                         </div>
-
                     </button>
 
 
                     <!-- GUARDRAIL DEMO -->
-
                     <button
                         type="button"
                         class="scenario-card scenario-card-guardrail"
-                        data-batch="e2e_phase_e_card_expired_001"
+                        data-invoice="inv_dunnflow_012"
                     >
-
-                        <span class="scenario-check">
-                            ✓
-                        </span>
+                        <span class="scenario-check">?</span>
 
                         <div class="scenario-card-top">
-
-                            <div class="scenario-icon scenario-icon-amber">
-                                ⛨
-                            </div>
-
-                            <span class="scenario-number">
-                                02
-                            </span>
-
+                            <div class="scenario-icon scenario-icon-amber">&#9940;</div>
+                            <span class="scenario-number">02</span>
                         </div>
 
                         <div class="scenario-card-content">
-
                             <div class="scenario-card-title">
+                                INSUFFICIENT FUNDS
+                            </div>
+
+                            <div class="scenario-card-name">
                                 Guardrail Demo
                             </div>
 
                             <p>
-                                Demonstrates safe blocking of an
-                                unsafe action.
+                                Retry attempted too recently
                             </p>
 
+                            <div class="scenario-policy">
+                                <span>GUARDRAIL</span>
+                                <strong>24h minimum gap</strong>
+                            </div>
                         </div>
 
                         <div class="scenario-card-footer">
-
                             <span class="scenario-status status-blocked">
                                 SAFE BLOCKING
                             </span>
 
-                            <span class="scenario-arrow">
-                                →
-                            </span>
-
+                            <span class="scenario-arrow">&#8594;</span>
                         </div>
-
                     </button>
 
 
                     <!-- MANUAL REVIEW -->
-
                     <button
                         type="button"
                         class="scenario-card scenario-card-manual"
-                        data-batch="e2e_phase_e_unclassified_001"
+                        data-invoice="inv_dunnflow_060"
                     >
-
-                        <span class="scenario-check">
-                            ✓
-                        </span>
+                        <span class="scenario-check">?</span>
 
                         <div class="scenario-card-top">
-
-                            <div class="scenario-icon scenario-icon-purple">
-                                ◎
-                            </div>
-
-                            <span class="scenario-number">
-                                03
-                            </span>
-
+                            <div class="scenario-icon scenario-icon-purple">&#9678;</div>
+                            <span class="scenario-number">03</span>
                         </div>
 
                         <div class="scenario-card-content">
-
                             <div class="scenario-card-title">
+                                UNCLASSIFIED
+                            </div>
+
+                            <div class="scenario-card-name">
                                 Manual Review
                             </div>
 
                             <p>
-                                Demonstrates escalation when the
-                                failure is unknown.
+                                Unknown gateway failure
                             </p>
 
+                            <div class="scenario-policy">
+                                <span>DECISION</span>
+                                <strong>Manual review</strong>
+                            </div>
                         </div>
 
                         <div class="scenario-card-footer">
-
                             <span class="scenario-status status-review">
                                 ESCALATION
                             </span>
 
-                            <span class="scenario-arrow">
-                                →
-                            </span>
+                            <span class="scenario-arrow">&#8594;</span>
+                        </div>
+                    </button>
 
+
+                    <!-- SUCCESSFUL RECOVERY -->
+                    <button
+                        type="button"
+                        class="scenario-card scenario-card-success"
+                        data-invoice="inv_dunnflow_030"
+                    >
+                        <span class="scenario-check">?</span>
+
+                        <div class="scenario-card-top">
+                            <div class="scenario-icon scenario-icon-green">&#10003;</div>
+                            <span class="scenario-number">04</span>
                         </div>
 
+                        <div class="scenario-card-content">
+                            <div class="scenario-card-title">
+                                BANK TIMEOUT
+                            </div>
+
+                            <div class="scenario-card-name">
+                                Successful Recovery
+                            </div>
+
+                            <p>
+                                Transient bank timeout
+                            </p>
+
+                            <div class="scenario-policy">
+                                <span>POLICY</span>
+                                <strong>Auto retry same card</strong>
+                            </div>
+                        </div>
+
+                        <div class="scenario-card-footer">
+                            <span class="scenario-status status-eligible">
+                                VERIFIED RECOVERY
+                            </span>
+
+                            <span class="scenario-arrow">&#8594;</span>
+                        </div>
+                    </button>
+
+
+                    <!-- RAZORPAY TEST MODE -->
+                    <button
+                        type="button"
+                        class="scenario-card scenario-card-success"
+                        data-invoice="inv_dunnflow_001"
+                    >
+                        <span class="scenario-check">?</span>
+
+                        <div class="scenario-card-top">
+                            <div class="scenario-icon scenario-icon-green">&#10003;</div>
+                            <span class="scenario-number">05</span>
+                        </div>
+
+                        <div class="scenario-card-content">
+                            <div class="scenario-card-title">
+                                RAZORPAY TEST MODE
+                            </div>
+
+                            <div class="scenario-card-name">
+                                ?299 Recovery
+                            </div>
+
+                            <p>
+                                Live Test Mode payment recovery
+                            </p>
+
+                            <div class="scenario-policy">
+                                <span>POLICY</span>
+                                <strong>Retry payment</strong>
+                            </div>
+                        </div>
+
+                        <div class="scenario-card-footer">
+                            <span class="scenario-status status-eligible">
+                                TEST MODE RECOVERY
+                            </span>
+
+                            <span class="scenario-arrow">&#8594;</span>
+                        </div>
                     </button>
 
                 </div>
@@ -458,7 +488,7 @@
                         </span>
 
                         <span class="metric-icon">
-                            ▰
+                            â–°
                         </span>
                     </div>
 
@@ -466,7 +496,7 @@
                         id="riskAmount"
                         class="metric-value"
                     >
-                        ₹0.00
+                        â‚¹0.00
                     </div>
 
                     <div class="metric-description">
@@ -484,7 +514,7 @@
                         </span>
 
                         <span class="metric-icon">
-                            ₹
+                            â‚¹
                         </span>
                     </div>
 
@@ -492,7 +522,7 @@
                         id="recoveredAmount"
                         class="metric-value"
                     >
-                        ₹0.00
+                        â‚¹0.00
                     </div>
 
                     <div class="metric-description">
@@ -510,7 +540,7 @@
                         </span>
 
                         <span class="metric-icon">
-                            ◔
+                            â—”
                         </span>
                     </div>
 
@@ -536,7 +566,7 @@
                         </span>
 
                         <span class="metric-icon">
-                            ⌛
+                            âŒ›
                         </span>
                     </div>
 
@@ -607,16 +637,14 @@
 
                         <div class="step-copy">
                             <strong>DETECT</strong>
-                            <span>
-                                Identify revenue at risk
-                            </span>
+                            <span class="step-status">PENDING</span><span class="step-description">Identify revenue at risk</span>
                         </div>
 
                     </div>
 
 
                     <div class="pipeline-arrow">
-                        →
+                        â†’
                     </div>
 
 
@@ -631,16 +659,14 @@
 
                         <div class="step-copy">
                             <strong>DECIDE</strong>
-                            <span>
-                                Choose safest recovery action
-                            </span>
+                            <span class="step-status">PENDING</span><span class="step-description">Choose safest recovery action</span>
                         </div>
 
                     </div>
 
 
                     <div class="pipeline-arrow">
-                        →
+                        â†’
                     </div>
 
 
@@ -655,16 +681,14 @@
 
                         <div class="step-copy">
                             <strong>EXECUTE</strong>
-                            <span>
-                                Execute within guardrails
-                            </span>
+                            <span class="step-status">PENDING</span><span class="step-description">Execute within guardrails</span>
                         </div>
 
                     </div>
 
 
                     <div class="pipeline-arrow">
-                        →
+                        â†’
                     </div>
 
 
@@ -679,11 +703,39 @@
 
                         <div class="step-copy">
                             <strong>OUTCOME</strong>
-                            <span>
-                                Track recovery result
-                            </span>
+                            <span class="step-status">PENDING</span><span class="step-description">Track recovery result</span>
                         </div>
 
+                    </div>
+
+                </div>
+
+                <div class="decision-intelligence-action">
+
+                    <button
+                        id="inspectDecisionBtn"
+                        class="secondary-button intelligence-trigger"
+                        type="button"
+                    >
+                        <span class="intelligence-icon">&#10024;</span>
+
+                        <span class="button-label">
+                            INSPECT AI DECISION
+                        </span>
+
+                        <span class="button-arrow">
+                            &#8594;
+                        </span>
+
+                    </button>
+
+                    <div class="decision-intelligence-hint">
+                        <span class="decision-intelligence-hint-label">
+                            READ-ONLY EXPLAINABILITY
+                        </span>
+                        <span class="decision-intelligence-hint-text">
+                            Inspect diagnosis, AI recommendation, policy authorization, and outcome.
+                        </span>
                     </div>
 
                 </div>
@@ -714,7 +766,7 @@
                         </div>
 
                         <h2>
-                            Failure → Action
+                            Failure â†’ Action
                         </h2>
 
                     </div>
@@ -759,7 +811,6 @@
 
             </div>
 
-
             <div
                 id="reports"
                 class="panel report-panel"
@@ -802,13 +853,13 @@
 
                     </div>
 
-                    <button
-                        id="downloadReportBtn"
-                        class="secondary-button"
-                        type="button"
+                    <a
+                        id="openReportMetricsBtn"
+                        class="secondary-button report-launch-button"
+                        href="/reports/benchmark_60_subscription_failures"
                     >
-                        ⇩ &nbsp; DOWNLOAD REPORT
-                    </button>
+                        &#8595;&nbsp; REPORT &amp; METRICS
+                    </a>
 
                 </div>
 
@@ -817,11 +868,6 @@
         </div>
 
     </section>
-
-
-    <!-- =====================================================
-         AUDIT LOG
-    ====================================================== -->
 
     <section
         id="audit-log"
@@ -900,22 +946,191 @@
      JAVASCRIPT
 ========================================================= -->
 
-<!-- =========================================================
-     JAVASCRIPT
-========================================================= -->
+<script src="/static/js/state.js?v=20260903"></script>
+<script src="/static/js/api.js?v=20260903"></script>
+<script src="/static/js/navigation.js?v=20260903"></script>
+<script src="/static/js/audit-trail.js?v=20260903"></script>
+<script src="/static/js/live-feed.js?v=20260903"></script>
+<script src="/static/js/metrics.js?v=20261002"></script>
+<script src="/static/js/scenario-cards.js?v=20261002"></script>
+<script src="/static/js/decision-intelligence.js?v=20260905"></script>
 
-<script src="/static/js/api.js"></script>
-<script src="/static/js/navigation.js"></script>
-<script src="/static/js/audit-trail.js"></script>
-<script src="/static/js/live-feed.js"></script>
-<script src="/static/js/metrics.js"></script>
-<script src="/static/js/scenario-cards.js"></script>
+
+<!-- =====================================================
+     DECISION INTELLIGENCE MODAL
+====================================================== -->
+
+<div
+    id="decisionIntelligenceModal"
+    class="decision-modal"
+    aria-hidden="true"
+>
+
+    <div
+        class="decision-modal-backdrop"
+        data-close-decision-modal="true"
+    ></div>
+
+    <div
+        class="decision-modal-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="decisionModalTitle"
+    >
+
+        <div class="decision-modal-header">
+
+            <div>
+
+                <div class="section-kicker">
+                    DECISION INTELLIGENCE
+                </div>
+
+                <h2 id="decisionModalTitle">
+                    AI recommendation vs policy authorization
+                </h2>
+
+                <p class="decision-modal-subtitle">
+                    AI recommends. Deterministic policy authorizes. Execution obeys.
+                </p>
+
+            </div>
+
+            <button
+                id="closeDecisionModalBtn"
+                class="decision-modal-close"
+                type="button"
+                aria-label="Close decision intelligence"
+            >
+                &#215;
+            </button>
+
+        </div>
+
+
+        <div
+            class="intelligence-grid"
+            id="recoveryIntelligence"
+        >
+
+            <div class="intelligence-card">
+
+                <div class="intelligence-label">
+                    FAILURE DIAGNOSIS
+                </div>
+
+                <div
+                    class="intelligence-value"
+                    id="failureDiagnosis"
+                >
+                    Awaiting recovery run
+                </div>
+
+                <div
+                    class="intelligence-detail"
+                    id="failureReason"
+                >
+                    The payment failure will be diagnosed from the recorded gateway outcome.
+                </div>
+
+            </div>
+
+
+            <div class="intelligence-card">
+
+                <div class="intelligence-label">
+                    AI RECOMMENDATION
+                </div>
+
+                <div
+                    class="intelligence-value"
+                    id="aiRecommendation"
+                >
+                    Awaiting AI recommendation
+                </div>
+
+                <div class="intelligence-meta">
+
+                    <span id="aiConfidence">
+                        Confidence &#8212;
+                    </span>
+
+                    <span id="aiAgreement">
+                        Policy agreement &#8212;
+                    </span>
+
+                </div>
+
+                <div
+                    class="intelligence-detail"
+                    id="aiReason"
+                >
+                    AI remains advisory; it does not authorize financial actions.
+                </div>
+
+            </div>
+
+
+            <div class="intelligence-card">
+
+                <div class="intelligence-label">
+                    DETERMINISTIC AUTHORIZATION
+                </div>
+
+                <div
+                    class="intelligence-value"
+                    id="deterministicDecision"
+                >
+                    Awaiting policy decision
+                </div>
+
+                <div class="intelligence-meta">
+
+                    <span id="decisionPriority">
+                        Priority &#8212;
+                    </span>
+
+                    <span id="decisionGuardrail">
+                        Guardrail &#8212;
+                    </span>
+
+                </div>
+
+                <div class="intelligence-detail">
+                    The deterministic recovery policy is authoritative.
+                </div>
+
+            </div>
+
+
+            <div class="intelligence-card intelligence-card-outcome">
+
+                <div class="intelligence-label">
+                    EXECUTION OUTCOME
+                </div>
+
+                <div
+                    class="intelligence-value"
+                    id="outcomeResult"
+                >
+                    Awaiting execution
+                </div>
+
+                <div class="intelligence-meta">
+
+                    <span id="outcomeAmount">
+                        Recovered &#8212; &#8377;0
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 
 </body>
 </html>
-
-
-
-
-
-

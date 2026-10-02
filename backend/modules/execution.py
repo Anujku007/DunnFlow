@@ -618,6 +618,77 @@ def _execute_payment_retry(
         + 1
     )
 
+    # ------------------------------------------------------------------
+    # RETRY-BUDGET GUARDRAIL
+    # ------------------------------------------------------------------
+    # Authorization must happen BEFORE gateway simulation or payment
+    # attempt creation. An exhausted retry budget must never create
+    # another payment attempt.
+    if recovery_attempt_number > MAX_AUTOMATED_PAYMENT_RETRIES:
+
+        guardrail_hit = (
+            "max_automated_payment_retries_exceeded"
+        )
+
+        detail = (
+            f"Recovery attempt #{recovery_attempt_number} was blocked. "
+            f"The automated retry budget of "
+            f"{MAX_AUTOMATED_PAYMENT_RETRIES} "
+            "has already been exhausted. "
+            "No payment attempt was created."
+        )
+
+        update_subscription_status(
+            subscription["subscription_id"],
+            "halted",
+            retry_count=MAX_AUTOMATED_PAYMENT_RETRIES,
+        )
+
+        update_recovery_action(
+            action["action_id"],
+            status="blocked",
+            executed_at=executed_at,
+            guardrail_hit=guardrail_hit,
+        )
+
+        log_audit_entry(
+            {
+                "batch_id": invoice["batch_id"],
+                "subscription_id": subscription[
+                    "subscription_id"
+                ],
+                "invoice_id": invoice[
+                    "invoice_id"
+                ],
+                "payment_attempt_id": None,
+                "stage": "guardrail_block",
+                "failure_category": invoice.get(
+                    "failure_category"
+                ),
+                "action_taken": action[
+                    "action_type"
+                ],
+                "guardrail_hit": guardrail_hit,
+                "result": "blocked",
+                "detail": detail,
+            }
+        )
+
+        return {
+            "action_id": action["action_id"],
+            "invoice_id": invoice["invoice_id"],
+            "action_type": action["action_type"],
+            "payment_attempt_number": payment_attempt_number,
+            "recovery_attempt_number": recovery_attempt_number,
+            "attempt_id": None,
+            "result": "blocked",
+            "status": "blocked",
+            "recovered": False,
+            "amount_recovered": 0,
+            "payment_id": None,
+            "detail": detail,
+        }
+
     gateway_result = _simulate_payment_attempt(
         invoice,
         subscription,
@@ -884,6 +955,82 @@ def _execute_razorpay_payment(
     payment_attempt_number = _next_payment_attempt_number(
         invoice["invoice_id"]
     )
+
+    recovery_attempt_number = (
+        _automated_retry_count(
+            invoice["invoice_id"]
+        )
+        + 1
+    )
+
+    # ------------------------------------------------------------------
+    # RETRY-BUDGET GUARDRAIL
+    # ------------------------------------------------------------------
+    # Authorization must happen BEFORE creating a Razorpay order.
+    if recovery_attempt_number > MAX_AUTOMATED_PAYMENT_RETRIES:
+
+        guardrail_hit = (
+            "max_automated_payment_retries_exceeded"
+        )
+
+        detail = (
+            f"Recovery attempt #{recovery_attempt_number} was blocked. "
+            f"The automated retry budget of "
+            f"{MAX_AUTOMATED_PAYMENT_RETRIES} "
+            "has already been exhausted. "
+            "No Razorpay order or payment attempt was created."
+        )
+
+        update_subscription_status(
+            subscription["subscription_id"],
+            "halted",
+            retry_count=MAX_AUTOMATED_PAYMENT_RETRIES,
+        )
+
+        update_recovery_action(
+            action["action_id"],
+            status="blocked",
+            executed_at=executed_at,
+            guardrail_hit=guardrail_hit,
+        )
+
+        log_audit_entry(
+            {
+                "batch_id": invoice["batch_id"],
+                "subscription_id": subscription[
+                    "subscription_id"
+                ],
+                "invoice_id": invoice[
+                    "invoice_id"
+                ],
+                "payment_attempt_id": None,
+                "stage": "guardrail_block",
+                "failure_category": invoice.get(
+                    "failure_category"
+                ),
+                "action_taken": action[
+                    "action_type"
+                ],
+                "guardrail_hit": guardrail_hit,
+                "result": "blocked",
+                "detail": detail,
+            }
+        )
+
+        return {
+            "action_id": action["action_id"],
+            "invoice_id": invoice["invoice_id"],
+            "action_type": action["action_type"],
+            "payment_attempt_number": payment_attempt_number,
+            "recovery_attempt_number": recovery_attempt_number,
+            "attempt_id": None,
+            "result": "blocked",
+            "status": "blocked",
+            "recovered": False,
+            "amount_recovered": 0,
+            "razorpay_order_id": None,
+            "detail": detail,
+        }
 
     client = RazorpayClient()
 

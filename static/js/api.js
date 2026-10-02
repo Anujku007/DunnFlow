@@ -1,100 +1,141 @@
-/* =========================================================
-   DUNNFLOW — API CLIENT
-   Centralized FastAPI communication layer
-   ========================================================= */
+/*
+ * DunnFlow — API Layer
+ *
+ * Responsibilities:
+ * - HTTP communication with the FastAPI backend.
+ * - Centralized error handling.
+ * - No UI state decisions.
+ * - No navigation logic.
+ * - No recovery orchestration.
+ *
+ * Execution mode belongs to state.js / metrics.js.
+ */
 
 const API_BASE = "";
 
 
-/* =========================================================
-   CORE REQUEST HANDLER
-   ========================================================= */
+/**
+ * Generic API request helper.
+ */
+async function apiRequest(
+    path,
+    options = {}
+) {
+    const {
+        method = "GET",
+        headers = {},
+        body = null
+    } = options;
 
-async function apiRequest(url, options = {}) {
-    const response = await fetch(url, {
-        ...options,
+    const requestHeaders = {
+        Accept: "application/json",
+        ...headers
+    };
 
-        headers: {
-            Accept: "application/json",
-            ...(options.body ? { "Content-Type": "application/json" } : {}),
-            ...(options.headers || {})
+    const requestOptions = {
+        method,
+        headers: requestHeaders
+    };
+
+    if (body !== null) {
+        requestOptions.headers["Content-Type"] =
+            "application/json";
+
+        requestOptions.body =
+            typeof body === "string"
+                ? body
+                : JSON.stringify(body);
+    }
+
+    let response;
+
+    try {
+        response = await fetch(
+            `${API_BASE}${path}`,
+            requestOptions
+        );
+    } catch (error) {
+        throw new Error(
+            `Network error while requesting ${path}: ${
+                error.message || error
+            }`
+        );
+    }
+
+    let payload = null;
+
+    const contentType =
+        response.headers.get("content-type") || "";
+
+    if (contentType.includes("application/json")) {
+        try {
+            payload = await response.json();
+        } catch (error) {
+            payload = null;
         }
-    });
+    } else {
+        try {
+            payload = await response.text();
+        } catch (error) {
+            payload = null;
+        }
+    }
 
     if (!response.ok) {
-        let message = `Request failed with status ${response.status}`;
+        const detail =
+            payload &&
+            typeof payload === "object" &&
+            payload.detail
+                ? payload.detail
+                : `HTTP ${response.status}`;
 
-        try {
-            const data = await response.json();
-
-            if (typeof data.detail === "string") {
-                message = data.detail;
-            } else if (data.detail) {
-                message = JSON.stringify(data.detail);
-            }
-        } catch {
-            try {
-                const text = await response.text();
-
-                if (text) {
-                    message = text;
-                }
-            } catch {
-                // Keep the default error message.
-            }
-        }
-
-        throw new Error(message);
+        throw new Error(
+            `${detail}`
+        );
     }
 
-    return response.json();
+    return payload;
 }
 
 
-/* =========================================================
-   BATCH ID SAFETY
-   ========================================================= */
-
-function batchUrl(batchId, endpoint = "") {
-    if (!batchId) {
-        throw new Error("Batch ID is required.");
-    }
-
-    const encodedBatchId = encodeURIComponent(batchId);
-
-    return `${API_BASE}/api/batches/${encodedBatchId}${endpoint}`;
-}
-
-
-/* =========================================================
-   HEALTH
-   ========================================================= */
-
+/**
+ * Health
+ */
 async function getHealth() {
     return apiRequest(
-        `${API_BASE}/api/health`
+        "/api/health"
     );
 }
 
 
-/* =========================================================
-   BATCH
-   ========================================================= */
-
+/**
+ * Batch
+ */
 async function getBatch(batchId) {
+    if (!batchId) {
+        throw new Error(
+            "Batch ID is required."
+        );
+    }
+
     return apiRequest(
-        batchUrl(batchId)
+        `/api/batches/${encodeURIComponent(batchId)}`
     );
 }
 
 
-/* =========================================================
-   DETECTION
-   ========================================================= */
-
+/**
+ * Batch detection
+ */
 async function detectBatch(batchId) {
+    if (!batchId) {
+        throw new Error(
+            "Batch ID is required for detection."
+        );
+    }
+
     return apiRequest(
-        batchUrl(batchId, "/detect"),
+        `/api/batches/${encodeURIComponent(batchId)}/detect`,
         {
             method: "POST"
         }
@@ -102,13 +143,18 @@ async function detectBatch(batchId) {
 }
 
 
-/* =========================================================
-   DECISION
-   ========================================================= */
-
+/**
+ * Batch decision
+ */
 async function decideBatch(batchId) {
+    if (!batchId) {
+        throw new Error(
+            "Batch ID is required for decision."
+        );
+    }
+
     return apiRequest(
-        batchUrl(batchId, "/decide"),
+        `/api/batches/${encodeURIComponent(batchId)}/decide`,
         {
             method: "POST"
         }
@@ -116,13 +162,18 @@ async function decideBatch(batchId) {
 }
 
 
-/* =========================================================
-   EXECUTION
-   ========================================================= */
-
+/**
+ * Batch execution
+ */
 async function executeBatch(batchId) {
+    if (!batchId) {
+        throw new Error(
+            "Batch ID is required for execution."
+        );
+    }
+
     return apiRequest(
-        batchUrl(batchId, "/execute"),
+        `/api/batches/${encodeURIComponent(batchId)}/execute`,
         {
             method: "POST"
         }
@@ -130,21 +181,148 @@ async function executeBatch(batchId) {
 }
 
 
-/* =========================================================
-   METRICS
-   ========================================================= */
-
+/**
+ * Batch metrics
+ */
 async function getMetrics(batchId) {
+    if (!batchId) {
+        throw new Error(
+            "Batch ID is required for metrics."
+        );
+    }
+
     return apiRequest(
-        batchUrl(batchId, "/metrics")
+        `/api/batches/${encodeURIComponent(batchId)}/metrics`
     );
 }
 
 
-/* =========================================================
-   REPORT
-   ========================================================= */
-
+/**
+ * Batch report URL.
+ *
+ * This function does not perform a request.
+ * It only returns the backend report path.
+ */
 function getReportUrl(batchId) {
-    return batchUrl(batchId, "/report");
+    if (!batchId) {
+        throw new Error(
+            "Batch ID is required for the report."
+        );
+    }
+
+    return (
+        `/api/batches/${encodeURIComponent(batchId)}/report`
+    );
 }
+
+
+/**
+ * Demo case
+ */
+async function getDemoCase(invoiceId) {
+    if (!invoiceId) {
+        throw new Error(
+            "Demo invoice ID is required."
+        );
+    }
+
+    return apiRequest(
+        `/api/demo/cases/${encodeURIComponent(invoiceId)}`
+    );
+}
+
+
+async function inspectDemoCase(invoiceId) {
+    if (!invoiceId) {
+        throw new Error(
+            "Demo invoice ID is required."
+        );
+    }
+
+    return apiRequest(
+        `/api/demo/cases/${encodeURIComponent(invoiceId)}/inspect`
+    );
+}
+
+
+/**
+ * Demo decision
+ */
+async function decideDemoCase(invoiceId) {
+    if (!invoiceId) {
+        throw new Error(
+            "Demo invoice ID is required for decision."
+        );
+    }
+
+    return apiRequest(
+        `/api/demo/cases/${encodeURIComponent(invoiceId)}/decide`,
+        {
+            method: "POST"
+        }
+    );
+}
+
+
+/**
+ * Demo execution
+ */
+async function executeDemoCase(invoiceId) {
+    if (!invoiceId) {
+        throw new Error(
+            "Demo invoice ID is required for execution."
+        );
+    }
+
+    return apiRequest(
+        `/api/demo/cases/${encodeURIComponent(invoiceId)}/execute`,
+        {
+            method: "POST"
+        }
+    );
+}
+
+
+/**
+ * Existing Razorpay checkout information.
+ */
+async function getRazorpayCheckout(batchId) {
+    if (!batchId) {
+        throw new Error(
+            "Batch ID is required for Razorpay checkout."
+        );
+    }
+
+    return apiRequest(
+        `/api/batches/${encodeURIComponent(batchId)}/razorpay-checkout`
+    );
+}
+
+
+/**
+ * Expose the API contract explicitly.
+ *
+ * These references make the browser-side API surface
+ * easy to inspect without introducing another global
+ * state object.
+ */
+window.DunnFlowAPI = {
+    apiRequest,
+
+    getHealth,
+    getBatch,
+
+    detectBatch,
+    decideBatch,
+    executeBatch,
+
+    getMetrics,
+    getReportUrl,
+
+    getDemoCase,
+    inspectDemoCase,
+    decideDemoCase,
+    executeDemoCase,
+
+    getRazorpayCheckout
+};

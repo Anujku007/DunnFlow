@@ -1,4 +1,4 @@
-/* =========================================================
+﻿/* =========================================================
    DUNNFLOW — PREMIUM DASHBOARD
    Frontend stylesheet
 ========================================================= */
@@ -13,6 +13,10 @@
 
     --border: #202936;
     --border-soft: rgba(148, 163, 184, 0.12);
+
+    /* Defined tokens for modals and intelligence cards */
+    --border-color: rgba(148, 163, 184, 0.12);
+    --surface-card: #10151d;
 
     --text: #f4f6f8;
     --muted: #8b95a5;
@@ -120,15 +124,6 @@ header.topbar {
     min-height: 82px;
     padding: 0 52px;
 
-    display: grid;
-    grid-template-columns:
-        minmax(250px, 1fr)
-        auto
-        minmax(220px, 1fr);
-
-    align-items: center;
-    gap: 32px;
-
     background: rgba(8, 11, 17, 0.97);
 
     border-bottom:
@@ -142,8 +137,16 @@ header.topbar {
     width: 100%;
     max-width: var(--content-width);
     margin: 0 auto;
+    min-height: 82px;
 
-    display: contents;
+    display: grid;
+    grid-template-columns:
+        minmax(250px, 1fr)
+        auto
+        minmax(220px, 1fr);
+
+    align-items: center;
+    gap: 32px;
 }
 
 .brand {
@@ -606,7 +609,7 @@ h2 {
 
 
 /* =========================================================
-   DEMO LAB — SECTION HEADER
+   DEMO LAB â€” SECTION HEADER
 ========================================================= */
 
 .demo-section {
@@ -993,7 +996,7 @@ h2 {
     display: grid;
 
     grid-template-columns:
-        repeat(3, minmax(0, 1fr));
+        repeat(4, minmax(0, 1fr));
 
     gap: 16px;
 
@@ -1008,7 +1011,7 @@ h2 {
 .scenario-card {
     position: relative;
 
-    min-height: 244px;
+    min-height: 220px;
 
     display: flex;
     flex-direction: column;
@@ -1270,6 +1273,47 @@ h2 {
     line-height: 1.7;
 }
 
+.scenario-card-name {
+    margin-top: 6px;
+
+    color: #cbd3df;
+
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.scenario-policy {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 8px;
+
+    margin-top: 13px;
+    padding-top: 10px;
+
+    border-top:
+        1px solid rgba(148, 163, 184, 0.07);
+}
+
+.scenario-policy span {
+    color: #596576;
+
+    font-size: 8px;
+    font-weight: 900;
+
+    letter-spacing: 0.12em;
+}
+
+.scenario-policy strong {
+    color: #aeb8c7;
+
+    font-size: 10px;
+    font-weight: 800;
+
+    text-align: right;
+}
+
 
 /* =========================================================
    SCENARIO FOOTER
@@ -1522,31 +1566,19 @@ h2 {
     padding-top: 0;
 }
 
-.pipeline {
-    display: grid;
-
-    grid-template-columns:
-        1fr auto
-        1fr auto
-        1fr auto
-        1fr;
-
-    align-items: center;
-
-    gap: 14px;
-
-    padding: 24px;
-}
-
 .pipeline-step {
-    min-height: 94px;
+    width: 100%;
+    min-width: 0;
+    min-height: 112px;
 
     display: flex;
     align-items: center;
 
-    gap: 15px;
+    gap: 17px;
 
-    padding: 17px;
+    padding: 20px;
+
+    overflow: hidden;
 
     background:
         rgba(255, 255, 255, 0.015);
@@ -1586,10 +1618,10 @@ h2 {
 }
 
 .step-number {
-    width: 39px;
-    height: 39px;
+    width: 46px;
+    height: 46px;
 
-    flex: 0 0 39px;
+    flex: 0 0 46px;
 
     display: flex;
     align-items: center;
@@ -1621,35 +1653,12 @@ h2 {
     background: rgba(124, 92, 255, 0.08);
 }
 
-.step-copy {
-    display: flex;
-    flex-direction: column;
-
-    gap: 4px;
-}
-
-.step-copy strong {
-    color: #e7ebf0;
-
-    font-size: 10px;
-    font-weight: 900;
-
-    letter-spacing: 0.13em;
-}
-
 .step-copy span {
-    color: #687486;
+    color: #8793a5;
 
-    font-size: 10px;
-    line-height: 1.4;
+    font-size: 11px;
+    line-height: 1.45;
 }
-
-.pipeline-arrow {
-    color: #4c5665;
-
-    font-size: 18px;
-}
-
 
 /* =========================================================
    OPERATIONS
@@ -1919,16 +1928,17 @@ td:first-child {
 
 
 /* =========================================================
-   RESPONSIVE — TABLET
+   RESPONSIVE â€” TABLET
 ========================================================= */
 
 @media (max-width: 1050px) {
 
     header.topbar {
         padding: 0 28px;
+    }
 
-        grid-template-columns:
-            1fr auto;
+    .topbar-inner {
+        grid-template-columns: 1fr auto;
     }
 
     .main-nav {
@@ -1983,21 +1993,28 @@ td:first-child {
 
 
 /* =========================================================
-   RESPONSIVE — MOBILE
+   RESPONSIVE â€” MOBILE
 ========================================================= */
+
+@media (min-width: 721px) and (max-width: 1050px) {
+    .scenario-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+}
 
 @media (max-width: 720px) {
 
     header.topbar {
         min-height: auto;
-
         padding: 16px 20px;
+    }
 
+    .topbar-inner {
+        min-height: auto;
         display: flex;
         flex-direction: column;
-
         align-items: stretch;
-
         gap: 15px;
     }
 
@@ -2119,7 +2136,7 @@ td:first-child {
 }
 
 /* =========================================================
-   DUNNFLOW — FINAL SPACING POLISH
+   DUNNFLOW â€” FINAL SPACING POLISH
    Visual-only adjustment.
    Does not change component behavior.
    ========================================================= */
@@ -2130,19 +2147,16 @@ td:first-child {
 
 @media (min-width: 951px) {
 
-    /* Keep the hero comfortable without making it too tall */
     .hero-section {
         padding-top: 38px;
         padding-bottom: 18px;
     }
 
-    /* Demo Lab */
     .demo-section {
         padding-top: 0;
         padding-bottom: 14px;
     }
 
-    /* Metrics sit close to Demo Lab */
     .metrics-section {
         padding-top: 0;
         padding-bottom: 14px;
@@ -2152,25 +2166,21 @@ td:first-child {
         gap: 12px;
     }
 
-    /* Decision Pipeline */
     .pipeline-section {
         padding-top: 0;
         padding-bottom: 14px;
     }
 
-    /* Recovery Cases + Reports */
     .operations-section {
         padding-top: 0;
         padding-bottom: 14px;
     }
 
-    /* Audit */
     .audit-section {
         padding-top: 0;
         padding-bottom: 28px;
     }
 
-    /* Keep the content itself from feeling cramped */
     .demo-console {
         margin-top: 2px;
     }
@@ -2276,4 +2286,2992 @@ td:first-child {
     .audit-section {
         padding-bottom: 22px;
     }
+}
+
+
+/* =========================================================
+   RECOVERY INTELLIGENCE
+   Judge-facing evidence: AI recommendation vs policy
+   ========================================================= */
+
+.intelligence-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.intelligence-card {
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: var(--surface-card);
+}
+
+.intelligence-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.65;
+    margin-bottom: 10px;
+}
+
+.intelligence-value {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.intelligence-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 12px;
+    font-size: 12px;
+    opacity: 0.72;
+}
+
+.intelligence-detail {
+    margin-top: 12px;
+    font-size: 13px;
+    line-height: 1.55;
+    opacity: 0.68;
+}
+
+.intelligence-card-outcome {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 800px) {
+    .intelligence-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .intelligence-card-outcome {
+        grid-column: auto;
+    }
+}
+
+
+/* =========================================================
+   DECISION INTELLIGENCE MODAL & PANEL ACTION
+   ========================================================= */
+
+.intelligence-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-width: 210px;
+    white-space: nowrap;
+}
+
+.decision-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+}
+
+.decision-modal.is-open {
+    display: block;
+}
+
+.decision-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(6px);
+}
+
+.decision-modal-panel {
+    position: relative;
+    width: min(980px, calc(100vw - 40px));
+    max-height: calc(100vh - 48px);
+    margin: 24px auto;
+    overflow-y: auto;
+    padding: 28px;
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    background: var(--surface-card);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+.decision-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.decision-modal-header h2 {
+    margin: 4px 0 8px;
+}
+
+.decision-modal-subtitle {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    opacity: 0.7;
+}
+
+.decision-modal-close {
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text);
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 160ms ease;
+}
+
+.decision-modal-close:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+body.decision-modal-open {
+    overflow: hidden;
+}
+
+@media (max-width: 800px) {
+    .decision-intelligence-action {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .decision-modal-panel {
+        width: calc(100vw - 24px);
+        max-height: calc(100vh - 24px);
+        margin: 12px auto;
+        padding: 20px;
+    }
+
+    .decision-modal-header {
+        gap: 12px;
+    }
+}
+/* =========================================================
+   PIPELINE STATE CONTRACT
+   JS sets state through CSS classes:
+   pending / active / complete / success / blocked / error
+   ========================================================= */
+
+.pipeline-step.pending {
+    background: rgba(255, 255, 255, 0.015);
+    border-color: rgba(148, 163, 184, 0.10);
+}
+
+.pipeline-step.active {
+    background: rgba(124, 92, 255, 0.065);
+    border-color: var(--purple) !important;
+    box-shadow:
+        0 0 0 1px rgba(124, 92, 255, 0.16),
+        0 0 30px rgba(124, 92, 255, 0.12);
+
+    animation:
+        pipelineActivePulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pipelineActivePulse {
+    0%,
+    100% {
+        box-shadow:
+            0 0 0 1px rgba(124, 92, 255, 0.14),
+            0 0 24px rgba(124, 92, 255, 0.08);
+    }
+
+    50% {
+        box-shadow:
+            0 0 0 1px rgba(124, 92, 255, 0.22),
+            0 0 34px rgba(124, 92, 255, 0.16);
+    }
+}
+
+.pipeline-step.complete {
+    background: rgba(57, 217, 138, 0.035);
+    border-color: rgba(57, 217, 138, 0.55) !important;
+}
+
+.pipeline-step.success {
+    background: rgba(57, 217, 138, 0.055);
+    border-color: var(--green) !important;
+    box-shadow:
+        0 0 0 1px rgba(57, 217, 138, 0.10),
+        0 0 24px rgba(57, 217, 138, 0.08);
+}
+
+.pipeline-step.blocked {
+    background: rgba(244, 183, 64, 0.045);
+    border-color: var(--amber) !important;
+    box-shadow:
+        0 0 0 1px rgba(244, 183, 64, 0.08);
+}
+
+.pipeline-step.error {
+    background: rgba(255, 100, 124, 0.045);
+    border-color: var(--red) !important;
+    box-shadow:
+        0 0 0 1px rgba(255, 100, 124, 0.08);
+}
+
+/* Running state remains visibly active while the
+   real backend operation is being awaited. */
+.pipeline-step.active .step-number {
+    box-shadow:
+        0 0 0 4px rgba(124, 92, 255, 0.06),
+        0 0 18px rgba(124, 92, 255, 0.18);
+}
+
+/* Completed stages retain a clear visual hand-off
+   to the next backend stage. */
+.pipeline-step.complete .step-number,
+.pipeline-step.success .step-number {
+    box-shadow:
+        0 0 0 3px rgba(57, 217, 138, 0.05);
+}
+
+.pipeline-step.blocked .step-number {
+    box-shadow:
+        0 0 0 3px rgba(244, 183, 64, 0.05);
+}
+
+.pipeline-step.error .step-number {
+    box-shadow:
+        0 0 0 3px rgba(255, 100, 124, 0.05);
+}
+
+
+
+/* DUNNFLOW FINAL PIPELINE LAYOUT */
+
+.pipeline {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr) 34px
+        minmax(0, 1fr) 34px
+        minmax(0, 1fr) 34px
+        minmax(0, 1fr);
+
+    align-items: stretch;
+
+    gap: 12px;
+
+    padding: 28px 24px;
+}
+
+.pipeline-step {
+    width: 100%;
+    min-width: 0;
+    min-height: 168px;
+
+    display: flex;
+    align-items: flex-start;
+
+    gap: 16px;
+
+    padding: 22px;
+
+    overflow: hidden;
+
+    background: rgba(255, 255, 255, 0.015);
+
+    border: 1px solid rgba(148, 163, 184, 0.10);
+
+    border-radius: 14px;
+}
+
+.pipeline-arrow {
+    width: 34px;
+    min-width: 34px;
+
+    align-self: stretch;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #7b8799;
+
+    font-size: 22px;
+    font-weight: 500;
+}
+
+.step-number {
+    width: 48px;
+    height: 48px;
+
+    flex: 0 0 48px;
+}
+
+.step-copy {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 6px;
+
+    padding-top: 1px;
+}
+
+.step-copy strong {
+    color: #f0f3f7;
+
+    font-size: 12px;
+    font-weight: 900;
+
+    line-height: 1.2;
+
+    letter-spacing: 0.15em;
+}
+
+.step-status {
+    display: inline-flex;
+    align-items: center;
+
+    min-height: 22px;
+
+    color: #9aa5b5;
+
+    font-size: 10px;
+    font-weight: 900;
+
+    line-height: 1;
+
+    letter-spacing: 0.10em;
+}
+
+.step-description {
+    margin-top: 8px;
+
+    color: #8995a7;
+
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.pipeline-step.active .step-status {
+    color: var(--purple-light);
+}
+
+.pipeline-step.complete .step-status,
+.pipeline-step.success .step-status {
+    color: var(--green);
+}
+
+.pipeline-step.blocked .step-status {
+    color: var(--amber);
+}
+
+.pipeline-step.error .step-status {
+    color: var(--red);
+}
+
+.pipeline-step.active .step-status::before {
+    content: "○";
+    margin-right: 7px;
+}
+
+.pipeline-step.complete .step-status::before,
+.pipeline-step.success .step-status::before {
+    content: "○";
+    margin-right: 7px;
+}
+
+.pipeline-step.blocked .step-status::before {
+    content: "!";
+    margin-right: 7px;
+}
+
+.pipeline-step.error .step-status::before {
+    content: "○";
+    margin-right: 7px;
+}
+
+.pipeline-step.pending .step-status::before {
+    content: "○";
+    margin-right: 7px;
+}
+
+@media (max-width: 1050px) {
+    .pipeline {
+        grid-template-columns:
+            minmax(0, 1fr)
+            minmax(0, 1fr);
+
+        gap: 14px;
+
+        padding: 24px;
+    }
+
+    .pipeline-arrow {
+        display: none;
+    }
+}
+
+@media (max-width: 720px) {
+    .pipeline {
+        grid-template-columns: 1fr;
+
+        gap: 12px;
+
+        padding: 20px;
+    }
+
+    .pipeline-step {
+        min-height: 140px;
+    }
+}
+
+
+/* DUNNFLOW FINAL DECISION INTELLIGENCE ACTION */
+
+.decision-intelligence-action .intelligence-trigger {
+    flex: 0 0 auto;
+    min-width: 210px;
+}
+
+.decision-intelligence-hint {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 560px;
+
+    color: #8995a7;
+
+    font-size: 12px;
+    line-height: 1.5;
+
+    opacity: 0.72;
+}
+
+@media (max-width: 800px) {
+    .decision-intelligence-action {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .decision-intelligence-action
+    .intelligence-trigger {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .decision-intelligence-hint {
+        max-width: none;
+    }
+}
+
+
+
+/* DUNNFLOW REPORTS DASHBOARD */
+
+.report-panel {
+    overflow: hidden;
+}
+
+.report-panel .panel-header {
+    margin-bottom: 20px;
+}
+
+.report-header-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+
+    color: #75829a;
+}
+
+.report-metrics-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 12px;
+
+    margin-bottom: 16px;
+}
+
+.report-metric-card {
+    min-width: 0;
+
+    padding: 18px 18px 16px;
+
+    border:
+        1px solid
+        rgba(148, 163, 184, 0.10);
+
+    border-radius: 12px;
+
+    background:
+        rgba(255, 255, 255, 0.018);
+
+    box-sizing: border-box;
+}
+
+.report-metric-card:hover {
+    border-color:
+        rgba(145, 105, 255, 0.28);
+
+    background:
+        rgba(124, 92, 255, 0.025);
+}
+
+.report-metric-note {
+    margin-top: 7px;
+
+    color: #69758a;
+
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+
+/* Detail sections */
+
+.report-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 14px;
+
+    margin-bottom: 14px;
+}
+
+.report-detail-card {
+    min-width: 0;
+
+    padding: 18px;
+
+    border:
+        1px solid
+        rgba(148, 163, 184, 0.10);
+
+    border-radius: 12px;
+
+    background:
+        rgba(255, 255, 255, 0.014);
+}
+
+.report-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    margin-bottom: 14px;
+}
+
+.report-detail-header strong {
+    color: #d9e1ec;
+
+    font-size: 12px;
+    font-weight: 800;
+
+    letter-spacing: 0.02em;
+}
+
+.report-detail-header span {
+    color: #68758a;
+
+    font-size: 9px;
+    font-weight: 800;
+
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+}
+
+
+/* Breakdown rows */
+
+.report-breakdown-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 18px;
+
+    min-height: 52px;
+
+    padding: 10px 0;
+
+    border-top:
+        1px solid
+        rgba(148, 163, 184, 0.07);
+
+    box-sizing: border-box;
+}
+
+.report-breakdown-row:first-child {
+    border-top: 0;
+}
+
+.report-breakdown-main strong {
+    overflow: hidden;
+
+    color: #cbd5e1;
+
+    font-size: 11px;
+    font-weight: 750;
+
+    line-height: 1.25;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.report-breakdown-main span {
+    color: #667388;
+
+    font-size: 9px;
+    line-height: 1.35;
+}
+
+.report-breakdown-value {
+    flex: 0 0 auto;
+
+    min-width: 52px;
+
+    color: #a98cff;
+
+    font-size: 12px;
+    font-weight: 850;
+
+    line-height: 1;
+
+    text-align: right;
+}
+
+
+/* Empty state */
+
+.report-empty-state {
+    padding: 18px 0;
+
+    color: #68758a;
+
+    font-size: 10px;
+    line-height: 1.5;
+
+    text-align: center;
+}
+
+
+/* Safety */
+
+.report-safety-card {
+    display: flex;
+    align-items: center;
+
+    gap: 22px;
+
+    margin-bottom: 14px;
+
+    padding: 18px;
+
+    border:
+        1px solid
+        rgba(148, 163, 184, 0.10);
+
+    border-radius: 12px;
+
+    background:
+        rgba(255, 255, 255, 0.014);
+
+    box-sizing: border-box;
+}
+
+.report-safety-copy {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.report-safety-copy strong {
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: #d9e1ec;
+
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.report-safety-stats {
+    flex: 0 0 auto;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(76px, 1fr));
+
+    gap: 8px;
+}
+
+.report-safety-stats strong {
+    display: block;
+
+    color: #e2e8f0;
+
+    font-size: 17px;
+    font-weight: 850;
+
+    line-height: 1.1;
+}
+
+.report-safety-stats span {
+    display: block;
+
+    margin-top: 5px;
+
+    color: #667388;
+
+    font-size: 8px;
+    font-weight: 800;
+
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+
+/* Export */
+
+.report-export-card {
+    display: flex;
+    align-items: center;
+
+    gap: 16px;
+
+    padding: 16px 18px;
+
+    border:
+        1px solid
+        rgba(145, 105, 255, 0.16);
+
+    border-radius: 12px;
+
+    background:
+        rgba(124, 92, 255, 0.035);
+
+    box-sizing: border-box;
+}
+
+.report-export-card .pdf-icon {
+    flex: 0 0 auto;
+}
+
+.report-export-card .report-copy {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.report-export-card .report-copy strong {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: #d9e1ec;
+
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.report-export-card .report-copy p {
+    margin: 0;
+
+    color: #68758a;
+
+    font-size: 9px;
+    line-height: 1.45;
+}
+
+.report-export-card .secondary-button {
+    flex: 0 0 auto;
+
+    white-space: nowrap;
+}
+
+
+/* Tablet */
+
+@media (max-width: 1050px) {
+    .report-metrics-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .report-safety-card {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .report-safety-stats {
+        width: 100%;
+    }
+}
+
+
+/* Mobile */
+
+@media (max-width: 720px) {
+    .report-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .report-metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .report-breakdown-row {
+        gap: 12px;
+    }
+
+    .report-safety-stats {
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+    }
+
+    .report-export-card {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .report-export-card .secondary-button {
+        width: 100%;
+    }
+}
+
+
+@media (max-width: 480px) {
+    .report-safety-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .report-safety-stats > div {
+        min-width: 0;
+    }
+}
+
+/* DUNNFLOW AI INSPECTION FINAL POLISH */
+
+.decision-intelligence-action {
+    width: 100%;
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    gap: 28px;
+
+    margin-top: 0;
+    padding: 22px 24px;
+
+    border-top:
+        1px solid
+        rgba(148, 163, 184, 0.10);
+
+    box-sizing: border-box;
+}
+
+.decision-intelligence-action
+.intelligence-trigger {
+    position: relative;
+
+    flex: 0 0 auto;
+
+    min-width: 236px;
+    min-height: 52px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px;
+
+    padding: 0 18px;
+
+    border-radius: 10px;
+
+    letter-spacing: 0.04em;
+
+    transition:
+        transform 160ms ease,
+        border-color 160ms ease,
+        box-shadow 160ms ease,
+        background 160ms ease;
+}
+
+.decision-intelligence-action
+.intelligence-trigger:hover {
+    transform: translateY(-1px);
+
+    border-color:
+        rgba(145, 105, 255, 0.72);
+
+    background:
+        rgba(124, 92, 255, 0.08);
+
+    box-shadow:
+        0 8px 26px
+        rgba(0, 0, 0, 0.20);
+}
+
+.decision-intelligence-action
+.intelligence-trigger:active {
+    transform: translateY(0);
+}
+
+.decision-intelligence-action
+.intelligence-trigger:disabled {
+    cursor: wait;
+    opacity: 0.72;
+    transform: none;
+}
+
+.intelligence-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 14px;
+    line-height: 1;
+
+    color: var(--purple-light, #a98cff);
+}
+
+.decision-intelligence-action
+.button-label {
+    white-space: nowrap;
+}
+
+.decision-intelligence-action
+.button-arrow {
+    color: var(--purple-light, #a98cff);
+
+    font-size: 16px;
+
+    transition:
+        transform 160ms ease;
+}
+
+.decision-intelligence-action
+.intelligence-trigger:hover
+.button-arrow {
+    transform: translateX(3px);
+}
+
+.decision-intelligence-hint {
+    flex: 1 1 auto;
+
+    min-width: 0;
+    max-width: 680px;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 5px;
+
+    margin: 0;
+}
+
+.decision-intelligence-hint-label {
+    color: #75829a;
+
+    font-size: 9px;
+    font-weight: 900;
+
+    line-height: 1.2;
+
+    letter-spacing: 0.16em;
+}
+
+.decision-intelligence-hint-text {
+    color: #8995a7;
+
+    font-size: 12px;
+    line-height: 1.5;
+
+    opacity: 0.78;
+}
+
+@media (max-width: 800px) {
+    .decision-intelligence-action {
+        align-items: stretch;
+        flex-direction: column;
+
+        gap: 16px;
+
+        padding: 20px;
+    }
+
+    .decision-intelligence-action
+    .intelligence-trigger {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .decision-intelligence-hint {
+        max-width: none;
+    }
+}
+
+
+/* =========================================================
+   DUNNFLOW — DEDICATED REPORT & METRICS PAGE
+   ========================================================= */
+
+.report-page-header-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    color: var(--text-muted, #71809a);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    white-space: nowrap;
+}
+
+.report-breakdown-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    min-height: 78px;
+    padding: 16px 22px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.report-breakdown-main {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.report-empty-state {
+    padding: 32px;
+    text-align: center;
+    color: #71809a;
+    font-size: 13px;
+}
+
+.report-safety-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    align-items: stretch;
+}
+
+.report-page-footer a:hover {
+    text-decoration: underline;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+    .report-metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .report-safety-card {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+@media (max-width: 760px) {
+
+    .report-page {
+        width: min(100% - 32px, 680px);
+        padding-top: 24px;
+    }
+
+    .report-page-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 18px;
+        padding-bottom: 26px;
+    }
+
+    .report-page-header h1 {
+        font-size: 34px;
+    }
+
+    .report-metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .report-breakdown-row {
+        align-items: flex-start;
+    }
+
+    .report-safety-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .report-export-card {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .report-export-card .report-launch-button {
+        width: 100%;
+    }
+
+    .report-page-footer {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+
+/* =========================================================
+   DUNNFLOW — FINAL REPORT PAGE VISUAL POLISH
+   Scoped only to the dedicated report page.
+   ========================================================= */
+
+.report-page-section-header > * {
+    margin-left: 0;
+}
+
+.report-metric-card strong {
+    display: block;
+    margin-bottom: 10px;
+    color: #f2f4f8;
+    font-size: clamp(30px, 3vw, 42px);
+    line-height: 1;
+    letter-spacing: -0.045em;
+}
+
+.report-breakdown-main strong {
+    color: #edf1f7;
+    font-size: 14px;
+    letter-spacing: -0.01em;
+}
+
+.report-safety-stats span {
+    display: block;
+    margin-bottom: 12px;
+    color: #73829c;
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1.4;
+    letter-spacing: 0.1em;
+}
+
+.report-safety-stats strong {
+    display: block;
+    color: #f1f4f8;
+    font-size: 28px;
+    line-height: 1;
+}
+
+.report-export-card::after {
+    content: "";
+    position: absolute;
+    width: 260px;
+    height: 260px;
+    right: -100px;
+    top: -140px;
+    border-radius: 50%;
+    background: rgba(134, 92, 255, 0.045);
+    pointer-events: none;
+}
+
+.report-export-card h2 {
+    margin: 8px 0 10px;
+    color: #f0f3f8;
+    font-size: clamp(24px, 2.5vw, 32px);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+}
+
+.report-export-card .report-launch-button {
+    position: relative;
+    z-index: 1;
+    flex: 0 0 auto;
+    min-width: 245px;
+    min-height: 52px;
+}
+
+.report-page-footer a {
+    color: #8795ac;
+    text-decoration: none;
+    transition: color 160ms ease;
+}
+
+.report-page-footer a:hover {
+    color: #a987ff;
+}
+
+.report-page-footer > * {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.11em;
+}
+
+
+/* =========================================================
+   REPORT PAGE RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1150px) {
+
+    .report-page {
+        width: min(100% - 48px, 980px);
+    }
+
+    .report-metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .report-safety-card {
+        grid-template-columns: 1fr;
+    }
+
+    .report-safety-stats {
+        max-width: 100%;
+    }
+}
+
+
+@media (max-width: 720px) {
+
+    .report-page {
+        width: calc(100% - 30px);
+        padding: 28px 0 42px;
+    }
+
+    .report-page-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 18px;
+        margin-bottom: 30px;
+        padding-bottom: 26px;
+    }
+
+    .report-page-header h1 {
+        font-size: 38px;
+    }
+
+    .report-page-subtitle {
+        font-size: 14px;
+    }
+
+    .report-page-section {
+        margin-top: 32px;
+    }
+
+    .report-metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .report-metric-card {
+        min-height: 140px;
+    }
+
+    .report-breakdown-row {
+        min-height: 76px;
+        padding: 16px 18px;
+    }
+
+    .report-safety-card {
+        padding: 22px;
+    }
+
+    .report-safety-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .report-safety-stats > div {
+        min-height: 92px;
+    }
+
+    .report-export-card {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 24px;
+    }
+
+    .report-export-card .report-launch-button {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .report-page-footer {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+
+
+/* DUNNFLOW REPORT EXECUTIVE POLISH */
+
+.report-page-header-meta {
+    flex: 0 0 auto;
+    padding: 14px 22px;
+    border: 1px solid rgba(139, 92, 246, 0.42);
+    border-radius: 999px;
+    letter-spacing: 0.14em;
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.report-detail-kicker {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.report-metric-label {
+    display: block;
+    margin-bottom: 24px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.report-metric-value {
+    display: block;
+    font-size: clamp(34px, 3vw, 48px);
+    line-height: 1;
+    font-weight: 850;
+    letter-spacing: -0.04em;
+}
+
+.report-metric-subtitle {
+    display: block;
+    margin-top: 14px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.report-safety-stats span:first-child {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.report-page-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    margin-top: 34px;
+    padding: 0 6px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+@media (max-width: 1100px) {
+    .report-page {
+        width: min(100% - 40px, 1000px);
+    }
+
+    .report-metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .report-safety-card {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .report-page {
+        width: min(100% - 28px, 680px);
+        padding-top: 32px;
+    }
+
+    .report-page-header {
+        align-items: flex-start;
+        flex-direction: column;
+        padding-bottom: 34px;
+    }
+
+    .report-page-header h1 {
+        font-size: 46px;
+    }
+
+    .report-metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .report-breakdown-row {
+        padding: 20px;
+    }
+
+    .report-breakdown-main {
+        align-items: flex-start;
+    }
+
+    .report-safety-card {
+        padding: 24px;
+    }
+
+    .report-safety-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .report-export-card {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 28px 24px;
+    }
+
+    .report-launch-button {
+        width: 100%;
+    }
+
+    .report-page-footer {
+        flex-direction: column;
+    }
+}
+
+
+/* DUNNFLOW REPORT — APPROVED REFERENCE DESIGN */
+
+/* ---------- REPORT CANVAS ---------- */
+
+/* ---------- HERO ---------- */
+
+.report-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+    padding: 6px 8px 38px;
+    margin-bottom: 42px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.13);
+}
+
+.report-page-header-meta {
+    position: relative;
+    flex: 0 0 auto;
+    min-width: 210px;
+    padding: 15px 22px;
+    border: 1px solid rgba(150, 99, 255, 0.58);
+    border-radius: 999px;
+    background: rgba(94, 55, 180, 0.045);
+    color: #a98aff;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 850;
+    letter-spacing: 0.13em;
+    box-shadow: 0 0 26px rgba(122, 76, 255, 0.08);
+}
+
+.report-status-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 9px;
+    border-radius: 50%;
+    background: #a98aff;
+    box-shadow: 0 0 12px rgba(169, 138, 255, 0.85);
+}
+
+
+/* ---------- SECTION HEADERS ---------- */
+
+.report-page-section {
+    margin-top: 46px;
+}
+
+.report-detail-kicker {
+    display: block;
+    margin-bottom: 9px;
+    color: #9d7cff;
+    font-size: 11px;
+    font-weight: 850;
+    letter-spacing: 0.16em;
+    line-height: 1.2;
+}
+
+.report-page-section-header h2 {
+    margin: 0;
+    color: #f1f3f7;
+    font-size: clamp(28px, 3vw, 38px);
+    line-height: 1.08;
+    letter-spacing: -0.035em;
+}
+
+
+/* ---------- EXECUTIVE METRICS ---------- */
+
+/* metric icon */
+
+/* metric-specific icons */
+
+.report-metric-card:nth-child(3)::before {
+    content: "⌁";
+    font-size: 27px;
+}
+
+.report-metric-card:nth-child(4)::before {
+    content: "✓";
+    font-size: 23px;
+}
+
+.report-metric-card::after {
+    content: "";
+    position: absolute;
+    left: 27px;
+    right: 27px;
+    bottom: 0;
+    height: 2px;
+    border-radius: 999px;
+    background: #9b72ff;
+    box-shadow: 0 0 10px rgba(155, 114, 255, 0.25);
+}
+
+.report-metric-label {
+    display: block;
+    margin-bottom: 17px;
+    color: #9a7ce1;
+    font-size: 11px;
+    font-weight: 850;
+    letter-spacing: 0.13em;
+    line-height: 1.25;
+}
+
+.report-metric-card strong {
+    display: block;
+    color: #f3f5f8;
+    font-size: clamp(32px, 3vw, 43px);
+    font-weight: 850;
+    line-height: 1;
+    letter-spacing: -0.045em;
+}
+
+.report-metric-card > span:last-child {
+    display: block;
+    margin-top: 13px;
+    color: #7890b2;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+
+/* ---------- FAILURE / STRATEGY ANALYSIS ---------- */
+
+/* category/action icon */
+
+.report-breakdown-row::before {
+    position: absolute;
+    left: 27px;
+    top: 50%;
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    transform: translateY(-50%);
+    border: 1px solid rgba(145, 100, 235, 0.36);
+    border-radius: 9px;
+    background: rgba(91, 56, 170, 0.10);
+    color: #a98aff;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.report-breakdown-row:nth-child(1)::before {
+    content: "⌑";
+}
+
+.report-breakdown-row:nth-child(2)::before {
+    content: "⌛";
+}
+
+.report-breakdown-row:nth-child(3)::before {
+    content: "▤";
+}
+
+.report-breakdown-row:nth-child(4)::before {
+    content: "₹";
+}
+
+.report-breakdown-row:nth-child(5)::before {
+    content: "?";
+}
+
+.report-breakdown-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 25px;
+    min-height: 38px;
+}
+
+.report-breakdown-main strong {
+    color: #eef1f6;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.report-breakdown-main span {
+    margin-top: 4px;
+    color: #7186a5;
+    font-size: 12px;
+}
+
+.report-breakdown-value {
+    flex: 0 0 auto;
+    color: #a987ff;
+    font-size: 18px;
+    font-weight: 850;
+    letter-spacing: -0.02em;
+}
+
+
+/* ---------- SAFETY ---------- */
+
+.report-safety-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(430px, 0.85fr);
+    gap: 30px;
+    align-items: stretch;
+    padding: 31px;
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 22px;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(17, 24, 39, 0.9),
+            rgba(9, 13, 20, 0.97)
+        );
+}
+
+.report-safety-copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.report-safety-copy h3 {
+    margin: 10px 0 13px;
+    color: #f0f3f8;
+    font-size: clamp(24px, 2.4vw, 32px);
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+}
+
+.report-safety-copy p {
+    max-width: 760px;
+    margin: 0;
+    color: #7186a5;
+    font-size: 13px;
+    line-height: 1.75;
+}
+
+.report-safety-stats > div {
+    display: flex;
+    min-height: 136px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 18px 12px;
+    border: 1px solid rgba(148, 163, 184, 0.13);
+    border-radius: 16px;
+    background: rgba(16, 21, 30, 0.78);
+    text-align: center;
+}
+
+.report-safety-stats span:last-child {
+    margin-top: 14px;
+    color: #f2f4f8;
+    font-size: 31px;
+    font-weight: 850;
+    line-height: 1;
+}
+
+
+/* ---------- EXPORT ---------- */
+
+.report-export-card h2,
+.report-export-card h3 {
+    margin: 9px 0 10px;
+    color: #f0f3f8;
+    font-size: clamp(26px, 2.6vw, 36px);
+    line-height: 1.1;
+    letter-spacing: -0.035em;
+}
+
+.report-export-card p {
+    max-width: 780px;
+    margin: 0;
+    color: #7186a5;
+    font-size: 13px;
+    line-height: 1.65;
+}
+
+.report-launch-button {
+    position: relative;
+    z-index: 1;
+    flex: 0 0 auto;
+    min-width: 260px;
+    min-height: 55px;
+    border: 1px solid rgba(139, 92, 246, 0.58);
+}
+
+
+/* ---------- FOOTER ---------- */
+
+.report-page-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 27px;
+    padding: 0 4px;
+    color: #61728c;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+}
+
+
+/* ---------- RESPONSIVE ---------- */
+
+@media (max-width: 1180px) {
+
+    .report-page {
+        width: min(100% - 48px, 1050px);
+    }
+
+    .report-metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .report-safety-card {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+@media (max-width: 720px) {
+
+    .report-page {
+        width: calc(100% - 28px);
+        padding: 30px 0 45px;
+    }
+
+    .report-page-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 22px;
+        padding-bottom: 30px;
+    }
+
+    .report-page-header h1 {
+        font-size: 42px;
+    }
+
+    .report-page-subtitle {
+        font-size: 14px;
+    }
+
+    .report-page-header-meta {
+        min-width: 0;
+    }
+
+    .report-metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .report-metric-card {
+        min-height: 155px;
+    }
+
+    .report-breakdown-row {
+        padding-left: 78px;
+        padding-right: 18px;
+    }
+
+    .report-breakdown-row::before {
+        left: 19px;
+    }
+
+    .report-breakdown-main {
+        gap: 14px;
+    }
+
+    .report-safety-card {
+        padding: 23px;
+    }
+
+    .report-safety-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .report-export-card {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 27px 23px;
+    }
+
+    .report-launch-button {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .report-page-footer {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+
+/* DUNNFLOW REPORT FINAL REFERENCE LAYOUT */
+
+/* ============================================================
+   DUNNFLOW REPORT FINAL REFERENCE LAYOUT
+   Report page only — main dashboard untouched.
+   ============================================================ */
+
+.report-page {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 28px;
+    row-gap: 52px;
+    width: min(1600px, calc(100% - 72px));
+    margin: 0 auto;
+    padding: 52px 0 36px;
+}
+
+.report-page > .report-page-header {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 0 6px 34px;
+    border-bottom: 1px solid rgba(126, 139, 166, 0.18);
+}
+
+.report-page > .report-page-section:nth-of-type(1) {
+    grid-column: 1 / -1;
+    margin: 0;
+}
+
+.report-page > .report-page-section:nth-of-type(2) {
+    grid-column: span 4;
+    margin: 0;
+}
+
+.report-page > .report-page-section:nth-of-type(3) {
+    grid-column: span 4;
+    margin: 0;
+}
+
+.report-page > .report-page-section:nth-of-type(4) {
+    grid-column: span 4;
+    margin: 0;
+}
+
+.report-page > .report-page-section:nth-of-type(5) {
+    grid-column: 1 / -1;
+    margin: 0;
+}
+
+.report-page > .report-page-footer {
+    grid-column: 1 / -1;
+}
+
+
+/* -------------------------
+   HEADER
+   ------------------------- */
+
+.report-page-header {
+    position: relative;
+}
+
+.report-page-header .section-kicker {
+    color: #a979ff;
+    letter-spacing: 0.24em;
+    font-weight: 800;
+}
+
+.report-page-header h1 {
+    margin: 14px 0 12px;
+    max-width: 1050px;
+    font-size: clamp(3.4rem, 5.2vw, 5.4rem);
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+}
+
+.report-page-subtitle {
+    max-width: 900px;
+    margin: 0;
+    color: #7890b5;
+    font-size: 1.08rem;
+    line-height: 1.65;
+}
+
+.report-page-header-meta {
+    border: 1px solid rgba(151, 91, 255, 0.55);
+    border-radius: 999px;
+    padding: 14px 24px;
+    background: rgba(18, 13, 36, 0.58);
+    box-shadow: 0 0 28px rgba(125, 67, 255, 0.08);
+}
+
+.report-page-header-meta span:last-child {
+    color: #b88aff;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+}
+
+
+/* -------------------------
+   SECTION HEADERS
+   ------------------------- */
+
+.report-page-section-header {
+    margin-bottom: 22px;
+}
+
+.report-page-section-header .report-detail-kicker {
+    color: #a979ff;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+}
+
+.report-page-section-header h2 {
+    margin: 8px 0 0;
+    font-size: clamp(1.7rem, 2.5vw, 2.35rem);
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+}
+
+
+/* -------------------------
+   EXECUTIVE METRICS
+   ------------------------- */
+
+.report-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.report-metric-card {
+    position: relative;
+    min-height: 170px;
+    padding: 28px 24px 25px 102px;
+    overflow: hidden;
+    border: 1px solid rgba(126, 139, 166, 0.18);
+    border-radius: 22px;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(17, 23, 36, 0.98),
+            rgba(9, 12, 20, 0.98)
+        );
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.025),
+        0 14px 36px rgba(0,0,0,0.16);
+    transition:
+        border-color 180ms ease,
+        transform 180ms ease,
+        box-shadow 180ms ease;
+}
+
+.report-metric-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(167, 112, 255, 0.42);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.03),
+        0 18px 42px rgba(73, 35, 130, 0.18);
+}
+
+.report-metric-card::before {
+    content: "";
+    position: absolute;
+    left: 24px;
+    top: 28px;
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(167, 112, 255, 0.55);
+    border-radius: 50%;
+    background:
+        radial-gradient(
+            circle at 35% 30%,
+            rgba(178, 121, 255, 0.25),
+            rgba(91, 48, 153, 0.12)
+        );
+    color: #c28fff;
+    font-size: 1.45rem;
+    font-weight: 800;
+    box-shadow: 0 0 22px rgba(138, 78, 255, 0.12);
+}
+
+.report-metric-card:nth-child(1)::before {
+    content: "◆";
+}
+
+.report-metric-card:nth-child(2)::before {
+    content: "₹";
+    font-size: 1.55rem;
+}
+
+.report-metric-card:nth-child(3)::before {
+    content: "↗";
+}
+
+.report-metric-card:nth-child(4)::before {
+    content: "✓";
+}
+
+.report-metric-label {
+    color: #8098bd;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.17em;
+}
+
+.report-metric-value {
+    margin-top: 10px;
+    color: #f4f5fb;
+    font-size: clamp(2rem, 3vw, 2.75rem);
+    line-height: 1;
+    font-weight: 850;
+    letter-spacing: -0.035em;
+}
+
+.report-metric-subtitle {
+    margin-top: 12px;
+    color: #7089af;
+    font-size: 0.9rem;
+}
+
+.report-metric-card::after {
+    content: "";
+    position: absolute;
+    left: 24px;
+    right: 24px;
+    bottom: 0;
+    height: 2px;
+    background: linear-gradient(
+        90deg,
+        rgba(143, 78, 255, 0.9),
+        rgba(198, 128, 255, 0.8)
+    );
+    opacity: 0.85;
+}
+
+
+/* -------------------------
+   THREE COLUMN ANALYSIS
+   ------------------------- */
+
+.report-breakdown-list {
+    overflow: hidden;
+    border: 1px solid rgba(126, 139, 166, 0.18);
+    border-radius: 20px;
+    background: rgba(10, 14, 22, 0.76);
+}
+
+.report-breakdown-row {
+    position: relative;
+    min-height: 66px;
+    padding: 15px 18px;
+    border-bottom: 1px solid rgba(126, 139, 166, 0.13);
+    background: rgba(14, 18, 28, 0.52);
+    transition:
+        background 160ms ease,
+        border-color 160ms ease;
+}
+
+.report-breakdown-row:last-child {
+    border-bottom: 0;
+}
+
+.report-breakdown-row:hover {
+    background: rgba(30, 23, 49, 0.72);
+    border-color: rgba(151, 91, 255, 0.24);
+}
+
+.report-breakdown-name {
+    color: #f1f2f8;
+    font-weight: 800;
+}
+
+.report-breakdown-detail {
+    margin-top: 5px;
+    color: #7189ad;
+    font-size: 0.78rem;
+}
+
+.report-breakdown-value {
+    color: #b789ff;
+    font-weight: 850;
+}
+
+
+/* -------------------------
+   SAFETY PANEL
+   ------------------------- */
+
+.report-safety-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(250px, 0.9fr);
+    gap: 22px;
+    min-height: 100%;
+    padding: 28px;
+    border: 1px solid rgba(155, 93, 255, 0.45);
+    border-radius: 22px;
+    background:
+        radial-gradient(
+            circle at 100% 0%,
+            rgba(116, 57, 214, 0.12),
+            transparent 45%
+        ),
+        linear-gradient(
+            145deg,
+            rgba(17, 20, 34, 0.98),
+            rgba(9, 12, 20, 0.98)
+        );
+    box-shadow: 0 18px 48px rgba(50, 24, 95, 0.14);
+}
+
+.report-safety-copy .report-detail-kicker {
+    color: #a979ff;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+}
+
+.report-safety-copy p {
+    color: #7890b5;
+    line-height: 1.6;
+}
+
+.report-safety-stats > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 74px;
+    padding: 16px 18px;
+    border: 1px solid rgba(126, 139, 166, 0.18);
+    border-radius: 16px;
+    background: rgba(14, 18, 29, 0.88);
+}
+
+.report-safety-stats span:first-child {
+    color: #7f96b9;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+}
+
+.report-safety-stats span:last-child {
+    color: #f2f3fa;
+    font-size: 1.55rem;
+    font-weight: 850;
+}
+
+
+/* -------------------------
+   DOWNLOAD CTA
+   ------------------------- */
+
+.report-export-section {
+    margin-top: 2px;
+}
+
+.report-export-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    min-height: 145px;
+    padding: 28px 34px;
+    overflow: hidden;
+    border: 1px solid rgba(151, 91, 255, 0.58);
+    border-radius: 22px;
+    background:
+        radial-gradient(
+            circle at 100% 50%,
+            rgba(116, 57, 214, 0.18),
+            transparent 38%
+        ),
+        linear-gradient(
+            135deg,
+            rgba(19, 15, 38, 0.98),
+            rgba(11, 13, 23, 0.98)
+        );
+    box-shadow: 0 18px 48px rgba(53, 25, 101, 0.16);
+}
+
+.report-export-card h3 {
+    margin: 8px 0 7px;
+    font-size: clamp(1.45rem, 2.4vw, 2rem);
+}
+
+.report-export-card p {
+    margin: 0;
+    color: #7890b5;
+}
+
+.report-export-card .report-detail-kicker {
+    color: #b183ff;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+}
+
+.report-export-card .report-launch-button,
+.report-export-card button {
+    flex: 0 0 330px;
+    min-height: 62px;
+    border-color: rgba(167, 112, 255, 0.58);
+    background: rgba(17, 13, 34, 0.72);
+    color: #b889ff;
+    font-weight: 850;
+    letter-spacing: 0.08em;
+}
+
+.report-export-card .report-launch-button:hover,
+.report-export-card button:hover {
+    background: rgba(50, 28, 83, 0.72);
+    border-color: rgba(190, 143, 255, 0.9);
+    box-shadow: 0 0 30px rgba(139, 77, 255, 0.14);
+}
+
+
+/* -------------------------
+   FOOTER
+   ------------------------- */
+
+.report-page-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 6px 0;
+    color: #60799e;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+}
+
+
+/* -------------------------
+   RESPONSIVE
+   ------------------------- */
+
+@media (max-width: 1180px) {
+    .report-page {
+        width: min(100% - 40px, 1100px);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 40px 20px;
+    }
+
+    .report-page > .report-page-section:nth-of-type(2),
+    .report-page > .report-page-section:nth-of-type(3),
+    .report-page > .report-page-section:nth-of-type(4) {
+        grid-column: span 1;
+    }
+
+    .report-page > .report-page-section:nth-of-type(5) {
+        grid-column: 1 / -1;
+    }
+
+    .report-metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .report-safety-card {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .report-page {
+        display: block;
+        width: calc(100% - 28px);
+        padding: 30px 0 24px;
+    }
+
+    .report-page > * {
+        margin-bottom: 36px !important;
+    }
+
+    .report-page-header {
+        padding-bottom: 26px;
+    }
+
+    .report-page-header h1 {
+        font-size: 2.7rem;
+    }
+
+    .report-page-header-meta {
+        display: inline-flex;
+        margin-top: 18px;
+    }
+
+    .report-metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .report-metric-card {
+        min-height: 150px;
+    }
+
+    .report-export-card {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .report-export-card .report-launch-button,
+    .report-export-card button {
+        flex-basis: auto;
+        width: 100%;
+    }
+
+    .report-page-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+}
+
+/* DUNNFLOW REPORT COLUMN LAYOUT FIX */
+
+/* ============================================================
+   DUNNFLOW REPORT COLUMN LAYOUT FIX
+   Targeted correction for report-page internal layouts.
+   Main dashboard untouched.
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   Keep the three report analysis columns independent.
+   ------------------------------------------------------------ */
+
+.report-page > .report-page-section:nth-of-type(2),
+.report-page > .report-page-section:nth-of-type(3),
+.report-page > .report-page-section:nth-of-type(4) {
+    min-width: 0;
+    width: 100%;
+    align-self: start;
+}
+
+
+/* ------------------------------------------------------------
+   Breakdown rows
+   Prevent existing icon/layout rules from overlapping text.
+   ------------------------------------------------------------ */
+
+.report-breakdown-row {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    align-items: center !important;
+    column-gap: 18px !important;
+    min-height: 66px !important;
+    padding: 15px 18px !important;
+    box-sizing: border-box !important;
+}
+
+.report-breakdown-main {
+    min-width: 0 !important;
+    width: auto !important;
+    display: block !important;
+}
+
+.report-breakdown-main > * {
+    position: static !important;
+}
+
+.report-breakdown-name {
+    display: block !important;
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+}
+
+.report-breakdown-detail {
+    display: block !important;
+    margin-top: 5px !important;
+    padding-left: 0 !important;
+}
+
+.report-breakdown-value {
+    position: static !important;
+    justify-self: end !important;
+    white-space: nowrap !important;
+}
+
+
+/* ------------------------------------------------------------
+   Safety panel
+   The safety panel belongs entirely inside column 3.
+   ------------------------------------------------------------ */
+
+.report-safety-card {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    box-sizing: border-box !important;
+    padding: 24px !important;
+    overflow: hidden !important;
+}
+
+.report-safety-copy {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 0 20px !important;
+}
+
+.report-safety-copy h3 {
+    max-width: 100% !important;
+    margin: 10px 0 10px !important;
+    font-size: 1.45rem !important;
+    line-height: 1.2 !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+}
+
+.report-safety-copy p {
+    max-width: 100% !important;
+    margin: 0 !important;
+    line-height: 1.55 !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+}
+
+.report-safety-stats {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+.report-safety-stats > div {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+    min-height: 82px !important;
+    box-sizing: border-box !important;
+    padding: 14px !important;
+}
+
+.report-safety-stats span:first-child {
+    display: block !important;
+    max-width: 100% !important;
+    line-height: 1.25 !important;
+    overflow-wrap: anywhere !important;
+}
+
+.report-safety-stats span:last-child {
+    display: block !important;
+    line-height: 1 !important;
+}
+
+
+/* ------------------------------------------------------------
+   Analysis column headings
+   Prevent long headings from visually colliding.
+   ------------------------------------------------------------ */
+
+.report-page > .report-page-section:nth-of-type(2)
+.report-page-section-header h2,
+.report-page > .report-page-section:nth-of-type(3)
+.report-page-section-header h2,
+.report-page > .report-page-section:nth-of-type(4)
+.report-page-section-header h2 {
+    max-width: 100% !important;
+    overflow-wrap: normal !important;
+    word-break: normal !important;
+}
+
+
+/* ------------------------------------------------------------
+   Desktop balance
+   ------------------------------------------------------------ */
+
+@media (min-width: 1181px) {
+    .report-page > .report-page-section:nth-of-type(2),
+    .report-page > .report-page-section:nth-of-type(3),
+    .report-page > .report-page-section:nth-of-type(4) {
+        width: 100% !important;
+    }
+
+    .report-breakdown-list {
+        width: 100% !important;
+    }
+}
+
+
+/* ------------------------------------------------------------
+   Tablet
+   ------------------------------------------------------------ */
+
+@media (max-width: 1180px) {
+    .report-safety-card {
+        display: block !important;
+    }
+
+    .report-safety-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
+
+
+/* ------------------------------------------------------------
+   Mobile
+   ------------------------------------------------------------ */
+
+@media (max-width: 760px) {
+    .report-breakdown-row {
+        grid-template-columns: 1fr auto !important;
+    }
+
+    .report-safety-stats {
+        grid-template-columns: 1fr !important;
+    }
+
+    .report-safety-card {
+        padding: 20px !important;
+    }
+}
+
+
+
+/* ============================================================
+   REPORT PAGE — ANALYSIS ROW ALIGNMENT
+   Scope: report page only
+   ============================================================ */
+
+.report-page .report-breakdown-list {
+    width: 100%;
+    overflow: hidden;
+}
+
+.report-page .report-breakdown-icon {
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 52px;
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    border-radius: 14px;
+    background: rgba(139, 92, 246, 0.06);
+    box-sizing: border-box;
+}
+
+.report-page .report-breakdown-main strong,
+.report-page .report-breakdown-main span {
+    display: block;
+    min-width: 0;
+}
+
+.report-page .report-breakdown-main strong {
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.report-page .report-breakdown-main span {
+    line-height: 1.45;
+}
+
+/* Recovery strategy rows use the same clean alignment */
+.report-page #reportActionBreakdown .report-breakdown-main {
+    padding-right: 12px;
+}
+
+/* Keep the safety panel independent from the analysis columns */
+.report-page .report-safety-card {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.report-page .report-safety-copy {
+    min-width: 0;
+}
+
+@media (max-width: 900px) {
+    .report-page .report-breakdown-row {
+        grid-template-columns: 44px minmax(0, 1fr) auto;
+        column-gap: 16px;
+        padding: 18px 20px;
+        min-height: 100px;
+    }
+
+    .report-page .report-breakdown-icon {
+        width: 44px;
+        height: 44px;
+        flex-basis: 44px;
+    }
+}
+
+@media (max-width: 640px) {
+    .report-page .report-breakdown-row {
+        grid-template-columns: 42px minmax(0, 1fr);
+        row-gap: 8px;
+        padding: 18px;
+    }
+
+    .report-page .report-breakdown-value {
+        grid-column: 2;
+        text-align: left;
+        min-width: 0;
+    }
+}
+
+
+/* ============================================================
+   REPORT SYMBOL / ICON ALIGNMENT FIX
+   Scope: Dedicated report page only
+   Main dashboard remains untouched.
+   ============================================================ */
+
+.report-page .report-breakdown-icon {
+    position: relative !important;
+    inset: auto !important;
+    width: 56px !important;
+    height: 56px !important;
+    min-width: 56px !important;
+    min-height: 56px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    border-radius: 14px !important;
+    box-sizing: border-box !important;
+    font-size: 24px !important;
+    line-height: 1 !important;
+    z-index: 1 !important;
+}
+
+.report-page .report-breakdown-copy {
+    min-width: 0 !important;
+    width: auto !important;
+    overflow: hidden !important;
+}
+
+.report-page .report-breakdown-copy strong,
+.report-page .report-breakdown-copy span,
+.report-page .report-breakdown-copy p {
+    position: static !important;
+    display: block !important;
+}
+
+.report-page .report-breakdown-copy strong {
+    margin: 0 0 6px !important;
+    line-height: 1.25 !important;
+}
+
+.report-page .report-breakdown-copy span {
+    margin: 0 !important;
+    line-height: 1.35 !important;
+}
+
+/* Recovery strategy rows use exactly the same three-column system. */
+/* Keep icons visually consistent with the reference design. */
+.report-page .report-breakdown-icon,
+.report-page .report-metric-icon {
+    border: 1px solid rgba(166, 104, 255, 0.30) !important;
+    background: rgba(90, 45, 150, 0.14) !important;
+    color: #b47cff !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.20) !important;
+}
+
+/* Safety statistic cards stay completely isolated from the text block. */
+.report-page .report-safety-stats {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(150px, 1fr)) !important;
+    gap: 14px !important;
+    min-width: 0 !important;
+}
+
+.report-page .report-safety-stats > div {
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Mobile */
+@media (max-width: 900px) {
+    .report-page .report-breakdown-row {
+        grid-template-columns: 52px minmax(0, 1fr) auto !important;
+        column-gap: 14px !important;
+        padding: 16px 20px !important;
+    }
+
+    .report-page .report-breakdown-icon {
+        width: 52px !important;
+        height: 52px !important;
+        min-width: 52px !important;
+        min-height: 52px !important;
+        font-size: 22px !important;
+    }
+
+    .report-page .report-safety-stats {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .report-page .report-breakdown-row {
+        grid-template-columns: 48px minmax(0, 1fr) !important;
+        column-gap: 12px !important;
+    }
+
+    .report-page .report-breakdown-icon {
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
+        min-height: 48px !important;
+    }
+
+    .report-page .report-breakdown-value {
+        grid-column: 2;
+        justify-self: start !important;
+        text-align: left !important;
+        margin-top: 4px !important;
+    }
+}
+
+
+/* ============================================================
+   REPORT PAGE — FINAL ICON SYSTEM FIX
+   The report page uses real .report-breakdown-icon elements.
+   Disable the legacy ::before icon system only on this page.
+   Main dashboard remains untouched.
+   ============================================================ */
+
+.report-page .report-breakdown-row::before {
+    content: none !important;
+    display: none !important;
+}
+
+.report-page .report-breakdown-row {
+    position: relative !important;
+    display: grid !important;
+    grid-template-columns: 52px minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    column-gap: 18px !important;
+    min-height: 88px !important;
+    padding: 16px 24px !important;
+    box-sizing: border-box !important;
+}
+
+.report-page .report-breakdown-icon {
+    position: static !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+
+    width: 52px !important;
+    height: 52px !important;
+    min-width: 52px !important;
+    min-height: 52px !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    box-sizing: border-box !important;
+
+    border: 1px solid rgba(166, 104, 255, 0.30) !important;
+    border-radius: 14px !important;
+    background: rgba(90, 45, 150, 0.14) !important;
+
+    color: #b47cff !important;
+    font-size: 22px !important;
+    line-height: 1 !important;
+
+    transform: none !important;
+    z-index: 1 !important;
+}
+
+.report-page .report-breakdown-main {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+
+    min-width: 0 !important;
+    width: auto !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+
+    gap: 6px !important;
+
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.report-page .report-breakdown-main > * {
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+}
+
+.report-page .report-breakdown-name,
+.report-page .report-breakdown-main strong {
+    display: block !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    color: #f1f2f8 !important;
+
+    line-height: 1.25 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+}
+
+.report-page .report-breakdown-detail,
+.report-page .report-breakdown-main span {
+    display: block !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    color: #7189ad !important;
+
+    line-height: 1.4 !important;
+}
+
+.report-page .report-breakdown-value {
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+
+    position: static !important;
+
+    min-width: 72px !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    justify-self: end !important;
+    align-self: center !important;
+
+    text-align: right !important;
+    white-space: nowrap !important;
+
+    color: #b789ff !important;
+    font-size: 18px !important;
+    font-weight: 850 !important;
+}
+
+.report-page #reportActionBreakdown .report-breakdown-row {
+    grid-template-columns: 52px minmax(0, 1fr) auto !important;
+}
+
+/* Keep the report page responsive without reintroducing overlap. */
+
+@media (max-width: 900px) {
+    .report-page .report-breakdown-row {
+        grid-template-columns: 48px minmax(0, 1fr) auto !important;
+        column-gap: 14px !important;
+        padding: 14px 18px !important;
+    }
+
+    .report-page .report-breakdown-icon {
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
+        min-height: 48px !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .report-page .report-breakdown-row {
+        grid-template-columns: 44px minmax(0, 1fr) !important;
+        row-gap: 6px !important;
+    }
+
+    .report-page .report-breakdown-icon {
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+    }
+
+    .report-page .report-breakdown-value {
+        grid-column: 2 !important;
+        grid-row: 2 !important;
+
+        justify-self: start !important;
+        text-align: left !important;
+        min-width: 0 !important;
+    }
+}
+
+
+/* REPORT SAFETY SYMBOLS ONLY
+   Adds visual symbols to the three safety statistic cards.
+   No other report/dashboard elements are modified.
+*/
+
+.report-page .report-safety-stat-icon {
+    display: block !important;
+    width: 38px !important;
+    height: 38px !important;
+    margin: 0 auto 10px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    box-sizing: border-box !important;
+
+    border: 1px solid rgba(166, 104, 255, 0.30) !important;
+    border-radius: 10px !important;
+
+    background: rgba(90, 45, 150, 0.14) !important;
+
+    color: #b47cff !important;
+    font-size: 19px !important;
+    line-height: 1 !important;
+
+    flex-shrink: 0 !important;
 }
