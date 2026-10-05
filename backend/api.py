@@ -427,45 +427,25 @@ def razorpay_checkout(batch_id: str):
     invoices = get_invoices(batch_id=batch_id)
 
     # ---------------------------------------------------------------
-    # Existing Razorpay Test Mode recovery demo
+    # Razorpay Test Mode checkout
     #
-    # This fixed Test Mode order was created outside DunnFlow.
-    # Establish its deterministic order -> invoice correlation
-    # before returning the checkout payload.
+    # DunnFlow only exposes an invoice that:
+    #   1. belongs to this batch,
+    #   2. already has a Razorpay order mapped to it,
+    #   3. is not already paid.
+    #
+    # Order creation and invoice -> Razorpay order mapping are handled
+    # explicitly before this route is called.
     # ---------------------------------------------------------------
-    if batch_id == "benchmark_60_subscription_failures":
-        demo_invoice = get_invoice("inv_dunnflow_001")
-
-        if not demo_invoice:
-            raise HTTPException(
-                status_code=404,
-                detail="Demo invoice inv_dunnflow_001 not found",
-            )
-
-        if demo_invoice.get("status") == "paid":
-            raise HTTPException(
-                status_code=409,
-                detail="Demo invoice is already paid.",
-            )
-
-        if demo_invoice.get("razorpay_order_id") != "order_TWTUVvtmFpuihz":
-            attach_razorpay_order_to_invoice(
-                "inv_dunnflow_001",
-                "order_TWTUVvtmFpuihz",
-            )
-
-        invoice = get_invoice("inv_dunnflow_001")
-
-    else:
-        invoice = next(
-            (
-                invoice
-                for invoice in invoices
-                if invoice.get("razorpay_order_id")
-                and invoice.get("status") != "paid"
-            ),
-            None,
-        )
+    invoice = next(
+        (
+            invoice
+            for invoice in invoices
+            if invoice.get("razorpay_order_id")
+            and invoice.get("status") != "paid"
+        ),
+        None,
+    )
 
     if not invoice:
         raise HTTPException(

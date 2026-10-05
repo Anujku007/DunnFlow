@@ -188,6 +188,44 @@
             return;
         }
 
+        /*
+         * Demo financial truth:
+         * A paid invoice represents successfully recovered revenue.
+         * Therefore a single paid demo case must display:
+         *   Revenue at Risk = 0
+         *   Recovered      = invoice amount
+         *   Recovery Rate  = 100%
+         *
+         * Do not derive the demo card from the batch-level metrics.
+         */
+        if (
+            DunnFlowState &&
+            DunnFlowState.mode === "demo" &&
+            metrics.invoice_id
+        ) {
+            const demoAmount =
+                Number(metrics.amount || metrics.invoice_amount || 0);
+
+            const demoPaid =
+                Number(metrics.recovered_count || 0) === 1 ||
+                (
+                    Number(metrics.historical_amount_at_risk || 0) === 0 &&
+                    Number(metrics.amount_recovered || 0) > 0
+                );
+
+            if (demoPaid && demoAmount > 0) {
+                metrics = {
+                    ...metrics,
+                    historical_invoices_at_risk: 0,
+                    historical_amount_at_risk: 0,
+                    recovered_count: 1,
+                    amount_recovered: demoAmount,
+                    recovery_rate_pct: 100,
+                    in_progress_count: 0
+                };
+            }
+        }
+
         const risk =
             metrics.historical_amount_at_risk ??
             metrics.amount_at_risk ??
@@ -199,10 +237,35 @@
             metrics.recovered_amount ??
             0;
 
-        const rate =
+        let rate =
             metrics.recovery_rate_pct ??
             metrics.recovery_rate ??
             0;
+
+        /*
+         * Razorpay Test Mode isolated recovery:
+         * after the customer successfully pays the ?299 recovery order,
+         * the backend correctly reports zero CURRENT risk because the
+         * invoice is already paid. For this single-case demo, recovered
+         * amount therefore represents 100% recovery of the case amount.
+         *
+         * Do NOT apply this to the benchmark batch because its normal
+         * recovery-rate calculation must remain unchanged.
+         */
+        const selectedBatchForRate =
+            getSelectedBatchId() ||
+            metrics.batch_id ||
+            "";
+
+        if (
+            String(selectedBatchForRate)
+                .toLowerCase()
+                .includes("razorpay_isolated_test") &&
+            Number(metrics.amount_recovered || 0) > 0 &&
+            Number(metrics.historical_amount_at_risk || 0) === 0
+        ) {
+            rate = 100;
+        }
 
         const inProgress =
             metrics.in_progress_count ??
@@ -1132,6 +1195,66 @@
 
             return null;
         }
+    
+
+        /*
+         * DEMO FINANCIAL TRUTH
+         * --------------------
+         * The selected demo invoice is the source of truth.
+         * If the invoice is paid, the demo case is fully recovered.
+         */
+        try {
+            const demoResponse = await fetch(
+                `/api/demo/cases/${encodeURIComponent(invoiceId)}`
+            );
+
+            if (demoResponse.ok) {
+                const demoData = await demoResponse.json();
+                const invoice = demoData?.invoice;
+
+                if (invoice) {
+                    const amount = Number(invoice.amount || 0);
+                    const paid =
+                        invoice.status === "paid" ||
+                        Boolean(invoice.paid_at);
+
+                    if (DunnFlowState.mode === "demo" && paid && amount > 0) {
+                        const demoFinancial = {
+                            ...(DunnFlowState.lastMetrics || {}),
+                            invoice_id: invoice.invoice_id,
+                            amount: amount,
+                            invoice_status: invoice.status,
+                            historical_invoices_at_risk: 0,
+                            historical_amount_at_risk: 0,
+                            recovered_count: 1,
+                            amount_recovered: amount,
+                            recovery_rate_pct: 100,
+                            in_progress_count: 0
+                        };
+
+                        DunnFlowState.lastMetrics = demoFinancial;
+
+                        if (
+                            window.DunnFlowMetrics &&
+                            typeof window.DunnFlowMetrics.renderMetrics === "function"
+                        ) {
+                            window.DunnFlowMetrics.renderMetrics(demoFinancial);
+                        }
+
+                        console.log(
+                            "DUNNFLOW DEMO FINANCIAL SYNC:",
+                            demoFinancial
+                        );
+                    }
+                }
+            }
+        } catch (demoFinancialError) {
+            console.warn(
+                "DunnFlow demo financial sync failed:",
+                demoFinancialError
+            );
+        }
+
     }
 
 
@@ -1542,6 +1665,12 @@
 
             invoice_id:
                 invoice.invoice_id,
+
+            amount:
+                amount,
+
+            invoice_status:
+                invoice.status,
 
             historical_invoices_at_risk:
                 isPaid ? 0 : 1,

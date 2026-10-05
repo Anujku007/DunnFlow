@@ -879,3 +879,52 @@ GitHub: `https://github.com/Anujku007/DunnFlow`
 | Final dashboard/polish | 🔄 Next |
 | Architecture/pitch/demo | 🔄 Next |
 | Buildathon submission | ⏳ |
+
+
+@'
+
+---
+
+## Razorpay Webhook Reliability & Security Tests — 2026-10-04
+
+### Completed Test Matrix
+
+| Test | Result | Evidence |
+|---|---|---|
+| `order.paid` real HTTP webhook | PASS | HTTP 200, payment reconciled |
+| `order.paid` duplicate webhook | PASS | HTTP 200, `status=duplicate` |
+| Out-of-order: `payment.captured` first | PASS | Payment became captured, invoice paid |
+| Out-of-order: `payment.authorized` arrives late | PASS | Existing captured state preserved |
+| Authorized-first: `payment.authorized` first | PASS | Payment attempt created with `authorized` |
+| Authorized-first: `payment.captured` later | PASS | Same payment attempt reconciled to captured |
+| Single payment attempt invariant | PASS | One attempt per Razorpay payment ID |
+| Invoice reconciliation | PASS | Invoice transitioned to `paid` |
+| Subscription reconciliation | PASS | Subscription transitioned to `active` |
+| Revenue event generation | PASS | `payment_captured`, `invoice_paid`, `recovery_confirmed` |
+| Invalid webhook signature | PASS | HTTP 401 rejected |
+| Invalid signature DB isolation | PASS | No webhook event, payment attempt, or revenue event created |
+
+### 1. Real HTTP `order.paid`
+
+**Event ID**
+
+`dunnflow-http-order-paid-isolated-001`
+
+**Payment**
+
+`pay_Tj1syRbTwXAkj7`
+
+**Order**
+
+`order_Tj18cQObb8paCY`
+
+**Result**
+
+```text
+HTTP 200
+status=processed
+event=order.paid
+result.status=reconciled
+payment_status=captured
+invoice_status=paid
+subscription_status=active

@@ -5275,3 +5275,41 @@ body.decision-modal-open {
 
     flex-shrink: 0 !important;
 }
+/* ============================================================
+   DUNNFLOW — DEMO LAB FIVE-CARD DESKTOP ROW
+   ============================================================ */
+
+.scenario-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 20px;
+    width: 100%;
+    align-items: stretch;
+}
+
+.scenario-card {
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Keep all five cards on one row on desktop */
+@media (min-width: 1200px) {
+    .scenario-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
+
+/* Smaller screens can wrap safely */
+@media (max-width: 1199px) {
+    .scenario-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .scenario-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
