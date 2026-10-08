@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any
@@ -34,6 +34,7 @@ class AIPolicyReconciliation:
     deterministic_action: str
     result: str
     detail: str
+    learning_influence: dict[str, Any]
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -43,6 +44,7 @@ class AIPolicyReconciliation:
             "deterministic_action": self.deterministic_action,
             "result": self.result,
             "detail": self.detail,
+            "learning_influence": self.learning_influence,
         }
 
 
@@ -86,6 +88,13 @@ def reconcile_ai_with_policy(
                 "Deterministic policy remains the final authority. "
                 f"Reason: {ai_result.reason}"
             ),
+            learning_influence={
+                "used": False,
+                "signal": "historical_context_unavailable",
+                "sample_size": 0,
+                "confidence": 0.0,
+                "historical_recovery_rate": None,
+            },
         )
 
         audit_logger(
@@ -114,6 +123,13 @@ def reconcile_ai_with_policy(
 
     ai_action = ai_result.recommended_action
 
+    # RecoveryAdvisor has already validated and bounded this metadata.
+    # Reconciliation only observes it and never uses it to modify
+    # or authorize the deterministic decision.
+    learning_influence = dict(
+        ai_result.learning_influence
+    )
+
     if ai_action == deterministic_action:
         result = "agreement"
         detail = (
@@ -137,6 +153,7 @@ def reconcile_ai_with_policy(
         deterministic_action=deterministic_action,
         result=result,
         detail=detail,
+        learning_influence=learning_influence,
     )
 
     audit_logger(

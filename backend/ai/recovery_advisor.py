@@ -1,4 +1,4 @@
-﻿"""
+"""
 DunnFlow AI Recovery Advisor foundation.
 
 Architecture:
@@ -33,7 +33,7 @@ from __future__ import annotations
 
 import json
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from backend.ai.prompts import (
@@ -41,6 +41,7 @@ from backend.ai.prompts import (
     RECOVERY_ADVISOR_USER_PROMPT,
 )
 from backend.ai.recovery_context import RecoveryContext
+from backend.ai.historical_decision_context import get_historical_decision_context_dict
 
 from dotenv import load_dotenv
 
@@ -74,6 +75,11 @@ class AIRecoveryRecommendation:
     reason: str
     customer_strategy: str
 
+    # Structured, bounded metadata describing whether historical evidence
+    # influenced this advisory recommendation. This field is observational
+    # only and never authorizes financial execution.
+    learning_influence: dict[str, Any] = field(default_factory=dict)
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "priority_score": self.priority_score,
@@ -82,6 +88,7 @@ class AIRecoveryRecommendation:
             "confidence": self.confidence,
             "reason": self.reason,
             "customer_strategy": self.customer_strategy,
+            "learning_influence": self.learning_influence,
         }
 
 
@@ -561,6 +568,91 @@ class RecoveryAdvisor:
 
         recovery_context = context.to_dict()
 
+        # --------------------------------------------------------------
+        # HISTORICAL DECISION CONTEXT
+        #
+        # Previous DunnFlow decisions and outcomes are supplied to the
+        # AI advisor as read-only evidence.
+        #
+        # AI may use this evidence to improve its recommendation,
+        # but deterministic policy remains the financial authority.
+        # --------------------------------------------------------------
+        try:
+            invoice_id = context.invoice.get("invoice_id")
+
+            if invoice_id:
+                historical_context = (
+                    get_historical_decision_context_dict(
+                        str(invoice_id),
+                        limit=20,
+                    )
+                )
+
+                recovery_context["historical_decision_context"] = (
+                    historical_context
+                )
+
+                # STEP 8C.4: customer behavioral evidence.
+                #
+                # Customer behavior is supplied by the historical decision
+                # context and is advisory evidence only. It must never
+                # override deterministic policy or guardrails.
+                customer_behavior = historical_context.get(
+                    "customer_behavior",
+                    {},
+                )
+
+                if not isinstance(customer_behavior, dict):
+                    customer_behavior = {
+                        "available": False,
+                        "behavior_signal": "insufficient_history",
+                        "evidence_quality": "insufficient",
+                        "sample_size": 0,
+                        "advisory_only": True,
+                        "provenance": {
+                            "attribution": "customer_behavior_observation",
+                            "episode_granularity": "invoice",
+                            "financial_authority": "deterministic_policy",
+                        },
+                    }
+
+                # Normalize the safety boundary even if the historical
+                # context is unavailable or malformed.
+                customer_behavior["advisory_only"] = True
+
+                provenance = customer_behavior.get(
+                    "provenance",
+                    {},
+                )
+
+                if not isinstance(provenance, dict):
+                    provenance = {}
+
+                provenance["financial_authority"] = (
+                    "deterministic_policy"
+                )
+
+                customer_behavior["provenance"] = provenance
+
+                recovery_context["customer_behavior"] = (
+                    customer_behavior
+                )
+
+            else:
+                recovery_context["historical_decision_context"] = {
+                    "learning_signal": "no_invoice_id"
+                }
+
+        except Exception as exc:
+            # Historical intelligence is advisory only.
+            # Failure to load it must NEVER break recovery.
+            recovery_context["historical_decision_context"] = {
+                "learning_signal": "historical_context_unavailable",
+                "available": False,
+                "error": str(exc),
+            }
+
+
         user_prompt = RECOVERY_ADVISOR_USER_PROMPT.format(
             recovery_context=json.dumps(
                 recovery_context,
@@ -599,6 +691,303 @@ class RecoveryAdvisor:
 
             self._validate_recommendation(parsed)
 
+            # ----------------------------------------------------------
+            # BOUNDED LEARNING INFLUENCE
+            #
+            # The AI may indicate whether historical evidence influenced
+            # its recommendation, but historical statistics themselves
+            # are sourced from DunnFlow's supplied historical context.
+            #
+            # This prevents the model from inventing sample sizes,
+            # recovery rates, or confidence values.
+            # ----------------------------------------------------------
+
+            historical_context = recovery_context.get(
+                "historical_decision_context",
+                {},
+            )
+
+            ai_learning = parsed.get(
+                "learning_influence",
+                {},
+            )
+
+            if not isinstance(ai_learning, dict):
+                ai_learning = {}
+
+            # ----------------------------------------------------------
+            # The historical builder stores learning metadata inside the
+            # nested `learning_signal` object. Normalize that structure
+            # here while keeping all historical values trusted and bounded.
+            # ----------------------------------------------------------
+
+            historical_learning_signal = historical_context.get(
+                "learning_signal",
+                {},
+            )
+
+            if isinstance(historical_learning_signal, dict):
+                historical_available = historical_learning_signal.get(
+                    "available",
+                    False,
+                )
+                historical_signal = historical_learning_signal.get(
+                    "signal"
+                )
+                historical_sample_size = historical_learning_signal.get(
+                    "sample_size"
+                )
+                historical_confidence = historical_learning_signal.get(
+                    "confidence"
+                )
+                historical_recovery_rate = historical_learning_signal.get(
+                    "historical_recovery_rate"
+                )
+            else:
+                # Backward-compatible handling for an older flat/string
+                # representation of historical learning context.
+                historical_available = historical_context.get(
+                    "available",
+                    False,
+                )
+                historical_signal = (
+                    historical_learning_signal
+                    if isinstance(historical_learning_signal, str)
+                    else None
+                )
+                historical_sample_size = historical_context.get(
+                    "sample_size"
+                )
+                historical_confidence = historical_context.get(
+                    "confidence"
+                )
+                historical_recovery_rate = historical_context.get(
+                    "historical_recovery_rate"
+                )
+
+            # Historical availability is trusted only when explicitly
+            # supplied by DunnFlow's historical context.
+            historical_available = (
+                historical_available
+                if isinstance(historical_available, bool)
+                else False
+            )
+
+            # The AI may report whether it used available historical
+            # evidence, but it cannot manufacture historical evidence.
+            ai_used = ai_learning.get("used")
+
+            if isinstance(ai_used, bool):
+                learning_used = (
+                    ai_used
+                    and historical_available
+                    and isinstance(historical_signal, str)
+                    and historical_signal not in {
+                        "historical_context_unavailable",
+                        "no_invoice_id",
+                    }
+                )
+            else:
+                learning_used = bool(
+                    historical_available
+                    and isinstance(historical_signal, str)
+                    and historical_signal not in {
+                        "historical_context_unavailable",
+                        "no_invoice_id",
+                    }
+                )
+
+            # ----------------------------------------------------------
+            # STEP 7C: bounded historical AI-action feedback
+            #
+            # These values come from DunnFlow's read-only historical
+            # context. The AI cannot manufacture or override them.
+            #
+            # They are advisory correlation evidence only.
+            # Deterministic policy remains the financial authority.
+            # ----------------------------------------------------------
+            raw_ai_action_statistics = historical_context.get(
+                "ai_action_statistics",
+                {},
+            )
+
+            bounded_ai_action_feedback: dict[str, Any] = {}
+
+            if isinstance(raw_ai_action_statistics, dict):
+                for action_name, raw_stats in (
+                    raw_ai_action_statistics.items()
+                ):
+                    if not isinstance(action_name, str):
+                        continue
+
+                    if not isinstance(raw_stats, dict):
+                        continue
+
+                    total_cases = raw_stats.get(
+                        "total_cases"
+                    )
+                    recovered_cases = raw_stats.get(
+                        "recovered_cases"
+                    )
+                    recovery_rate = raw_stats.get(
+                        "recovery_rate"
+                    )
+                    agreement_cases = raw_stats.get(
+                        "agreement_cases"
+                    )
+                    disagreement_cases = raw_stats.get(
+                        "disagreement_cases"
+                    )
+
+                    evidence_quality = raw_stats.get(
+                        "evidence_quality"
+                    )
+
+                    # Evidence quality is a deterministic historical
+                    # evidence-depth classification. It is not AI
+                    # confidence, statistical proof, or execution authority.
+                    if evidence_quality not in {
+                        "insufficient",
+                        "limited",
+                        "moderate",
+                        "strong",
+                    }:
+                        continue
+
+                    # Strict bounded integer validation.
+                    if (
+                        not isinstance(total_cases, int)
+                        or isinstance(total_cases, bool)
+                        or total_cases < 0
+                    ):
+                        continue
+
+                    if (
+                        not isinstance(recovered_cases, int)
+                        or isinstance(recovered_cases, bool)
+                        or recovered_cases < 0
+                        or recovered_cases > total_cases
+                    ):
+                        continue
+
+                    if (
+                        not isinstance(agreement_cases, int)
+                        or isinstance(agreement_cases, bool)
+                        or agreement_cases < 0
+                        or agreement_cases > total_cases
+                    ):
+                        continue
+
+                    if (
+                        not isinstance(disagreement_cases, int)
+                        or isinstance(disagreement_cases, bool)
+                        or disagreement_cases < 0
+                        or disagreement_cases > total_cases
+                    ):
+                        continue
+
+                    # Strict bounded recovery-rate validation.
+                    if (
+                        not isinstance(
+                            recovery_rate,
+                            (int, float),
+                        )
+                        or isinstance(recovery_rate, bool)
+                        or not 0.0 <= float(recovery_rate) <= 1.0
+                    ):
+                        continue
+
+                    attribution = raw_stats.get(
+                        "attribution"
+                    )
+
+                    episode_granularity = raw_stats.get(
+                        "episode_granularity"
+                    )
+
+                    financial_authority = raw_stats.get(
+                        "financial_authority"
+                    )
+
+                    # Only accept statistics produced by the trusted
+                    # Step 7B contract.
+                    if attribution != "advisory_correlation":
+                        continue
+
+                    if episode_granularity != "invoice":
+                        continue
+
+                    if financial_authority != "deterministic_policy":
+                        continue
+
+                    bounded_ai_action_feedback[
+                        action_name
+                    ] = {
+                        "total_cases": total_cases,
+                        "recovered_cases": recovered_cases,
+                        "recovery_rate": float(
+                            recovery_rate
+                        ),
+                        "agreement_cases": agreement_cases,
+                        "disagreement_cases": (
+                            disagreement_cases
+                        ),
+                        "evidence_quality": evidence_quality,
+                        "attribution": (
+                            "advisory_correlation"
+                        ),
+                        "episode_granularity": "invoice",
+                        "financial_authority": (
+                            "deterministic_policy"
+                        ),
+                    }
+
+            ai_action_feedback = {
+                "available": bool(
+                    bounded_ai_action_feedback
+                ),
+                "actions": bounded_ai_action_feedback,
+                "advisory_only": True,
+            }
+
+            learning_influence = {
+                "used": learning_used,
+                "signal": (
+                    historical_signal
+                    if isinstance(historical_signal, str)
+                    else "historical_context_unavailable"
+                ),
+                "sample_size": (
+                    historical_sample_size
+                    if isinstance(historical_sample_size, int)
+                    and not isinstance(historical_sample_size, bool)
+                    and historical_sample_size >= 0
+                    else 0
+                ),
+                "confidence": (
+                    historical_confidence
+                    if isinstance(historical_confidence, (int, float))
+                    and not isinstance(historical_confidence, bool)
+                    and 0.0 <= float(historical_confidence) <= 1.0
+                    else 0.0
+                ),
+                "historical_recovery_rate": (
+                    historical_recovery_rate
+                    if isinstance(
+                        historical_recovery_rate,
+                        (int, float),
+                    )
+                    and not isinstance(historical_recovery_rate, bool)
+                    and 0.0 <= float(historical_recovery_rate) <= 1.0
+                    else None
+                ),
+            }
+
+            learning_influence = {
+                **learning_influence,
+                "ai_action_feedback": ai_action_feedback,
+            }
+
             return AIRecoveryRecommendation(
                 priority_score=parsed["priority_score"],
                 urgency=parsed["urgency"],
@@ -606,6 +995,7 @@ class RecoveryAdvisor:
                 confidence=parsed["confidence"],
                 reason=parsed["reason"],
                 customer_strategy=parsed["customer_strategy"],
+                learning_influence=learning_influence,
             )
 
         except AIProviderError as exc:

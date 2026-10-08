@@ -66,6 +66,7 @@ def run_batch(
     *,
     as_of=None,
     ai_advisor: RecoveryAdvisor | None = None,
+    agent_plan: dict | None = None,
 ) -> dict:
     """
     Run one batch through the complete DunnFlow recovery pipeline.
@@ -89,6 +90,80 @@ def run_batch(
         raise ValueError(
             f"Batch '{batch_id}' does not exist."
         )
+
+    # ================================================================
+    # STEP 14 ? AGENT PLAN HANDOFF
+    # ================================================================
+    #
+    # The RecoveryAgent may provide an advisory planning context.
+    #
+    # IMPORTANT:
+    #   agent_plan is advisory/planning metadata only.
+    #   It does not replace deterministic decision policy.
+    #   It does not authorize execution.
+    #   It does not schedule payments.
+    #   It does not modify financial state.
+    #
+    # The orchestrator remains the sole downstream execution authority.
+    # ================================================================
+
+    agent_handoff = {
+        "provided": agent_plan is not None,
+        "accepted": False,
+        "advisory_only": True,
+        "execution_authority": "deterministic_orchestrator",
+        "financial_authority": "deterministic_policy",
+        "ai_authority": "advisory_only",
+    }
+
+    if agent_plan is not None:
+        agent_handoff["accepted"] = bool(
+            agent_plan.get(
+                "agent_ready",
+                False,
+            )
+        )
+
+        if not agent_handoff["accepted"]:
+            raise ValueError(
+                "Invalid RecoveryAgent plan: "
+                "agent_ready must be true."
+            )
+
+        if (
+            agent_plan.get(
+                "execution_authority"
+            )
+            != "deterministic_orchestrator"
+        ):
+            raise ValueError(
+                "Invalid RecoveryAgent plan: "
+                "execution authority must remain "
+                "deterministic_orchestrator."
+            )
+
+        if (
+            agent_plan.get(
+                "financial_authority"
+            )
+            != "deterministic_policy"
+        ):
+            raise ValueError(
+                "Invalid RecoveryAgent plan: "
+                "financial authority must remain "
+                "deterministic_policy."
+            )
+
+        if (
+            agent_plan.get(
+                "ai_authority"
+            )
+            != "advisory_only"
+        ):
+            raise ValueError(
+                "Invalid RecoveryAgent plan: "
+                "AI authority must remain advisory_only."
+            )
 
     # ================================================================
     # 1. DETECT
@@ -123,15 +198,106 @@ def run_batch(
     # ================================================================
 
     ai_reconciliation = {
-        "enabled": ai_advisor is not None,
+        "enabled": False,
         "checked": 0,
         "agreements": 0,
         "disagreements": 0,
         "ai_unavailable": 0,
         "results": [],
+        "source": "none",
     }
 
-    if ai_advisor is not None:
+    # ------------------------------------------------------------
+    # STEP 15 ? SINGLE-PASS AGENT ADVISORY HANDOFF
+    # ------------------------------------------------------------
+    #
+    # If the RecoveryAgent already produced AI recommendations,
+    # the orchestrator must not call the AI provider again for
+    # the same planning pass.
+    #
+    # The recommendations remain advisory metadata only.
+    # Deterministic decisions below remain authoritative.
+    # ------------------------------------------------------------
+
+    agent_ai_recommendations = []
+
+    if agent_plan is not None:
+        candidate_recommendations = agent_plan.get(
+            "ai_recommendations",
+            [],
+        )
+
+        if isinstance(candidate_recommendations, list):
+            agent_ai_recommendations = (
+                candidate_recommendations
+            )
+
+    if agent_ai_recommendations:
+        ai_reconciliation["enabled"] = True
+        ai_reconciliation["source"] = (
+            "recovery_agent_single_pass"
+        )
+
+        for index, deterministic_decision in enumerate(
+            decisions["decisions"]
+        ):
+            recommendation = (
+                agent_ai_recommendations[index]
+                if index < len(agent_ai_recommendations)
+                else None
+            )
+
+            if recommendation is None:
+                ai_reconciliation["ai_unavailable"] += 1
+                continue
+
+            ai_action = (
+                recommendation.get("recommended_action")
+                if isinstance(recommendation, dict)
+                else getattr(
+                    recommendation,
+                    "recommended_action",
+                    None,
+                )
+            )
+
+            deterministic_action = (
+                deterministic_decision.get("action")
+            )
+
+            result = (
+                "agreement"
+                if ai_action == deterministic_action
+                else "disagreement"
+            )
+
+            ai_reconciliation["checked"] += 1
+            ai_reconciliation["results"].append(
+                {
+                    "invoice_id": deterministic_decision[
+                        "invoice_id"
+                    ],
+                    "result": result,
+                    "ai_action": ai_action,
+                    "deterministic_action": deterministic_action,
+                    "advisory_only": True,
+                    "source": "recovery_agent_single_pass",
+                }
+            )
+
+            if result == "agreement":
+                ai_reconciliation["agreements"] += 1
+            else:
+                ai_reconciliation["disagreements"] += 1
+
+    elif ai_advisor is not None:
+        # Existing direct orchestrator AI path remains available
+        # when no RecoveryAgent advisory plan was supplied.
+        ai_reconciliation["enabled"] = True
+        ai_reconciliation["source"] = (
+            "orchestrator_direct_advisory"
+        )
+
         for deterministic_decision in decisions["decisions"]:
             reconciliation = reconcile_invoice(
                 invoice_id=deterministic_decision["invoice_id"],
@@ -224,6 +390,8 @@ def run_batch(
 
     return {
         "batch_id": batch_id,
+
+        "agent_handoff": agent_handoff,
 
         "pipeline": [
             "detect",

@@ -1,3 +1,70 @@
+
+async function refreshRecoveryAgent(batchId) {
+    if (
+        !batchId ||
+        !window.DunnFlowAPI ||
+        typeof window.DunnFlowAPI.getRecoveryAgent !== "function"
+    ) {
+        return;
+    }
+
+    try {
+        const payload =
+            await window.DunnFlowAPI.getRecoveryAgent(
+                batchId
+            );
+
+        if (window.DunnFlowState) {
+            DunnFlowState.agentState =
+                payload &&
+                payload.agent
+                    ? payload.agent.state || "idle"
+                    : "idle";
+
+            DunnFlowState.agentReady =
+                Boolean(
+                    payload &&
+                    payload.agent &&
+                    payload.agent.agent_ready
+                );
+
+            DunnFlowState.agentHistory =
+                payload &&
+                payload.agent &&
+                Array.isArray(payload.agent.history)
+                    ? payload.agent.history
+                    : [];
+
+            DunnFlowState.agentPlan = payload;
+        }
+
+        document.dispatchEvent(
+            new CustomEvent(
+                "dunnflow:agent-ready",
+                {
+                    detail: payload
+                }
+            )
+        );
+
+        return payload;
+    } catch (error) {
+        console.warn(
+            "DunnFlow agent inspection failed:",
+            error
+        );
+
+        if (window.DunnFlowState) {
+            DunnFlowState.agentState = "unavailable";
+            DunnFlowState.agentReady = false;
+            DunnFlowState.agentHistory = [];
+            DunnFlowState.agentPlan = null;
+        }
+
+        return null;
+    }
+}
+
 /*
  * DunnFlow — Demo Scenario Cards
  *
@@ -205,6 +272,38 @@
 
 
     /**
+     * Refresh the visible audit trail for the current UI context.
+     *
+     * This is read-only presentation work.
+     * It does not diagnose, decide, schedule, or execute recovery.
+     */
+    function refreshAuditContext({
+        invoiceId = null,
+        batchId = null
+    } = {}) {
+        if (
+            !window.DunnFlowAudit ||
+            typeof window.DunnFlowAudit.load !==
+                "function"
+        ) {
+            return;
+        }
+
+        window.DunnFlowAudit
+            .load({
+                invoiceId,
+                batchId
+            })
+            .catch(function (error) {
+                console.warn(
+                    "DunnFlow audit refresh failed:",
+                    error
+                );
+            });
+    }
+
+
+    /**
      * Handle a Demo Lab card click.
      */
     function handleCardClick(event) {
@@ -265,6 +364,10 @@
                 batchId
             );
 
+            refreshAuditContext({
+                batchId
+            });
+
             document.dispatchEvent(
                 new CustomEvent(
                     "dunnflow:demo-selected",
@@ -311,6 +414,10 @@
          * Tell other UI components that the
          * selected Demo Lab case changed.
          */
+        refreshAuditContext({
+            invoiceId: scenario.invoiceId
+        });
+
         document.dispatchEvent(
             new CustomEvent(
                 "dunnflow:demo-selected",
@@ -368,6 +475,10 @@
                 }
             )
         );
+
+        refreshAuditContext({
+            batchId
+        });
 
         if (
             window.DunnFlowMetrics &&
@@ -490,6 +601,7 @@
      * Public Demo Lab contract.
      */
     window.DunnFlowDemo = {
+    refreshRecoveryAgent,
         scenarios:
             DEMO_SCENARIOS,
 

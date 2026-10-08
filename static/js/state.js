@@ -1,4 +1,12 @@
-﻿/*
+
+function resetAgentState() {
+    DunnFlowState.agentState = "idle";
+    DunnFlowState.agentReady = false;
+    DunnFlowState.agentHistory = [];
+    DunnFlowState.agentPlan = null;
+}
+
+/*
  * DunnFlow — Frontend State
  *
  * Single source of truth for UI execution mode.
@@ -14,6 +22,11 @@ const DUNNFLOW_DEFAULT_BATCH =
     "benchmark_60_subscription_failures";
 
 const DunnFlowState = {
+    agentState: "idle",
+    agentReady: false,
+    agentHistory: [],
+    agentPlan: null,
+
     mode: "control",
 
     batchId: DUNNFLOW_DEFAULT_BATCH,

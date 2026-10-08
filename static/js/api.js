@@ -284,6 +284,44 @@ async function executeDemoCase(invoiceId) {
 
 
 /**
+ * Read-only audit timeline.
+ *
+ * No mutation, decision, execution, or payment occurs here.
+ */
+async function getAuditTrail({
+    batchId = null,
+    subscriptionId = null,
+    invoiceId = null
+} = {}) {
+
+    const params = new URLSearchParams();
+
+    if (batchId) {
+        params.set("batch_id", batchId);
+    }
+
+    if (subscriptionId) {
+        params.set("subscription_id", subscriptionId);
+    }
+
+    if (invoiceId) {
+        params.set("invoice_id", invoiceId);
+    }
+
+    if (!params.toString()) {
+        throw new Error(
+            "An audit scope is required."
+        );
+    }
+
+    return apiRequest(
+        `/api/audit?${params.toString()}`
+    );
+}
+
+
+
+/**
  * Existing Razorpay checkout information.
  */
 async function getRazorpayCheckout(batchId) {
@@ -306,7 +344,21 @@ async function getRazorpayCheckout(batchId) {
  * easy to inspect without introducing another global
  * state object.
  */
+
+async function getRecoveryAgent(batchId) {
+    if (!batchId) {
+        throw new Error(
+            "Batch ID is required for recovery-agent inspection."
+        );
+    }
+
+    return apiRequest(
+        `/api/batches/${encodeURIComponent(batchId)}/agent`
+    );
+}
+
 window.DunnFlowAPI = {
+    getRecoveryAgent,
     apiRequest,
 
     getHealth,
@@ -323,6 +375,8 @@ window.DunnFlowAPI = {
     inspectDemoCase,
     decideDemoCase,
     executeDemoCase,
+
+    getAuditTrail,
 
     getRazorpayCheckout
 };

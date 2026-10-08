@@ -1,4 +1,4 @@
-﻿"""
+"""
 DunnFlow execution engine.
 
 Pipeline:

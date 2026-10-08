@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
@@ -646,6 +646,238 @@ class RecoveryAgent:
 
         self.transition(AgentState.CONTINUE)
         return self.context
+
+    def prepare_batch(
+        self,
+        *,
+        as_of=None,
+    ) -> RecoveryAgentContext:
+        """
+        Prepare one batch for the authoritative DunnFlow orchestrator.
+
+        This performs the agentic reasoning/planning boundary only.
+        It does not schedule or execute payments.
+
+        Financial execution remains owned by the existing authoritative
+        orchestrator and guarded execution engine.
+        """
+
+        init_db()
+
+        self.observe()
+
+        detection = self.context.result.get(
+            "detection",
+            {},
+        )
+
+        opportunities = detection.get(
+            "opportunities",
+            [],
+        )
+
+        for item in opportunities:
+            invoice_id = item.get("invoice_id")
+
+            if not invoice_id:
+                continue
+
+            self.diagnose(invoice_id)
+
+            self.recommend(
+                invoice_id,
+                as_of=as_of,
+            )
+
+        ranked_opportunities = self.prioritize(
+            opportunities
+        )
+
+        self.context.result[
+            "agent_ready"
+        ] = True
+
+        self.context.result[
+            "execution_authority"
+        ] = "deterministic_orchestrator"
+
+        self.context.result[
+            "ai_authority"
+        ] = "advisory_only"
+
+        self.context.result[
+            "financial_authority"
+        ] = "deterministic_policy"
+
+        self.context.result[
+            "ranked_opportunities"
+        ] = ranked_opportunities
+
+        self.transition(
+            AgentState.CONTINUE
+        )
+
+        return self.context
+
+    def run_authorized_batch(
+        self,
+        *,
+        as_of=None,
+        ai_advisor=None,
+    ) -> dict[str, Any]:
+        """
+        Prepare the recovery plan and hand financial execution to the
+        existing deterministic orchestrator.
+
+        The RecoveryAgent is NOT a second execution engine.
+
+        Responsibilities of this method:
+
+            agent planning
+                ->
+            deterministic orchestrator handoff
+
+        Financial execution, scheduling, verification, stopping rules,
+        escalation, webhook processing, and recovered-revenue accounting
+        remain owned by the existing DunnFlow architecture.
+        """
+
+        planning_context = self.prepare_batch(
+            as_of=as_of,
+        )
+
+        if not planning_context.result.get(
+            "agent_ready",
+            False,
+        ):
+            raise RuntimeError(
+                "RecoveryAgent planning did not reach agent_ready state."
+            )
+
+        if (
+            planning_context.result.get(
+                "execution_authority"
+            )
+            != "deterministic_orchestrator"
+        ):
+            raise RuntimeError(
+                "RecoveryAgent execution authority is not "
+                "deterministic_orchestrator."
+            )
+
+        if (
+            planning_context.result.get(
+                "financial_authority"
+            )
+            != "deterministic_policy"
+        ):
+            raise RuntimeError(
+                "RecoveryAgent financial authority is not "
+                "deterministic_policy."
+            )
+
+        if (
+            planning_context.result.get(
+                "ai_authority"
+            )
+            != "advisory_only"
+        ):
+            raise RuntimeError(
+                "RecoveryAgent AI authority is not advisory_only."
+            )
+
+        # Import lazily to avoid a module-level circular dependency.
+        from orchestrator import run_batch as run_deterministic_batch
+
+        execution_result = run_deterministic_batch(
+            self.context.batch_id,
+            as_of=as_of,
+            ai_advisor=(
+                None
+                if planning_context.result.get(
+                    "ai_recommendations"
+                )
+                else ai_advisor
+            ),
+            agent_plan={
+                "agent_ready": True,
+                "execution_authority": (
+                    planning_context.result[
+                        "execution_authority"
+                    ]
+                ),
+                "financial_authority": (
+                    planning_context.result[
+                        "financial_authority"
+                    ]
+                ),
+                "ai_authority": (
+                    planning_context.result[
+                        "ai_authority"
+                    ]
+                ),
+                "ranked_opportunities": (
+                    planning_context.result.get(
+                        "ranked_opportunities",
+                        [],
+                    )
+                ),
+                "ai_recommendations": (
+                    planning_context.result.get(
+                        "ai_recommendations",
+                        [],
+                    )
+                ),
+                "agent_advisory_source": (
+                    "recovery_agent_single_pass"
+                ),
+            },
+        )
+
+        return {
+            "batch_id": self.context.batch_id,
+            "agent": {
+                "state": planning_context.state.value,
+                "history": list(
+                    planning_context.history
+                ),
+                "agent_ready": True,
+                "execution_authority": (
+                    planning_context.result[
+                        "execution_authority"
+                    ]
+                ),
+                "financial_authority": (
+                    planning_context.result[
+                        "financial_authority"
+                    ]
+                ),
+                "ai_authority": (
+                    planning_context.result[
+                        "ai_authority"
+                    ]
+                ),
+                "ranked_opportunities": (
+                    planning_context.result.get(
+                        "ranked_opportunities",
+                        [],
+                    )
+                ),
+                "diagnoses": (
+                    planning_context.result.get(
+                        "diagnoses",
+                        [],
+                    )
+                ),
+                "ai_recommendations": (
+                    planning_context.result.get(
+                        "ai_recommendations",
+                        [],
+                    )
+                ),
+            },
+            "execution": execution_result,
+        }
 
     def run_batch(
         self,

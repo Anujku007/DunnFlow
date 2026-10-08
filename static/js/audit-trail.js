@@ -7,10 +7,11 @@
  * - Provide a small presentation API.
  *
  * IMPORTANT:
- * - No API calls.
+ * - Uses the centralized read-only audit API only.
  * - No recovery execution.
  * - No policy decisions.
  * - No frontend mode changes.
+ * - Never clears live-feed activity items.
  */
 
 (function () {
@@ -18,6 +19,7 @@
 
 
     const AUDIT_SELECTORS = [
+        "#activityFeed",
         "#auditTrail",
         "#auditLog",
         "[data-audit-trail]"
@@ -106,6 +108,9 @@
 
         row.className =
             "audit-row";
+
+        row.dataset.dunnflowAuditRow =
+            "true";
 
 
         const stage =
@@ -196,7 +201,11 @@
 
 
     /**
-     * Clear the audit trail.
+     * Clear persisted audit rows only.
+     *
+     * IMPORTANT:
+     * The visible #activityFeed is also used by live-feed.js.
+     * Never clear the entire container here.
      */
     function clear() {
         const container =
@@ -206,12 +215,23 @@
             return;
         }
 
-        container.innerHTML = "";
+        container
+            .querySelectorAll(".audit-row")
+            .forEach((row) => row.remove());
     }
 
 
     /**
-     * Render audit events.
+     * Render persisted audit events without disturbing the
+     * live recovery feed.
+     *
+     * Audit rows and live activity items intentionally coexist
+     * in the same visible container:
+     *
+     *   .audit-row      -> persisted backend audit history
+     *   .activity-item  -> live UI activity
+     *
+     * Only .audit-row elements are replaced here.
      */
     function render(
         events
@@ -223,7 +243,20 @@
             return;
         }
 
-        container.innerHTML = "";
+        /*
+         * Remove only previously rendered persisted audit rows.
+         * Never clear .activity-item elements owned by live-feed.js.
+         */
+        container
+            .querySelectorAll(".audit-row")
+            .forEach((row) => row.remove());
+
+        /*
+         * Remove only the previous empty-state marker.
+         */
+        container
+            .querySelectorAll(".audit-empty")
+            .forEach((element) => element.remove());
 
         if (
             !Array.isArray(events) ||
@@ -236,25 +269,31 @@
                 "audit-empty";
 
             empty.textContent =
-                "No audit events available.";
+                "No persisted audit events available.";
 
-            container.appendChild(
-                empty
-            );
+            container.prepend(empty);
 
             return;
         }
 
+        /*
+         * Newest persisted audit event appears first,
+         * while existing live activity remains untouched.
+         */
+        const fragment =
+            document.createDocumentFragment();
 
         events.forEach((event) => {
             if (!event) {
                 return;
             }
 
-            container.appendChild(
+            fragment.appendChild(
                 createAuditRow(event)
             );
         });
+
+        container.prepend(fragment);
     }
 
 
@@ -281,12 +320,54 @@
 
 
     /**
+     * Load persisted audit history from the backend.
+     *
+     * This is read-only and only renders server-provided events.
+     */
+    async function load({
+        batchId = null,
+        subscriptionId = null,
+        invoiceId = null
+    } = {}) {
+
+        if (
+            !window.DunnFlowAPI ||
+            typeof window.DunnFlowAPI.getAuditTrail !==
+                "function"
+        ) {
+            throw new Error(
+                "DunnFlow audit API is not available."
+            );
+        }
+
+        const payload =
+            await window.DunnFlowAPI.getAuditTrail({
+                batchId,
+                subscriptionId,
+                invoiceId
+            });
+
+        const events =
+            payload &&
+            Array.isArray(payload.events)
+                ? payload.events
+                : [];
+
+        render(events);
+
+        return payload;
+    }
+
+
+
+    /**
      * Public audit UI contract.
      */
     window.DunnFlowAudit = {
         render,
         append,
         clear,
+        load,
 
         formatTimestamp
     };

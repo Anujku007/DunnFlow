@@ -12,6 +12,8 @@ from backend.data.db import (
     get_invoices,
     get_invoice,
     get_batch_metrics,
+    get_audit_log,
+    get_recovery_timeline,
     attach_razorpay_order_to_invoice,
 )
 from backend.modules.detection import detect_revenue_at_risk
@@ -20,6 +22,7 @@ from backend.modules.decision_engine import decide_for_invoice
 from backend.modules.execution import execute_due_actions, execute_recovery_action
 from backend.ai.ai_policy_reconciliation import reconcile_invoice
 from backend.ai.recovery_advisor import RecoveryAdvisor
+from backend.agent.recovery_agent import RecoveryAgent
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -92,6 +95,78 @@ async def razorpay_webhook(request: Request):
         raise HTTPException(status_code=400, detail=str(exc))
 
     return result
+
+
+# ============================================================================
+# AUDIT TRAIL API
+# ============================================================================
+# Read-only judge-facing audit/timeline surface.
+#
+# IMPORTANT:
+# - No database mutation.
+# - No decision creation.
+# - No execution.
+# - No payment.
+# - No webhook processing.
+# - Existing audit records remain the source of truth.
+# ============================================================================
+
+@app.get("/api/audit")
+def get_audit(
+    batch_id: str | None = None,
+    subscription_id: str | None = None,
+    invoice_id: str | None = None,
+):
+    """
+    Return immutable audit history or a unified recovery timeline.
+
+    At least one scope identifier is required so the endpoint can never
+    accidentally expose the entire audit database to the dashboard.
+
+    This endpoint is strictly read-only.
+    """
+
+    if not any(
+        (
+            batch_id,
+            subscription_id,
+            invoice_id,
+        )
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "One audit scope is required: "
+                "batch_id, subscription_id, or invoice_id."
+            ),
+        )
+
+    if invoice_id:
+        events = get_recovery_timeline(
+            invoice_id=invoice_id,
+        )
+    elif subscription_id:
+        events = get_recovery_timeline(
+            subscription_id=subscription_id,
+        )
+    else:
+        events = get_audit_log(
+            batch_id=batch_id,
+        )
+
+    return {
+        "read_only": True,
+        "deterministic_authority": True,
+        "ai_advisory_only": True,
+        "scope": {
+            "batch_id": batch_id,
+            "subscription_id": subscription_id,
+            "invoice_id": invoice_id,
+        },
+        "events": events,
+        "count": len(events),
+    }
+
 
 
 @app.get("/api/health")
@@ -520,4 +595,76 @@ def download_batch_report(batch_id: str):
         filename=f"dunnflow_report_{batch_id}.pdf",
     )
 
+
+
+
+# ============================================================================
+# STEP 13 ? RECOVERY AGENT PLANNING / INSPECTION
+# ============================================================================
+
+@app.get("/api/batches/{batch_id}/agent")
+def inspect_recovery_agent(batch_id: str):
+    """
+    Inspect the existing RecoveryAgent planning state.
+
+    This endpoint is read/planning only.
+
+    It does not:
+      - schedule recovery actions
+      - execute payments
+      - create Razorpay payments
+      - mutate financial recovery state
+
+    AI remains advisory and deterministic policy remains authoritative.
+    """
+
+    if not get_batch_run(batch_id):
+        raise HTTPException(
+            status_code=404,
+            detail="Batch not found",
+        )
+
+    agent = RecoveryAgent(
+        batch_id=batch_id,
+    )
+
+    context = agent.prepare_batch()
+
+    return {
+        "batch_id": batch_id,
+        "agent": {
+            "state": context.state.value,
+            "history": context.history,
+            "agent_ready": context.result.get(
+                "agent_ready",
+                False,
+            ),
+        },
+        "execution_authority": context.result.get(
+            "execution_authority",
+        ),
+        "financial_authority": context.result.get(
+            "financial_authority",
+        ),
+        "ai_authority": context.result.get(
+            "ai_authority",
+        ),
+        "detection": context.result.get(
+            "detection",
+            {},
+        ),
+        "diagnoses": context.result.get(
+            "diagnoses",
+            [],
+        ),
+        "ai_recommendations": context.result.get(
+            "ai_recommendations",
+            [],
+        ),
+        "ranked_opportunities": context.result.get(
+            "ranked_opportunities",
+            [],
+        ),
+        "read_only": True,
+    }
 
