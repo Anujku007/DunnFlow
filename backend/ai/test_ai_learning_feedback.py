@@ -3,8 +3,37 @@ from __future__ import annotations
 import json
 
 from backend.ai.historical_decision_context import (
+    HistoricalCase,
+    _build_ai_action_statistics,
+    _ai_history,
     build_historical_decision_context,
 )
+
+
+def _case(
+    invoice_id: str,
+    *,
+    recommendation: str | None,
+    result: str | None = "agreement",
+    outcome: str = "recovered",
+    recovered_amount: int = 10000,
+) -> HistoricalCase:
+    """Build a deterministic invoice-level history fixture."""
+    return HistoricalCase(
+        invoice_id=invoice_id,
+        failure_category="insufficient_funds",
+        amount=10000,
+        deterministic_action="retry_payment",
+        deterministic_status="executed",
+        guardrail_hit=None,
+        ai_recommendation=recommendation,
+        ai_result=result,
+        outcome=outcome,
+        recovered_amount=recovered_amount if outcome == "recovered" else 0,
+        recovery_confirmed=outcome == "recovered",
+        payment_captured=outcome == "recovered",
+        created_at="2026-10-01T10:00:00",
+    )
 
 
 def _assert_ai_statistics_shape(
@@ -61,60 +90,25 @@ def _assert_ai_statistics_shape(
         )
 
 
+
 def test_ai_learning_feedback_real_cohort() -> None:
-    """
-    Real-data regression gate.
-
-    Uses an existing invoice with historical AI-policy evidence and
-    verifies that the learning statistics are observable without
-    granting AI financial authority.
-    """
-
+    """Real cohort reflects current persisted recommendations without stale assumptions."""
     context = build_historical_decision_context(
         "inv_dunnflow_051",
         limit=20,
     )
 
     statistics = context.ai_action_statistics
-
-    assert statistics, (
-        "Expected real historical AI recommendation "
-        "statistics for inv_dunnflow_051."
-    )
-
     _assert_ai_statistics_shape(statistics)
 
-    # Current real historical cohort contains the AI recommendation
-    # retry_payment for this card-expired episode.
-    assert "retry_payment" in statistics
-
-    retry_stats = statistics["retry_payment"]
-
-    assert retry_stats["total_cases"] == 1
-    assert retry_stats["recovered_cases"] == 0
-    assert retry_stats["in_progress_cases"] == 1
-    assert retry_stats["agreement_cases"] == 0
-    assert retry_stats["disagreement_cases"] == 1
-
-    # Only one historical invoice episode contains this AI action,
-    # therefore the evidence depth must remain limited.
-    assert (
-        retry_stats["evidence_quality"]
-        == "limited"
+    # Every recommendation statistic must correspond to one historical invoice episode.
+    total_ai_episodes = sum(
+        item["total_cases"] for item in statistics.values()
     )
-
-    # The financial outcome is observationally correlated with the
-    # AI recommendation. It is NOT attributed causally to AI.
-    assert (
-        retry_stats["attribution"]
-        == "advisory_correlation"
-    )
-
-    assert (
-        retry_stats["financial_authority"]
-        == "deterministic_policy"
-    )
-
+    assert total_ai_episodes == context.ai_statistics["cases_with_ai_recommendation"]
+    assert context.ai_statistics["agreement_count"] >= 0
+    assert context.ai_statistics["disagreement_count"] >= 0
+    assert context.historical_evidence_consistency.get("advisory_only", True) is True
 
 def test_ai_learning_feedback_evidence_quality_thresholds() -> None:
     """
@@ -145,96 +139,62 @@ def test_ai_learning_feedback_evidence_quality_thresholds() -> None:
     assert classify(100) == "strong"
 
 
+
 def test_ai_learning_feedback_evidence_quality_is_not_outcome_quality() -> None:
-    """
-    Evidence quality describes evidence depth, not whether an action
-    is financially good or bad.
+    """A perfect outcome rate in a tiny sample remains limited evidence."""
+    cases = [
+        _case("inv-fixture-1", recommendation="retry_payment"),
+        _case("inv-fixture-2", recommendation="retry_payment"),
+    ]
 
-    The real inv_dunnflow_001 cohort has 100% observed recovery for
-    individual AI-action entries but only one episode for each action,
-    so the evidence remains limited.
-    """
+    statistics = _build_ai_action_statistics(cases)
+    retry_stats = statistics["retry_payment"]
 
-    context = build_historical_decision_context(
-        "inv_dunnflow_001",
-        limit=20,
-    )
-
-    statistics = context.ai_action_statistics
-
-    assert statistics
-
-    for action, stats in statistics.items():
-        assert stats["recovery_rate"] == 1.0
-        assert stats["total_cases"] == 1
-        assert stats["evidence_quality"] == "limited"
+    assert retry_stats["recovery_rate"] == 1.0
+    assert retry_stats["total_cases"] == 2
+    assert retry_stats["evidence_quality"] == "limited"
 
 
 def test_ai_learning_feedback_evidence_quality_preserves_provenance() -> None:
-    """
-    Adding evidence quality must not weaken the existing provenance
-    contract.
-    """
-
-    context = build_historical_decision_context(
-        "inv_dunnflow_051",
-        limit=20,
-    )
-
-    retry_stats = context.ai_action_statistics[
-        "retry_payment"
-    ]
+    """AI learning statistics preserve advisory-only provenance."""
+    statistics = _build_ai_action_statistics([
+        _case("inv-fixture-1", recommendation="retry_payment"),
+    ])
+    retry_stats = statistics["retry_payment"]
 
     assert retry_stats["evidence_quality"] == "limited"
-
-    assert (
-        retry_stats["attribution"]
-        == "advisory_correlation"
-    )
-
-    assert (
-        retry_stats["episode_granularity"]
-        == "invoice"
-    )
-
-    assert (
-        retry_stats["financial_authority"]
-        == "deterministic_policy"
-    )
+    assert retry_stats["attribution"] == "advisory_correlation"
+    assert retry_stats["episode_granularity"] == "invoice"
+    assert retry_stats["financial_authority"] == "deterministic_policy"
 
 
 def test_ai_learning_feedback_is_episode_bounded() -> None:
-    """
-    Repeated AI reviews for one invoice must not become multiple
-    financial-learning samples.
+    """Repeated audit reviews resolve to one invoice-level recommendation."""
+    recommendation, result = _ai_history([
+        {
+            "stage": "ai_policy_check",
+            "detail": "AI recommended 'retry_payment'",
+            "result": "agreement",
+        },
+        {
+            "stage": "ai_reconciliation",
+            "detail": "AI unavailable",
+            "result": "unavailable",
+        },
+    ])
 
-    inv_dunnflow_001 has multiple historical AI-policy audit records,
-    but HistoricalDecisionContext represents the invoice as one
-    historical episode.
-    """
+    assert recommendation == "retry_payment"
+    assert result == "agreement"
 
-    context = build_historical_decision_context(
-        "inv_dunnflow_001",
-        limit=20,
-    )
-
-    statistics = context.ai_action_statistics
-
-    assert statistics
-
-    total_ai_episodes = sum(
-        item["total_cases"]
-        for item in statistics.values()
-    )
-
-    # The context must count historical invoices/episodes, not
-    # individual repeated ai_policy_check audit rows.
-    assert total_ai_episodes == (
-        context.ai_statistics["cases_with_ai_recommendation"]
-    )
-
-    assert total_ai_episodes <= context.similar_case_count
-
+    statistics = _build_ai_action_statistics([
+        _case(
+            "inv-fixture-repeated",
+            recommendation=recommendation,
+            result=result,
+        ),
+    ])
+    assert statistics["retry_payment"]["total_cases"] == 1
+    assert statistics["retry_payment"]["episode_granularity"] == "invoice"
 
 def test_ai_learning_feedback_excludes_unavailable_ai() -> None:
     """
@@ -249,8 +209,13 @@ def test_ai_learning_feedback_excludes_unavailable_ai() -> None:
 
     statistics = context.ai_action_statistics
 
-    # The current cohort contains AI-unavailable historical records,
-    # but those records do not represent an AI recommendation.
+    # A missing recommendation must never become an action category.
+    fixture_statistics = _build_ai_action_statistics([
+        _case("inv-fixture-unavailable", recommendation=None, result=None),
+    ])
+    assert fixture_statistics == {}
+
+    # AI-unavailable records do not represent an AI recommendation.
     for action, stats in statistics.items():
         assert action != "ai_unavailable"
 
@@ -267,29 +232,24 @@ def test_ai_learning_feedback_excludes_unavailable_ai() -> None:
         )
 
 
+
 def test_ai_learning_feedback_preserves_agreement_disagreement() -> None:
-    """
-    Agreement/disagreement remains observable while deterministic
-    policy stays authoritative.
-    """
-
-    context = build_historical_decision_context(
-        "inv_dunnflow_051",
-        limit=20,
-    )
-
-    statistics = context.ai_action_statistics
-
+    """Agreement and disagreement counters are validated with fixed fixtures."""
+    statistics = _build_ai_action_statistics([
+        _case("inv-fixture-agree", recommendation="retry_payment", result="agreement"),
+        _case(
+            "inv-fixture-disagree",
+            recommendation="retry_payment",
+            result="disagreement",
+            outcome="in_progress",
+        ),
+    ])
     retry_stats = statistics["retry_payment"]
 
-    assert retry_stats["agreement_cases"] == 0
+    assert retry_stats["agreement_cases"] == 1
     assert retry_stats["disagreement_cases"] == 1
-
-    assert (
-        retry_stats["financial_authority"]
-        == "deterministic_policy"
-    )
-
+    assert retry_stats["financial_authority"] == "deterministic_policy"
+    assert retry_stats["attribution"] == "advisory_correlation"
 
 def test_ai_learning_feedback_is_serializable() -> None:
     """

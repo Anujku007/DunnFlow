@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>DunnFlow — AI Decision Inspection Report</title>
+  <link rel="stylesheet" href="/static/css/ai-inspection.css?v=1">
+</head>
+<body class="dfr-standalone">
+<main id="decisionIntelligenceModal" class="dfr-modal is-open" aria-hidden="false">
+  <section class="dfr-panel" role="dialog" aria-modal="true" aria-labelledby="decisionModalTitle">
+    <header class="dfr-header">
+      <div class="dfr-brand"><img class="dfr-brand-logo" src="/static/images/dunnflow-logo.png" alt="DunnFlow logo"><div><strong>DunnFlow</strong><small>AI Revenue Recovery</small></div></div>
+      <div class="dfr-title"><h2 id="decisionModalTitle">AI Decision Inspection Report</h2><p>Complete analysis for invoice recovery decision</p></div>
+      <div class="dfr-actions"><button type="button" id="dfrPrintBtn">▣ Print</button><button type="button" id="closeDecisionModalBtn" aria-label="Return to dashboard">×</button></div>
+    </header>
+    <div id="dfrLoading" class="dfr-loading" role="status">Loading inspection data…</div>
+    <div id="dfrError" class="dfr-error" hidden></div>
+    <div id="dfrReport" class="dfr-workspace" hidden>
+  <aside id="dfrSidebar" class="dfr-sidebar" aria-label="Inspection report sections">
+    <div class="dfr-sidebar-heading">INSPECTION</div>
+    <button type="button" class="dfr-nav-btn is-active" data-dfr-view="overview" aria-current="page"><span aria-hidden="true">▦</span><span>Overview</span></button>
+    <button type="button" class="dfr-nav-btn" data-dfr-view="flow"><span aria-hidden="true">⑂</span><span>Recovery Decision Flow</span></button>
+    <button type="button" class="dfr-nav-btn" data-dfr-view="audit"><span aria-hidden="true">▤</span><span>Audit Trail</span></button>
+    <div class="dfr-sidebar-note">AI is advisory. Deterministic policy remains authoritative.</div>
+  </aside>
+  <div class="dfr-view-container">
+    <section class="dfr-view is-active" data-dfr-panel="overview" aria-label="Overview">
+      <section class="dfr-summary" id="dfrSummary"></section>
+      <section class="dfr-kpis" id="dfrKpis"></section>
+      <div class="dfr-primary-grid">
+        <section class="dfr-card"><h3><span class="dfr-icon red">!</span> Failure Diagnosis</h3><div id="dfrDiagnosis"></div></section>
+        <section class="dfr-card dfr-comparison"><h3><span class="dfr-icon blue">⚖</span> AI vs Policy Comparison</h3><div class="dfr-table-scroll"><table><thead><tr><th>Field</th><th>AI Recommendation</th><th>Policy Decision</th><th>Result</th></tr></thead><tbody id="dfrComparison"></tbody></table></div></section>
+        
+      </div>
+      
+      <section class="dfr-card dfr-evidence"><h3><span class="dfr-icon purple">▥</span> Historical Recovery Evidence</h3><div class="dfr-evidence-cards" id="dfrEvidenceCards"></div><div class="dfr-evidence-grid"><div class="dfr-subcard"><h4>Historical Signals</h4><div id="dfrSignals"></div></div><div class="dfr-subcard"><h4>Evidence Consistency</h4><div id="dfrConsistency"></div></div><div class="dfr-subcard"><h4>Recent Similar Cases</h4><div class="dfr-table-scroll"><table><thead><tr><th>Invoice ID</th><th>Amount</th><th>Outcome</th></tr></thead><tbody id="dfrCases"></tbody></table></div></div></div></section>
+      
+      <div class="dfr-bottom-grid"><section class="dfr-card"><h3><span class="dfr-icon orange">ϟ</span> Execution & Payment Details</h3><div class="dfr-table-scroll"><table><thead><tr><th>Attempt</th><th>Timestamp</th><th>Action</th><th>Gateway Status</th><th>Result</th><th>Amount</th></tr></thead><tbody id="dfrAttempts"></tbody></table></div><p class="dfr-footnote">Only events returned by the current inspection/audit APIs are shown. Missing records are not inferred.</p></section></div>
+      
+      <footer class="dfr-safety"><strong>Safety & decision authority</strong><span>AI is advisory only. Deterministic recovery policy remains authoritative. This report does not execute payments.</span><span id="dfrDataNote">Values reflect available backend records.</span></footer>
+    </section>
+    <section class="dfr-view" data-dfr-panel="flow" aria-label="Recovery Decision Flow" hidden>
+      <section class="dfr-card dfr-event-view"><h3>Recovery Decision Flow</h3><p class="dfr-view-intro">Chronological events returned for this invoice. No events are inferred.</p><ol id="dfrTimeline" class="dfr-timeline"></ol></section>
+    </section>
+    <section class="dfr-view" data-dfr-panel="audit" aria-label="Audit Trail" hidden>
+      <section class="dfr-card dfr-event-view"><h3>Audit Trail (Key Events)</h3><p class="dfr-view-intro">Audit events returned by the current API.</p><div class="dfr-table-scroll"><table><thead><tr><th>Time</th><th>Event</th><th>Details</th></tr></thead><tbody id="dfrAudit"></tbody></table></div></section>
+    </section>
+  </div>
+</div>
+    </div>
+  </section>
+</main>
+  <script src="/static/js/ai-inspection.js?v=20261012-payment-page2" defer></script>
+</body>
+</html>
+

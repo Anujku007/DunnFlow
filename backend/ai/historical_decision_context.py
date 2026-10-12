@@ -132,7 +132,7 @@ def _latest_decision_action(
 def _ai_history(
     audit_history: list[dict[str, Any]],
 ) -> tuple[str | None, str | None]:
-    """Return latest AI recommendation and reconciliation result."""
+    """Return the latest AI recommendation and its matching result."""
 
     ai_rows = [
         row
@@ -144,21 +144,20 @@ def _ai_history(
         }
     ]
 
-    if not ai_rows:
-        return None, None
+    # Preserve the latest actual recommendation when later rows report
+    # that AI was unavailable. Keep its original result paired with it.
+    for row in reversed(ai_rows):
+        recommendation = _extract_ai_recommendation(
+            row.get("detail")
+        )
+        if recommendation:
+            result = row.get("result")
+            return (
+                recommendation,
+                str(result) if result is not None else None,
+            )
 
-    latest = ai_rows[-1]
-
-    recommendation = _extract_ai_recommendation(
-        latest.get("detail")
-    )
-
-    result = latest.get("result")
-
-    return (
-        recommendation,
-        str(result) if result is not None else None,
-    )
+    return None, None
 
 
 def _determine_outcome(
@@ -1443,8 +1442,13 @@ def _build_historical_evidence_consistency(
     signals: dict[str, str] = {}
 
     # Failure-category learning signal.
-    category_signal = failure_category_learning.get(
+    category_learning_signal = failure_category_learning.get(
         "learning_signal"
+    )
+    category_signal = (
+        category_learning_signal.get("signal")
+        if isinstance(category_learning_signal, dict)
+        else category_learning_signal
     )
 
     if category_signal in {
@@ -1737,7 +1741,6 @@ def build_historical_decision_context(
         amount_band_learning=amount_band_learning,
         recency_learning=recency_learning,
         historical_evidence_summary=historical_evidence_summary,
-        historical_evidence_consistency=historical_evidence_consistency,
     )
 
     return HistoricalDecisionContext(
@@ -1760,6 +1763,7 @@ def build_historical_decision_context(
         customer_behavior=customer_behavior,
         recency_learning=recency_learning,
         historical_evidence_summary=historical_evidence_summary,
+        historical_evidence_consistency=historical_evidence_consistency,
     )
 
 

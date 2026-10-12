@@ -8,7 +8,7 @@
 
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <link rel="icon" href="/static/images/dunnflow-logo.png">
-    <link rel="stylesheet" href="/static/css/style.css?v=20261004-layoutfix">
+    <link rel="stylesheet" href="/static/css/style.css?v=20261009-hero-recovery-card-v1">
 </head>
 
 <body>
@@ -85,6 +85,16 @@
                     defined guardrails.
                 </p>
 
+                <div class="dunnflow-hero-actions">
+                    <a class="dunnflow-explore-link" href="#demo-lab">
+                        Explore the demo
+                        <span aria-hidden="true">&#8594;</span>
+                    </a>
+                    <span class="dunnflow-hero-note">
+                        See how failed payments become traceable recovery decisions.
+                    </span>
+                </div>
+
                 <div class="hero-signals">
                     <div>
                         <span class="signal-number">01</span>
@@ -109,33 +119,44 @@
 
             </div>
 
-            <div class="hero-visual" aria-hidden="true">
-
-                <div class="visual-grid"></div>
-
-                <div class="visual-panel">
-
-                    <div class="visual-shield">
-                        <span>&#10003;</span>
+            <div class="hero-visual" aria-label="Illustrative revenue recovery journey">
+                <div class="recovery-preview-card">
+                    <div class="recovery-preview-topline">
+                        <div class="recovery-stage"><span class="recovery-stage-dot failed"></span><span>Failed Payment</span></div>
+                        <span class="recovery-stage-arrow" aria-hidden="true">?</span>
+                        <div class="recovery-stage"><span class="recovery-stage-dot decision"></span><span>AI Decision</span></div>
+                        <span class="recovery-stage-arrow" aria-hidden="true">?</span>
+                        <div class="recovery-stage recovered-stage"><span class="recovery-stage-dot recovered"></span><span>Recovered Revenue</span></div>
                     </div>
-
-                    <div class="visual-chart">
-                        <i></i>
-                        <i></i>
-                        <i></i>
-                        <i></i>
-                        <i></i>
-                        <i></i>
+                    <div class="recovery-preview-body">
+                        <div class="recovery-chart-area" aria-hidden="true">
+                            <div class="recovery-chart-grid"></div>
+                            <svg class="recovery-wave-chart" viewBox="0 0 440 150" role="presentation" focusable="false">
+                                <defs>
+                                    <linearGradient id="recoveryWaveFill" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#18e8d1" stop-opacity=".42"/>
+                                        <stop offset="100%" stop-color="#694bff" stop-opacity=".02"/>
+                                    </linearGradient>
+                                    <linearGradient id="recoveryWaveStroke" x1="0" y1="0" x2="1" y2="0">
+                                        <stop offset="0%" stop-color="#655cff"/>
+                                        <stop offset="55%" stop-color="#428cff"/>
+                                        <stop offset="100%" stop-color="#24f0d0"/>
+                                    </linearGradient>
+                                </defs>
+                                <path class="recovery-wave-fill" d="M0 112 C28 104 28 75 54 92 S91 126 119 101 S154 47 181 73 S217 117 244 83 S281 94 309 67 S350 72 372 47 S410 38 440 16 L440 150 L0 150 Z"/>
+                                <path class="recovery-wave-stroke" d="M0 112 C28 104 28 75 54 92 S91 126 119 101 S154 47 181 73 S217 117 244 83 S281 94 309 67 S350 72 372 47 S410 38 440 16"/>
+                                <circle cx="440" cy="16" r="5" class="recovery-wave-endpoint"/>
+                            </svg>
+                            <div class="recovery-chart-caption"><span>RECOVERY JOURNEY</span><span>ILLUSTRATIVE PREVIEW</span></div>
+                        </div>
+                        <aside class="recovery-rate-card" aria-label="Illustrative recovery rate preview">
+                            <span class="recovery-rate-kicker">Recovery Rate</span>
+                            <strong>42.9<span>%</span></strong>
+                            <span class="recovery-rate-note">Illustrative demo</span>
+                            <div class="recovery-rate-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                        </aside>
                     </div>
-
-                    <div class="visual-line"></div>
-
                 </div>
-
-                <div class="visual-node node-one">+</div>
-                <div class="visual-node node-two">+</div>
-                <div class="visual-node node-three">+</div>
-
             </div>
 
         </div>
@@ -173,6 +194,54 @@
             </div>
 
 
+            <!-- DUNNFLOW FIRST-VISIT GUIDE -->
+            <div class="dunnflow-first-visit-guide dunnflow-guide-compact"
+                 aria-labelledby="dunnflow-guide-title">
+
+                <div class="dunnflow-guide-heading">
+                    <span class="section-kicker">NEW TO DUNNFLOW?</span>
+                    <h3 id="dunnflow-guide-title">How DunnFlow works</h3>
+                    <p>Explore a payment failure, understand the decision, and see how recovery is handled within safety limits.</p>
+                </div>
+
+                <div class="dunnflow-guide-steps">
+
+                    <article class="dunnflow-guide-step">
+                        <div class="dunnflow-guide-step-top">
+                            <span class="dunnflow-guide-number">01</span>
+                            <span class="dunnflow-guide-icon" aria-hidden="true">&#9638;</span>
+                        </div>
+                        <h4>Choose a scenario</h4>
+                        <p>Select a failure case below to set the recovery context. Selecting a card does not execute recovery.</p>
+                    </article>
+
+                    <article class="dunnflow-guide-step">
+                        <div class="dunnflow-guide-step-top">
+                            <span class="dunnflow-guide-number">02</span>
+                            <span class="dunnflow-guide-icon" aria-hidden="true">&#10022;</span>
+                        </div>
+                        <h4>Inspect the decision</h4>
+                        <p>Review the diagnosis, AI recommendation, deterministic policy, and applicable guardrails.</p>
+                    </article>
+
+                    <article class="dunnflow-guide-step">
+                        <div class="dunnflow-guide-step-top">
+                            <span class="dunnflow-guide-number">03</span>
+                            <span class="dunnflow-guide-icon" aria-hidden="true">&#9636;</span>
+                        </div>
+                        <h4>Review the outcome</h4>
+                        <p>When appropriate, deliberately run recovery and inspect the resulting status and audit trail.</p>
+                    </article>
+
+                </div>
+
+                <div class="dunnflow-guide-safety">
+                    <span class="dunnflow-guide-safety-icon" aria-hidden="true">&#10003;</span>
+                    <p>AI advises; deterministic policy and guardrails control permitted recovery actions.</p>
+                    <a href="#dunnflow-scenarios">Explore demo scenarios <span aria-hidden="true">&#8594;</span></a>
+                </div>
+            </div>
+
             <!-- =================================================
                  DEMO CONTROL PANEL
             ================================================== -->
@@ -194,7 +263,7 @@
                             </span>
 
                             <select id="batchSelect" class="batch-select">
-    <option value="razorpay_isolated_test_001">Razorpay Test Mode — ₹299 Recovery</option>
+    <option value="razorpay_isolated_test_001">Razorpay Test Mode â€” â‚¹299 Recovery</option>
                                 <option value="benchmark_60_subscription_failures">Benchmark &#8212; 60 Subscription Failures</option>
                             </select>
 
@@ -250,7 +319,7 @@
                      SCENARIO CARDS
                 ================================================== -->
 
-                <div class="scenario-grid">
+                <div class="scenario-grid" id="dunnflow-scenarios">
 
                     <!-- FRESH DEMO -->
                     <button
@@ -951,188 +1020,15 @@
 <script src="/static/js/navigation.js?v=20260903"></script>
 <script src="/static/js/audit-trail.js?v=20260903"></script>
 <script src="/static/js/live-feed.js?v=20260903"></script>
-<script src="/static/js/metrics.js?v=20261002"></script>
+<script src="/static/js/metrics.js?v=20261011-historical-evidence"></script>
 <script src="/static/js/scenario-cards.js?v=20261004"></script>
-<script src="/static/js/decision-intelligence.js?v=20260905"></script>
+<script src="/static/js/ai-inspection-launcher.js?v=1"></script>
 
 
 <!-- =====================================================
-     DECISION INTELLIGENCE MODAL
-====================================================== -->
-
-<div
-    id="decisionIntelligenceModal"
-    class="decision-modal"
-    aria-hidden="true"
->
-
-    <div
-        class="decision-modal-backdrop"
-        data-close-decision-modal="true"
-    ></div>
-
-    <div
-        class="decision-modal-panel"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="decisionModalTitle"
-    >
-
-        <div class="decision-modal-header">
-
-            <div>
-
-                <div class="section-kicker">
-                    DECISION INTELLIGENCE
-                </div>
-
-                <h2 id="decisionModalTitle">
-                    AI recommendation vs policy authorization
-                </h2>
-
-                <p class="decision-modal-subtitle">
-                    AI recommends. Deterministic policy authorizes. Execution obeys.
-                </p>
-
-            </div>
-
-            <button
-                id="closeDecisionModalBtn"
-                class="decision-modal-close"
-                type="button"
-                aria-label="Close decision intelligence"
-            >
-                &#215;
-            </button>
-
-        </div>
-
-
-        <div
-            class="intelligence-grid"
-            id="recoveryIntelligence"
-        >
-
-            <div class="intelligence-card">
-
-                <div class="intelligence-label">
-                    FAILURE DIAGNOSIS
-                </div>
-
-                <div
-                    class="intelligence-value"
-                    id="failureDiagnosis"
-                >
-                    Awaiting recovery run
-                </div>
-
-                <div
-                    class="intelligence-detail"
-                    id="failureReason"
-                >
-                    The payment failure will be diagnosed from the recorded gateway outcome.
-                </div>
-
-            </div>
-
-
-            <div class="intelligence-card">
-
-                <div class="intelligence-label">
-                    AI RECOMMENDATION
-                </div>
-
-                <div
-                    class="intelligence-value"
-                    id="aiRecommendation"
-                >
-                    Awaiting AI recommendation
-                </div>
-
-                <div class="intelligence-meta">
-
-                    <span id="aiConfidence">
-                        Confidence &#8212;
-                    </span>
-
-                    <span id="aiAgreement">
-                        Policy agreement &#8212;
-                    </span>
-
-                </div>
-
-                <div
-                    class="intelligence-detail"
-                    id="aiReason"
-                >
-                    AI remains advisory; it does not authorize financial actions.
-                </div>
-
-            </div>
-
-
-            <div class="intelligence-card">
-
-                <div class="intelligence-label">
-                    DETERMINISTIC AUTHORIZATION
-                </div>
-
-                <div
-                    class="intelligence-value"
-                    id="deterministicDecision"
-                >
-                    Awaiting policy decision
-                </div>
-
-                <div class="intelligence-meta">
-
-                    <span id="decisionPriority">
-                        Priority &#8212;
-                    </span>
-
-                    <span id="decisionGuardrail">
-                        Guardrail &#8212;
-                    </span>
-
-                </div>
-
-                <div class="intelligence-detail">
-                    The deterministic recovery policy is authoritative.
-                </div>
-
-            </div>
-
-
-            <div class="intelligence-card intelligence-card-outcome">
-
-                <div class="intelligence-label">
-                    EXECUTION OUTCOME
-                </div>
-
-                <div
-                    class="intelligence-value"
-                    id="outcomeResult"
-                >
-                    Awaiting execution
-                </div>
-
-                <div class="intelligence-meta">
-
-                    <span id="outcomeAmount">
-                        Recovered &#8212; &#8377;0
-                    </span>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-</body>
+     DECISIdy>
 </html>
+
+
 
 

@@ -1,4 +1,4 @@
-﻿/* =========================================================
+/* =========================================================
    DUNNFLOW — PREMIUM DASHBOARD
    Frontend stylesheet
 ========================================================= */
@@ -5313,3 +5313,1706 @@ body.decision-modal-open {
     }
 }
 
+
+/* ==========================================================
+   DUNNFLOW FIRST-VISIT POLISH
+   Scoped additions: preserve existing dashboard components.
+   ========================================================== */
+
+.dunnflow-hero-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.dunnflow-explore-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 0 18px;
+    border: 1px solid rgba(105, 211, 255, 0.38);
+    border-radius: 12px;
+    color: #eaf8ff;
+    background: linear-gradient(
+        110deg,
+        rgba(52, 132, 255, 0.24),
+        rgba(143, 91, 255, 0.22)
+    );
+    font-weight: 700;
+    text-decoration: none;
+    transition: border-color 160ms ease, transform 160ms ease,
+                background 160ms ease;
+}
+
+.dunnflow-explore-link:hover {
+    border-color: rgba(105, 211, 255, 0.8);
+    background: linear-gradient(
+        110deg,
+        rgba(52, 132, 255, 0.34),
+        rgba(143, 91, 255, 0.3)
+    );
+    transform: translateY(-1px);
+}
+
+.dunnflow-explore-link:focus-visible {
+    outline: 2px solid #69d3ff;
+    outline-offset: 4px;
+}
+
+.dunnflow-hero-note {
+    max-width: 440px;
+    color: #a8b4c8;
+    font-size: 0.86rem;
+    line-height: 1.6;
+}
+
+.dunnflow-first-visit-guide {
+    margin: 0 0 24px;
+    padding: 24px;
+    border: 1px solid rgba(139, 157, 190, 0.18);
+    border-radius: 18px;
+    background:
+        radial-gradient(
+            ellipse at top left,
+            rgba(80, 110, 255, 0.09),
+            transparent 60%
+        ),
+        rgba(13, 18, 29, 0.82);
+}
+
+.dunnflow-guide-heading {
+    max-width: 680px;
+    margin-bottom: 22px;
+}
+
+.dunnflow-guide-heading h3 {
+    margin: 8px 0;
+    color: #f2f6ff;
+    font-size: clamp(1.25rem, 2vw, 1.65rem);
+    line-height: 1.3;
+}
+
+.dunnflow-guide-heading > p {
+    margin: 0;
+    color: #aab6ca;
+    font-size: 0.94rem;
+    line-height: 1.7;
+}
+
+.dunnflow-guide-steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.dunnflow-guide-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid rgba(139, 157, 190, 0.15);
+    border-radius: 14px;
+    background: rgba(7, 11, 19, 0.56);
+}
+
+.dunnflow-guide-number {
+    display: inline-flex;
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(105, 211, 255, 0.25);
+    border-radius: 10px;
+    color: #85dcff;
+    background: rgba(64, 153, 255, 0.1);
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.dunnflow-guide-step h4 {
+    margin: 2px 0 8px;
+    color: #edf3ff;
+    font-size: 0.96rem;
+    line-height: 1.4;
+}
+
+.dunnflow-guide-step p {
+    margin: 0;
+    color: #a8b4c8;
+    font-size: 0.86rem;
+    line-height: 1.7;
+}
+
+.dunnflow-guide-safety {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin: 18px 0 0;
+    padding-top: 15px;
+    border-top: 1px solid rgba(139, 157, 190, 0.14);
+    color: #b9c8dc;
+    font-size: 0.84rem;
+    line-height: 1.65;
+}
+
+.dunnflow-guide-safety > span {
+    flex: 0 0 auto;
+    padding-top: 2px;
+    color: #61ddb0;
+    font-size: 0.65rem;
+}
+
+@media (max-width: 900px) {
+    .dunnflow-guide-steps {
+        grid-template-columns: 1fr;
+    }
+
+    .dunnflow-guide-step {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 600px) {
+    .dunnflow-first-visit-guide {
+        padding: 18px;
+        border-radius: 14px;
+    }
+
+    .dunnflow-hero-actions {
+        margin-top: 20px;
+    }
+
+    .dunnflow-explore-link {
+        width: 100%;
+    }
+}
+
+
+/* ==========================================================
+   DUNNFLOW PREMIUM VISUAL POLISH V2
+   Visual-only additions. Preserve existing component behavior.
+   ========================================================== */
+
+/* HERO: deeper atmosphere and clearer composition */
+
+.hero-section {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background:
+        radial-gradient(
+            ellipse at 78% 42%,
+            rgba(105, 74, 255, 0.13),
+            transparent 43%
+        ),
+        radial-gradient(
+            ellipse at 12% 8%,
+            rgba(0, 210, 255, 0.075),
+            transparent 36%
+        );
+}
+
+.hero-section::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.2;
+    background-image:
+        linear-gradient(
+            rgba(145, 165, 210, 0.06) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(145, 165, 210, 0.06) 1px,
+            transparent 1px
+        );
+    background-size: 48px 48px;
+    mask-image: linear-gradient(
+        to bottom,
+        black,
+        transparent 90%
+    );
+}
+
+.hero-inner {
+    position: relative;
+    gap: clamp(36px, 6vw, 88px);
+}
+
+.hero-copy {
+    position: relative;
+    z-index: 1;
+}
+
+.hero-copy .eyebrow {
+    color: #9e91ff;
+    letter-spacing: 0.2em;
+}
+
+.hero-copy h1 {
+    max-width: 760px;
+    letter-spacing: -0.045em;
+    text-wrap: balance;
+}
+
+.hero-copy h1 span {
+    color: transparent;
+    background: linear-gradient(
+        100deg,
+        #a99aff 4%,
+        #7c83ff 44%,
+        #61dcff 100%
+    );
+    background-clip: text;
+    -webkit-background-clip: text;
+}
+
+.hero-copy > p {
+    max-width: 600px;
+    color: #b7c3d8;
+    line-height: 1.85;
+}
+
+.hero-signals {
+    gap: 0;
+    flex-wrap: wrap;
+}
+
+.hero-signals > div {
+    position: relative;
+    padding: 12px 18px 12px 0;
+    margin-right: 18px;
+}
+
+.hero-signals .signal-number {
+    color: #8e8bff;
+    font-weight: 800;
+}
+
+.hero-visual {
+    position: relative;
+    filter: drop-shadow(0 18px 54px rgba(69, 69, 255, 0.12));
+}
+
+.visual-panel {
+    border-color: rgba(137, 143, 255, 0.28);
+    box-shadow:
+        0 0 0 1px rgba(103, 113, 255, 0.05),
+        0 24px 80px rgba(0, 0, 0, 0.25),
+        inset 0 1px rgba(255, 255, 255, 0.045);
+}
+
+.visual-shield {
+    box-shadow:
+        0 0 36px rgba(100, 115, 255, 0.18),
+        inset 0 0 22px rgba(0, 218, 255, 0.08);
+}
+
+.visual-node {
+    border-color: rgba(109, 211, 255, 0.32);
+    color: #8be5ff;
+    box-shadow: 0 0 24px rgba(92, 125, 255, 0.12);
+}
+
+/* HERO CTA */
+
+.dunnflow-hero-actions {
+    gap: 13px;
+    margin-top: 28px;
+}
+
+.dunnflow-explore-link {
+    min-height: 50px;
+    padding: 0 22px;
+    border-color: rgba(173, 151, 255, 0.65);
+    border-radius: 13px;
+    background: linear-gradient(
+        105deg,
+        #6746ed 0%,
+        #8457fa 58%,
+        #6b82ff 100%
+    );
+    box-shadow:
+        0 10px 32px rgba(106, 72, 237, 0.2),
+        inset 0 1px rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.dunnflow-explore-link:hover {
+    border-color: rgba(198, 187, 255, 0.9);
+    background: linear-gradient(
+        105deg,
+        #7554fa 0%,
+        #9267ff 58%,
+        #7294ff 100%
+    );
+    box-shadow: 0 14px 36px rgba(106, 72, 237, 0.28);
+    transform: translateY(-2px);
+}
+
+.dunnflow-hero-note {
+    max-width: 460px;
+    color: #9daac1;
+    line-height: 1.7;
+}
+
+/* FIRST-VISIT GUIDE: premium workflow panel */
+
+.dunnflow-first-visit-guide {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(22px, 3vw, 34px);
+    border-color: rgba(125, 139, 255, 0.22);
+    border-radius: 22px;
+    background:
+        radial-gradient(
+            ellipse at 4% 0%,
+            rgba(106, 77, 255, 0.13),
+            transparent 44%
+        ),
+        radial-gradient(
+            ellipse at 100% 100%,
+            rgba(0, 194, 255, 0.055),
+            transparent 40%
+        ),
+        linear-gradient(
+            145deg,
+            rgba(16, 21, 35, 0.97),
+            rgba(9, 13, 23, 0.98)
+        );
+    box-shadow:
+        0 24px 70px rgba(0, 0, 0, 0.12),
+        inset 0 1px rgba(255, 255, 255, 0.035);
+}
+
+.dunnflow-guide-heading {
+    max-width: 760px;
+    margin-bottom: 28px;
+}
+
+.dunnflow-guide-heading .section-kicker {
+    color: #a59aff;
+}
+
+.dunnflow-guide-heading h3 {
+    margin-top: 10px;
+    font-size: clamp(1.5rem, 2.6vw, 2rem);
+    letter-spacing: -0.035em;
+}
+
+.dunnflow-guide-heading > p {
+    max-width: 680px;
+    color: #aab8d0;
+    line-height: 1.8;
+}
+
+.dunnflow-guide-steps {
+    position: relative;
+    gap: 16px;
+}
+
+/* Connected line sits behind the numbered workflow steps. */
+.dunnflow-guide-steps::before {
+    content: "";
+    position: absolute;
+    top: 37px;
+    left: 12%;
+    right: 12%;
+    height: 1px;
+    pointer-events: none;
+    background: linear-gradient(
+        90deg,
+        rgba(139, 108, 255, 0.1),
+        rgba(132, 120, 255, 0.65),
+        rgba(84, 211, 255, 0.4),
+        rgba(139, 108, 255, 0.1)
+    );
+}
+
+.dunnflow-guide-step {
+    position: relative;
+    z-index: 1;
+    gap: 15px;
+    min-height: 164px;
+    padding: 21px 19px;
+    border-color: rgba(132, 148, 190, 0.16);
+    border-radius: 16px;
+    background: linear-gradient(
+        155deg,
+        rgba(16, 22, 36, 0.98),
+        rgba(9, 13, 23, 0.97)
+    );
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
+    transition:
+        border-color 180ms ease,
+        transform 180ms ease,
+        box-shadow 180ms ease;
+}
+
+.dunnflow-guide-step:hover {
+    transform: translateY(-3px);
+    border-color: rgba(142, 130, 255, 0.42);
+    box-shadow:
+        0 12px 32px rgba(0, 0, 0, 0.18),
+        inset 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.dunnflow-guide-number {
+    position: relative;
+    flex-basis: 42px;
+    width: 42px;
+    height: 42px;
+    border-color: rgba(141, 126, 255, 0.42);
+    border-radius: 13px;
+    background: linear-gradient(
+        145deg,
+        rgba(113, 82, 255, 0.22),
+        rgba(58, 164, 255, 0.1)
+    );
+    color: #c1b8ff;
+    box-shadow: 0 0 20px rgba(105, 88, 255, 0.09);
+}
+
+.dunnflow-guide-step h4 {
+    margin-top: 4px;
+    color: #f0f3ff;
+    font-size: 1rem;
+    letter-spacing: -0.015em;
+}
+
+.dunnflow-guide-step p {
+    color: #a7b4ca;
+    font-size: 0.875rem;
+    line-height: 1.75;
+}
+
+.dunnflow-guide-safety {
+    align-items: center;
+    gap: 11px;
+    margin-top: 22px;
+    padding: 17px 18px 0;
+    color: #c2cee0;
+    line-height: 1.7;
+}
+
+.dunnflow-guide-safety > span {
+    color: #5fe0b5;
+    filter: drop-shadow(0 0 5px rgba(95, 224, 181, 0.3));
+}
+
+/* Small screens: remove the horizontal connector between cards. */
+
+@media (max-width: 900px) {
+    .dunnflow-guide-steps {
+        gap: 12px;
+    }
+
+    .dunnflow-guide-steps::before {
+        display: none;
+    }
+
+    .dunnflow-guide-step {
+        min-height: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .dunnflow-first-visit-guide {
+        padding: 20px 16px;
+        border-radius: 17px;
+    }
+
+    .dunnflow-guide-heading {
+        margin-bottom: 20px;
+    }
+
+    .dunnflow-guide-step {
+        padding: 17px 15px;
+    }
+
+    .dunnflow-guide-safety {
+        align-items: flex-start;
+        padding-right: 0;
+        padding-left: 0;
+    }
+
+    .hero-signals > div {
+        margin-right: 10px;
+        padding-right: 10px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dunnflow-explore-link,
+    .dunnflow-guide-step {
+        transition: none;
+    }
+
+    .dunnflow-guide-step:hover,
+    .dunnflow-explore-link:hover {
+        transform: none;
+    }
+}
+
+/* DUNNFLOW TWO-AREA NEON VISUAL PATCH V1
+   Scoped styling only: workflow guide and existing hero illustration.
+*/
+
+.dunnflow-first-visit-guide {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background:
+        radial-gradient(ellipse at 8% 0%, rgba(107, 55, 255, .15), transparent 43%),
+        radial-gradient(ellipse at 100% 100%, rgba(0, 220, 205, .09), transparent 45%),
+        linear-gradient(135deg, #0b1022 0%, #080d18 60%, #07121b 100%);
+    border: 1px solid rgba(72, 155, 255, .34);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 18px 55px rgba(0,0,0,.18);
+}
+
+.dunnflow-first-visit-guide .dunnflow-guide-step {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background:
+        radial-gradient(ellipse at 100% 0%, var(--guide-glow), transparent 62%),
+        linear-gradient(145deg, rgba(17,24,45,.98), rgba(5,12,25,.98));
+    border: 1px solid var(--guide-border);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+
+.dunnflow-first-visit-guide .dunnflow-guide-step:nth-child(1) {
+    --guide-glow: rgba(123, 52, 255, .19);
+    --guide-border: rgba(139, 76, 255, .55);
+}
+
+.dunnflow-first-visit-guide .dunnflow-guide-step:nth-child(2) {
+    --guide-glow: rgba(0, 105, 255, .17);
+    --guide-border: rgba(0, 150, 255, .5);
+}
+
+.dunnflow-first-visit-guide .dunnflow-guide-step:nth-child(3) {
+    --guide-glow: rgba(0, 220, 190, .15);
+    --guide-border: rgba(0, 205, 190, .45);
+}
+
+.dunnflow-first-visit-guide .dunnflow-guide-step:hover {
+    transform: translateY(-3px);
+    border-color: rgba(83, 220, 255, .7);
+    box-shadow: 0 12px 30px rgba(0,0,0,.24);
+}
+
+.dunnflow-first-visit-guide .dunnflow-guide-number {
+    border-color: var(--guide-border);
+    background: linear-gradient(145deg, var(--guide-glow), rgba(4, 16, 34, .9));
+    box-shadow: 0 0 20px var(--guide-glow);
+}
+
+.dunnflow-first-visit-guide .dunnflow-guide-safety {
+    background: linear-gradient(100deg, rgba(0,205,190,.12), rgba(15,36,72,.42), rgba(113,42,255,.13));
+    border: 1px solid rgba(0,205,220,.36);
+    border-radius: 14px;
+    padding: 16px 18px;
+}
+
+.dunnflow-first-visit-guide .dunnflow-guide-step h4 {
+    color: #f4f7ff;
+}
+
+.dunnflow-first-visit-guide .dunnflow-guide-step p {
+    color: #b4c4df;
+}
+
+/* Restyle the existing shield and chart without replacing their markup. */
+
+.hero-visual .visual-panel {
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(ellipse at 10% 100%, rgba(115,44,255,.24), transparent 48%),
+        radial-gradient(ellipse at 100% 0%, rgba(0,225,205,.17), transparent 48%),
+        linear-gradient(135deg, rgba(7,15,37,.98), rgba(3,14,27,.98));
+    border: 1px solid rgba(0,192,255,.48);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.045), 0 0 35px rgba(0,110,255,.1);
+}
+
+.hero-visual .visual-grid {
+    opacity: .42;
+    background-image:
+        linear-gradient(rgba(52,126,255,.09) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(52,126,255,.09) 1px, transparent 1px);
+    background-size: 34px 34px;
+}
+
+.hero-visual .visual-shield {
+    border-color: rgba(0,225,205,.55);
+    background: radial-gradient(circle, rgba(0,225,205,.19), rgba(0,80,110,.12) 68%, transparent 70%);
+    box-shadow: 0 0 28px rgba(0,225,205,.16);
+}
+
+.hero-visual .visual-shield span {
+    color: #43ffe0;
+    text-shadow: 0 0 18px rgba(0,255,220,.65);
+}
+
+.hero-visual .visual-chart {
+    align-items: flex-end;
+    background: linear-gradient(180deg, transparent, rgba(0,135,255,.08));
+    border-bottom: 1px solid rgba(0,225,205,.36);
+}
+
+.hero-visual .visual-chart i {
+    background: linear-gradient(180deg, #29ffe0 0%, #00a8ff 48%, #713cff 100%);
+    box-shadow: 0 0 14px rgba(0,190,255,.28);
+}
+
+.hero-visual .visual-line {
+    border-color: #1fe9e0;
+    filter: drop-shadow(0 0 7px rgba(0,225,205,.8));
+}
+
+@media (max-width: 760px) {
+    .dunnflow-first-visit-guide .dunnflow-guide-step:hover {
+        transform: none;
+    }
+
+    .hero-visual .visual-panel {
+        max-width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dunnflow-first-visit-guide .dunnflow-guide-step {
+        transition: none;
+    }
+
+    .dunnflow-first-visit-guide .dunnflow-guide-step:hover {
+        transform: none;
+    }
+}
+
+/* ==========================================================
+   DUNNFLOW HERO ? RECOVERY JOURNEY PREVIEW CARD V1
+   Visual only. The 42.9% figure is illustrative, not live data.
+   ========================================================== */
+
+.hero-visual {
+    width: 100%;
+    min-width: 0;
+    min-height: 340px;
+    filter: drop-shadow(0 18px 54px rgba(69, 69, 255, .13));
+}
+
+.recovery-preview-card {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 570px);
+    padding: clamp(15px, 2vw, 22px);
+    overflow: hidden;
+    border: 1px solid rgba(92, 132, 255, .3);
+    border-radius: 20px;
+    background:
+        radial-gradient(ellipse at 14% 100%, rgba(105, 63, 255, .17), transparent 48%),
+        radial-gradient(ellipse at 94% 0%, rgba(0, 220, 207, .12), transparent 43%),
+        linear-gradient(145deg, rgba(8, 17, 38, .98), rgba(5, 10, 24, .98));
+    box-shadow: 0 25px 70px rgba(0,0,0,.3), inset 0 1px rgba(255,255,255,.045), 0 0 34px rgba(50,95,255,.1);
+}
+
+.recovery-preview-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: .3;
+    background-image: linear-gradient(rgba(105,145,255,.055) 1px, transparent 1px), linear-gradient(90deg, rgba(105,145,255,.055) 1px, transparent 1px);
+    background-size: 26px 26px;
+    mask-image: linear-gradient(to bottom, black, transparent 85%);
+}
+
+.recovery-preview-topline, .recovery-preview-body { position: relative; z-index: 1; }
+
+.recovery-preview-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(127,153,214,.12);
+}
+
+.recovery-stage {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    color: #b8c8e4;
+    font-size: clamp(9px, .85vw, 11px);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.recovery-stage-dot {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 6px;
+    border-radius: 50%;
+    background: #7788aa;
+    box-shadow: 0 0 10px currentColor;
+}
+.recovery-stage-dot.failed { color: #8d78ff; background: #8d78ff; }
+.recovery-stage-dot.decision { color: #4b9dff; background: #4b9dff; }
+.recovery-stage-dot.recovered { color: #26efd1; background: #26efd1; }
+.recovery-stage-arrow { color: #596a91; font-size: 15px; line-height: 1; }
+.recovered-stage { color: #d4fff7; }
+
+.recovery-preview-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 118px;
+    align-items: stretch;
+    gap: 14px;
+    padding-top: 17px;
+}
+
+.recovery-chart-area {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-width: 0;
+    min-height: 160px;
+    overflow: hidden;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(11,27,56,.25), rgba(12,18,45,.06));
+}
+
+.recovery-chart-grid {
+    position: absolute;
+    inset: 8px 0 28px;
+    opacity: .48;
+    background-image: linear-gradient(rgba(104,145,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(104,145,255,.08) 1px, transparent 1px);
+    background-size: 25% 33.333%;
+}
+
+.recovery-wave-chart {
+    position: absolute;
+    inset: 5px 0 27px;
+    width: 100%;
+    height: calc(100% - 32px);
+    overflow: visible;
+}
+.recovery-wave-fill { fill: url(#recoveryWaveFill); }
+.recovery-wave-stroke {
+    fill: none;
+    stroke: url(#recoveryWaveStroke);
+    stroke-width: 3;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 5px rgba(65,199,255,.55));
+}
+.recovery-wave-endpoint { fill: #2ff4d4; stroke: rgba(47,244,212,.25); stroke-width: 6; }
+
+.recovery-chart-caption {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 2px 0;
+    border-top: 1px solid rgba(123,150,208,.14);
+    color: #7184aa;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: .09em;
+}
+.recovery-chart-caption span:last-child { color: #7f90b1; text-align: right; }
+
+.recovery-rate-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    min-width: 0;
+    padding: 13px 12px 10px;
+    border: 1px solid rgba(31,219,207,.2);
+    border-radius: 13px;
+    background: linear-gradient(155deg, rgba(0,197,190,.105), rgba(11,27,53,.74) 65%);
+    box-shadow: inset 0 1px rgba(255,255,255,.035), 0 0 24px rgba(0,208,196,.035);
+}
+
+.recovery-rate-kicker { color: #91a9c9; font-size: 9px; font-weight: 800; letter-spacing: .045em; }
+.recovery-rate-card strong { margin-top: 6px; color: #f1fffd; font-size: clamp(23px,2.2vw,30px); font-weight: 850; line-height: 1; letter-spacing: -.055em; }
+.recovery-rate-card strong span { color: #2debd2; font-size: .68em; }
+.recovery-rate-note { margin-top: 7px; color: #6f9caa; font-size: 8px; font-weight: 700; }
+
+.recovery-rate-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    width: 100%;
+    height: 27px;
+    margin-top: 10px;
+    padding-bottom: 1px;
+    border-bottom: 1px solid rgba(33,231,207,.22);
+}
+.recovery-rate-bars i {
+    display: block;
+    flex: 1;
+    border-radius: 3px 3px 0 0;
+    background: linear-gradient(180deg,#20ebd0,#397bff 80%,#6c4bff);
+    box-shadow: 0 0 8px rgba(29,201,235,.15);
+}
+.recovery-rate-bars i:nth-child(1) { height: 30%; }
+.recovery-rate-bars i:nth-child(2) { height: 48%; }
+.recovery-rate-bars i:nth-child(3) { height: 38%; }
+.recovery-rate-bars i:nth-child(4) { height: 66%; }
+.recovery-rate-bars i:nth-child(5) { height: 57%; }
+.recovery-rate-bars i:nth-child(6) { height: 94%; }
+
+@media (max-width: 1100px) {
+    .hero-visual { min-height: 300px; }
+    .recovery-preview-card { width: min(100%, 520px); }
+}
+
+@media (max-width: 760px) {
+    .hero-visual { min-height: 0; padding: 8px 0 12px; }
+    .recovery-preview-card { width: 100%; padding: 14px; border-radius: 16px; }
+    .recovery-preview-topline { gap: 6px; padding-bottom: 12px; }
+    .recovery-stage { gap: 5px; font-size: 9px; white-space: normal; }
+    .recovery-stage-arrow { font-size: 12px; }
+    .recovery-preview-body { grid-template-columns: minmax(0,1fr) 100px; gap: 9px; padding-top: 12px; }
+    .recovery-chart-area { min-height: 132px; }
+    .recovery-rate-card { padding: 11px 9px 8px; }
+    .recovery-chart-caption { font-size: 7px; letter-spacing: .045em; }
+}
+
+@media (max-width: 430px) {
+    .recovery-preview-topline { flex-wrap: wrap; justify-content: flex-start; row-gap: 9px; }
+    .recovery-stage { font-size: 10px; }
+    .recovery-preview-body { grid-template-columns: minmax(0,1fr) 88px; }
+    .recovery-rate-kicker { font-size: 8px; }
+    .recovery-rate-card strong { font-size: 22px; }
+    .recovery-chart-caption span:last-child { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .recovery-preview-card, .recovery-wave-stroke { animation: none !important; }
+}
+
+/* ==========================================================
+   DUNNFLOW HERO CARD SIZE BOOST V1
+   Increase visual prominence without changing hero copy.
+   ========================================================== */
+
+.hero-visual {
+    width: 112%;
+    max-width: none;
+    min-height: 390px;
+    transform: scale(1.04);
+    transform-origin: center left;
+}
+
+.recovery-preview-card {
+    width: min(100%, 660px);
+    padding: clamp(20px, 2.4vw, 28px);
+    border-radius: 22px;
+}
+
+.recovery-preview-topline {
+    gap: 12px;
+    padding-bottom: 20px;
+}
+
+.recovery-stage {
+    gap: 9px;
+    font-size: clamp(10px, .95vw, 12px);
+}
+
+.recovery-preview-body {
+    grid-template-columns: minmax(0, 1fr) 140px;
+    gap: 18px;
+    padding-top: 22px;
+}
+
+.recovery-chart-area {
+    min-height: 205px;
+}
+
+.recovery-rate-card {
+    padding: 16px 14px 12px;
+}
+
+.recovery-rate-card strong {
+    font-size: clamp(28px, 2.6vw, 36px);
+}
+
+.recovery-rate-bars {
+    height: 34px;
+    margin-top: 14px;
+}
+
+@media (max-width: 1100px) {
+    .hero-visual {
+        width: 100%;
+        transform: none;
+        min-height: 340px;
+    }
+
+    .recovery-preview-card {
+        width: min(100%, 620px);
+    }
+}
+
+@media (max-width: 760px) {
+    .hero-visual {
+        width: 100%;
+        min-height: 0;
+    }
+
+    .recovery-preview-card {
+        width: 100%;
+        padding: 14px;
+    }
+
+    .recovery-preview-body {
+        grid-template-columns: minmax(0, 1fr) 100px;
+        gap: 9px;
+        padding-top: 12px;
+    }
+
+    .recovery-chart-area {
+        min-height: 132px;
+    }
+
+    .recovery-rate-card strong {
+        font-size: 22px;
+    }
+}
+
+@media (max-width: 430px) {
+    .recovery-preview-body {
+        grid-template-columns: minmax(0, 1fr) 88px;
+    }
+}
+
+/* ==========================================================
+   DUNNFLOW HERO CARD VIEWPORT FIX V1
+   Keep the enlarged recovery card inside the hero layout.
+   ========================================================== */
+
+.hero-visual {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    transform: none !important;
+    transform-origin: center center !important;
+    justify-self: stretch;
+    box-sizing: border-box;
+}
+
+.recovery-preview-card {
+    width: 100% !important;
+    max-width: 660px;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.recovery-preview-card *,
+.recovery-preview-card *::before,
+.recovery-preview-card *::after {
+    box-sizing: border-box;
+}
+
+.hero-inner {
+    min-width: 0;
+}
+
+@media (max-width: 1100px) {
+    .hero-visual {
+        width: 100% !important;
+        max-width: 100% !important;
+        transform: none !important;
+    }
+
+    .recovery-preview-card {
+        width: 100% !important;
+        max-width: 620px;
+    }
+}
+
+@media (max-width: 760px) {
+    .hero-visual,
+    .recovery-preview-card {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+/* ==========================================================
+   DUNNFLOW COMPACT FIRST-VISIT GUIDE V1
+   Full-width workflow guide with reduced vertical footprint.
+   ========================================================== */
+
+.dunnflow-first-visit-guide.dunnflow-guide-compact {
+    width: 100%;
+    box-sizing: border-box;
+    padding: clamp(18px, 2vw, 26px);
+    border-radius: 20px;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-heading {
+    max-width: 900px;
+    margin-bottom: 18px;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-heading h3 {
+    margin-top: 6px;
+    margin-bottom: 6px;
+    font-size: clamp(1.45rem, 2.2vw, 1.85rem);
+}
+
+.dunnflow-guide-compact .dunnflow-guide-heading > p {
+    max-width: 800px;
+    margin-bottom: 0;
+    line-height: 1.55;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    align-items: stretch;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-steps::before {
+    display: none;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-step {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    min-width: 0;
+    min-height: 0;
+    padding: 16px;
+    border: 1px solid var(--guide-border, rgba(132,148,190,.25));
+    border-radius: 16px;
+    background:
+        linear-gradient(145deg, var(--guide-glow, rgba(20,35,65,.3)), rgba(5,12,26,.92));
+    box-shadow: inset 0 1px rgba(255,255,255,.035);
+}
+
+.dunnflow-guide-compact .dunnflow-guide-step:nth-child(1) {
+    --guide-glow: rgba(123,52,255,.15);
+    --guide-border: rgba(139,76,255,.48);
+}
+
+.dunnflow-guide-compact .dunnflow-guide-step:nth-child(2) {
+    --guide-glow: rgba(0,105,255,.14);
+    --guide-border: rgba(0,150,255,.43);
+}
+
+.dunnflow-guide-compact .dunnflow-guide-step:nth-child(3) {
+    --guide-glow: rgba(0,220,190,.12);
+    --guide-border: rgba(0,205,190,.4);
+}
+
+.dunnflow-guide-compact .dunnflow-guide-step-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 2px;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border: 1px solid var(--guide-border);
+    border-radius: 11px;
+    background: rgba(6,13,30,.8);
+    color: #c7c0ff;
+    font-size: 12px;
+    font-weight: 850;
+    box-shadow: 0 0 18px var(--guide-glow);
+}
+
+.dunnflow-guide-compact .dunnflow-guide-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--guide-border);
+    border-radius: 10px;
+    background: var(--guide-glow);
+    color: #69e9ff;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-step h4 {
+    margin: 2px 0 0;
+    color: #f4f7ff;
+    font-size: clamp(14px, 1.1vw, 17px);
+    line-height: 1.35;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-step p {
+    margin: 0;
+    color: #b4c4df;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-safety {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 14px 0 0;
+    padding: 12px 15px;
+    border: 1px solid rgba(0,205,220,.32);
+    border-radius: 13px;
+    background: linear-gradient(100deg, rgba(0,205,190,.1), rgba(15,36,72,.42), rgba(113,42,255,.1));
+}
+
+.dunnflow-guide-compact .dunnflow-guide-safety-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 27px;
+    height: 27px;
+    flex: 0 0 27px;
+    border-radius: 9px;
+    background: rgba(0,220,190,.12);
+    color: #50f1d4;
+    font-weight: 900;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-safety p {
+    flex: 1;
+    margin: 0;
+    color: #c6d5ee;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-safety a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    flex: 0 0 auto;
+    color: #bb91ff;
+    font-size: 12px;
+    font-weight: 800;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-safety a:hover {
+    color: #e2d5ff;
+}
+
+@media (max-width: 760px) {
+    .dunnflow-guide-compact.dunnflow-first-visit-guide {
+        padding: 18px;
+    }
+
+    .dunnflow-guide-compact .dunnflow-guide-steps {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .dunnflow-guide-compact .dunnflow-guide-step {
+        padding: 14px;
+    }
+
+    .dunnflow-guide-compact .dunnflow-guide-safety {
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .dunnflow-guide-compact .dunnflow-guide-safety p {
+        min-width: 0;
+    }
+
+    .dunnflow-guide-compact .dunnflow-guide-safety a {
+        margin-left: 39px;
+        white-space: normal;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dunnflow-guide-compact .dunnflow-guide-step {
+        transition: none;
+    }
+}
+
+/* ==========================================================
+   DUNNFLOW GUIDE REFERENCE MATCH V2
+   Compact neon workflow cards, connectors and safety strip.
+   ========================================================== */
+
+.dunnflow-first-visit-guide.dunnflow-guide-compact {
+    padding: 20px 24px !important;
+    border-radius: 20px !important;
+    background:
+        radial-gradient(ellipse at 5% 0%, rgba(90, 50, 255, .12), transparent 45%),
+        radial-gradient(ellipse at 100% 100%, rgba(0, 220, 190, .08), transparent 42%),
+        linear-gradient(145deg, #080e1c, #050b15 72%, #07131b) !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-heading {
+    margin-bottom: 14px !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-heading h3 {
+    margin: 4px 0 !important;
+    font-size: clamp(1.35rem, 2vw, 1.7rem) !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-heading > p {
+    margin: 0 !important;
+    font-size: 13px !important;
+    line-height: 1.45 !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-steps {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+    align-items: stretch !important;
+    overflow: visible !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-steps::before {
+    display: none !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-step {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    padding: 13px 14px !important;
+    overflow: visible !important;
+    border-radius: 14px !important;
+    background:
+        linear-gradient(145deg, var(--guide-glow), rgba(5, 12, 26, .96) 82%) !important;
+    box-shadow:
+        inset 0 1px rgba(255,255,255,.045),
+        0 8px 24px rgba(0,0,0,.12) !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-step:nth-child(1) {
+    --guide-glow: rgba(67, 35, 145, .25);
+    --guide-border: rgba(139, 76, 255, .56);
+    border-color: var(--guide-border) !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-step:nth-child(2) {
+    --guide-glow: rgba(12, 55, 117, .3);
+    --guide-border: rgba(0, 145, 255, .53);
+    border-color: var(--guide-border) !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-step:nth-child(3) {
+    --guide-glow: rgba(0, 87, 84, .25);
+    --guide-border: rgba(0, 205, 190, .5);
+    border-color: var(--guide-border) !important;
+}
+
+/* Number badge and icon sit together on the top row. */
+.dunnflow-guide-compact .dunnflow-guide-step-top {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    margin-bottom: 1px !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-number {
+    width: 28px !important;
+    height: 28px !important;
+    flex: 0 0 28px !important;
+    border-radius: 9px !important;
+    font-size: 11px !important;
+    background: rgba(7, 12, 28, .88) !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-icon {
+    width: 28px !important;
+    height: 28px !important;
+    flex: 0 0 28px !important;
+    border-radius: 8px !important;
+    font-size: 16px !important;
+    background: var(--guide-glow) !important;
+    color: #57e9ff !important;
+}
+
+/* Short, readable titles and compact body copy. */
+.dunnflow-guide-compact .dunnflow-guide-step h4 {
+    margin: 1px 0 0 !important;
+    font-size: 13px !important;
+    line-height: 1.35 !important;
+    letter-spacing: -.01em !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-step p {
+    margin: 0 !important;
+    font-size: 11px !important;
+    line-height: 1.45 !important;
+    color: #b6c8e5 !important;
+}
+
+/* Neon arrows sit in the gaps between the three cards. */
+.dunnflow-guide-compact .dunnflow-guide-step:nth-child(1)::after,
+.dunnflow-guide-compact .dunnflow-guide-step:nth-child(2)::after {
+    content: "\2192";
+    position: absolute;
+    z-index: 5;
+    top: 50%;
+    right: -20px;
+    width: 25px;
+    transform: translateY(-50%);
+    color: #54dfff;
+    font-size: 19px;
+    font-weight: 800;
+    text-align: center;
+    text-shadow: 0 0 12px rgba(0, 207, 255, .55);
+    pointer-events: none;
+}
+
+/* Slim horizontal safety strip, matching the reference. */
+.dunnflow-guide-compact .dunnflow-guide-safety {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin: 12px 0 0 !important;
+    padding: 9px 12px !important;
+    border: 1px solid rgba(0, 198, 221, .38) !important;
+    border-radius: 12px !important;
+    background: linear-gradient(100deg, rgba(0, 199, 191, .12), rgba(13, 31, 66, .85), rgba(95, 48, 207, .16)) !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-safety-icon {
+    width: 25px !important;
+    height: 27px !important;
+    flex: 0 0 25px !important;
+    border-radius: 7px 7px 10px 10px !important;
+    clip-path: polygon(50% 0, 94% 18%, 88% 67%, 50% 100%, 12% 67%, 6% 18%) !important;
+    background: rgba(0, 218, 194, .18) !important;
+    color: #52f2d8 !important;
+    font-size: 13px !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-safety p {
+    min-width: 0 !important;
+    margin: 0 !important;
+    flex: 1 1 auto !important;
+    color: #d1def2 !important;
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-safety a {
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    color: #c58cff !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    white-space: nowrap !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-safety a:hover {
+    color: #e9d4ff !important;
+}
+
+@media (max-width: 760px) {
+    .dunnflow-first-visit-guide.dunnflow-guide-compact {
+        padding: 16px !important;
+    }
+
+    .dunnflow-guide-compact .dunnflow-guide-steps {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+
+    .dunnflow-guide-compact .dunnflow-guide-step {
+        padding: 13px !important;
+    }
+
+    .dunnflow-guide-compact .dunnflow-guide-step:nth-child(1)::after,
+    .dunnflow-guide-compact .dunnflow-guide-step:nth-child(2)::after {
+        display: none !important;
+    }
+
+    .dunnflow-guide-compact .dunnflow-guide-safety {
+        flex-wrap: wrap !important;
+        align-items: flex-start !important;
+    }
+
+    .dunnflow-guide-compact .dunnflow-guide-safety a {
+        margin-left: 35px !important;
+        white-space: normal !important;
+    }
+}
+
+/* ==========================================================
+   DUNNFLOW GUIDE CARD BACKGROUND REFERENCE V1
+   Background-only refinement. Layout and content unchanged.
+   ========================================================== */
+
+/* Deep, nearly-black base with restrained ambient lighting. */
+.dunnflow-guide-compact .dunnflow-guide-step {
+    background-color: #050b16 !important;
+    background-image:
+        radial-gradient(
+            ellipse at 94% 4%,
+            var(--guide-corner-glow, rgba(85, 60, 255, .16)),
+            transparent 52%
+        ),
+        radial-gradient(
+            ellipse at 5% 100%,
+            var(--guide-lower-glow, rgba(65, 55, 180, .11)),
+            transparent 55%
+        ),
+        linear-gradient(
+            145deg,
+            rgba(10, 17, 37, .98) 0%,
+            rgba(5, 11, 23, .99) 58%,
+            rgba(3, 8, 17, 1) 100%
+        ) !important;
+}
+
+/* Card 1: subtle violet atmosphere. */
+.dunnflow-guide-compact .dunnflow-guide-step:nth-child(1) {
+    --guide-corner-glow: rgba(111, 53, 255, .22);
+    --guide-lower-glow: rgba(78, 39, 190, .14);
+}
+
+/* Card 2: cool electric-blue atmosphere. */
+.dunnflow-guide-compact .dunnflow-guide-step:nth-child(2) {
+    --guide-corner-glow: rgba(0, 119, 255, .21);
+    --guide-lower-glow: rgba(20, 65, 165, .13);
+}
+
+/* Card 3: restrained teal atmosphere. */
+.dunnflow-guide-compact .dunnflow-guide-step:nth-child(3) {
+    --guide-corner-glow: rgba(0, 207, 190, .18);
+    --guide-lower-glow: rgba(0, 105, 116, .13);
+}
+
+/* Keep the safety strip dark, with a subtle blended glow. */
+.dunnflow-guide-compact .dunnflow-guide-safety {
+    background-image:
+        radial-gradient(
+            ellipse at 0% 50%,
+            rgba(0, 211, 193, .10),
+            transparent 48%
+        ),
+        linear-gradient(
+            100deg,
+            #071923 0%,
+            #0a1429 58%,
+            #15102d 100%
+        ) !important;
+}
+
+/* ==========================================================
+   DUNNFLOW GUIDE BACKGROUND ARTWORK V2
+   Backgrounds only: retain card geometry and existing content.
+   ========================================================== */
+
+.dunnflow-guide-compact .dunnflow-guide-step {
+    position: relative !important;
+    isolation: isolate !important;
+    overflow: hidden !important;
+    background-color: #050914 !important;
+    box-shadow:
+        inset 0 1px rgba(255,255,255,.055),
+        inset 0 0 36px rgba(25,50,100,.08),
+        0 8px 22px rgba(0,0,0,.16) !important;
+}
+
+/* Decorative background artwork behind existing text and icons. */
+.dunnflow-guide-compact .dunnflow-guide-step::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    top: 0;
+    right: 0;
+    width: 58%;
+    height: 100%;
+    opacity: .72;
+    pointer-events: none;
+    background-repeat: no-repeat;
+}
+
+/* Keep all real card content above the artwork. */
+.dunnflow-guide-compact .dunnflow-guide-step > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* STEP 1 ? faint payment-card outlines and violet light. */
+.dunnflow-guide-compact .dunnflow-guide-step:nth-child(1) {
+    background-image:
+        radial-gradient(ellipse at 94% 12%, rgba(117,65,255,.25), transparent 52%),
+        radial-gradient(ellipse at 5% 100%, rgba(76,40,190,.13), transparent 60%),
+        linear-gradient(135deg, #11102b 0%, #080d1c 58%, #040914 100%) !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-step:nth-child(1)::before {
+    background-image:
+        linear-gradient(145deg, transparent 0 36%, rgba(130,93,255,.10) 36.5% 37%, transparent 37.5%),
+        linear-gradient(145deg, transparent 0 48%, rgba(130,93,255,.07) 48.5% 49%, transparent 49.5%),
+        repeating-linear-gradient(0deg, transparent 0 17px, rgba(131,108,255,.055) 18px, transparent 19px),
+        radial-gradient(ellipse at 78% 32%, rgba(117,65,255,.22), transparent 60%);
+    mask-image: linear-gradient(90deg, transparent, #000 35%, #000);
+}
+
+/* STEP 2 ? faint circuit/grid texture and electric-blue glow. */
+.dunnflow-guide-compact .dunnflow-guide-step:nth-child(2) {
+    background-image:
+        radial-gradient(ellipse at 95% 8%, rgba(0,119,255,.25), transparent 54%),
+        radial-gradient(ellipse at 15% 100%, rgba(23,66,170,.14), transparent 58%),
+        linear-gradient(135deg, #09172e 0%, #071020 60%, #040914 100%) !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-step:nth-child(2)::before {
+    background-image:
+        linear-gradient(90deg, transparent 19%, rgba(38,143,255,.13) 20%, transparent 21%, transparent 59%, rgba(38,143,255,.10) 60%, transparent 61%),
+        linear-gradient(0deg, transparent 24%, rgba(38,143,255,.11) 25%, transparent 26%, transparent 69%, rgba(38,143,255,.09) 70%, transparent 71%),
+        radial-gradient(circle at 76% 28%, rgba(0,147,255,.19), transparent 54%),
+        repeating-linear-gradient(135deg, transparent 0 20px, rgba(54,137,255,.035) 21px 22px, transparent 23px 40px);
+    mask-image: linear-gradient(90deg, transparent, #000 28%, #000);
+}
+
+/* STEP 3 ? faint recovery bars and teal radial glow. */
+.dunnflow-guide-compact .dunnflow-guide-step:nth-child(3) {
+    background-image:
+        radial-gradient(ellipse at 95% 4%, rgba(0,216,193,.22), transparent 54%),
+        radial-gradient(ellipse at 12% 100%, rgba(0,105,125,.15), transparent 58%),
+        linear-gradient(135deg, #071b24 0%, #06121e 58%, #030a13 100%) !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-step:nth-child(3)::before {
+    background-image:
+        linear-gradient(to top, rgba(0,220,194,.16) 1px, transparent 1px),
+        linear-gradient(90deg, transparent 18%, rgba(0,220,194,.10) 19%, transparent 20%, transparent 49%, rgba(0,220,194,.08) 50%, transparent 51%),
+        radial-gradient(circle at 80% 24%, rgba(0,220,194,.22), transparent 54%),
+        repeating-linear-gradient(0deg, transparent 0 19px, rgba(0,220,194,.035) 20px 21px, transparent 22px 40px);
+    mask-image: linear-gradient(90deg, transparent, #000 30%, #000);
+}
+
+/* Retain the existing border colors and safety-banner design. */
+.dunnflow-guide-compact .dunnflow-guide-step:nth-child(1) {
+    border-color: rgba(139,76,255,.56) !important;
+}
+.dunnflow-guide-compact .dunnflow-guide-step:nth-child(2) {
+    border-color: rgba(0,145,255,.53) !important;
+}
+.dunnflow-guide-compact .dunnflow-guide-step:nth-child(3) {
+    border-color: rgba(0,205,190,.50) !important;
+}
+
+/* DUNNFLOW GUIDE ICONS LEFT ALIGN V1 */
+.dunnflow-guide-compact .dunnflow-guide-step-top {
+    justify-content: flex-start !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-number {
+    order: 0 !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-icon {
+    order: 1 !important;
+    margin-left: 0 !important;
+    margin-right: auto !important;
+}
+
+/* DUNNFLOW GUIDE ICONS TOP RIGHT V1 */
+.dunnflow-guide-compact .dunnflow-guide-step-top {
+    position: static !important;
+    display: block !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-number {
+    position: relative !important;
+    display: inline-flex !important;
+    margin: 0 !important;
+}
+
+.dunnflow-guide-compact .dunnflow-guide-icon {
+    position: absolute !important;
+    top: 16px !important;
+    right: 16px !important;
+    left: auto !important;
+    margin: 0 !important;
+    order: initial !important;
+    z-index: 2 !important;
+}
+
+/* Keep the icon aligned with the card padding on smaller screens. */
+@media (max-width: 760px) {
+    .dunnflow-guide-compact .dunnflow-guide-icon {
+        top: 14px !important;
+        right: 14px !important;
+    }
+}
+
+/* DUNNFLOW REDUCE HERO TO DEMO GAP V1
+   Tighten the transition from hero process row to Demo Lab.
+   Preserve the guide and card layout. */
+
+.hero {
+    padding-bottom: 28px !important;
+    margin-bottom: 0 !important;
+}
+
+.hero-inner {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.hero-process,
+.hero-process-steps,
+.hero-steps,
+.hero-flow {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+#demo-lab,
+.demo-lab,
+.demo-lab-section {
+    margin-top: 0 !important;
+    padding-top: 28px !important;
+}
+
+#demo-lab .section-header,
+.demo-lab .section-header,
+.demo-lab-section .section-header {
+    margin-top: 0 !important;
+}

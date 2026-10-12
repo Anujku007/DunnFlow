@@ -480,14 +480,8 @@ async function refreshRecoveryAgent(batchId) {
             batchId
         });
 
-        if (
-            window.DunnFlowMetrics &&
-            typeof window.DunnFlowMetrics.refresh ===
-                "function"
-        ) {
-            window.DunnFlowMetrics
-                .refresh(batchId);
-        }
+        // The dunnflow:demo-selected listener in metrics.js refreshes
+        // the selected batch once after the context switch.
     }
 
 

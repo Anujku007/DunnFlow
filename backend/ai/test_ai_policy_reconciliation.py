@@ -24,6 +24,10 @@ def test_audit_logger(entry: dict) -> int:
     return len(AUDIT_ENTRIES)
 
 
+# This is a callback helper, not a pytest test case.
+test_audit_logger.__test__ = False
+
+
 class MockProvider(AIProvider):
     def __init__(self, response: str):
         self.response = response

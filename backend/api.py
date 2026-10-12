@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
@@ -22,6 +22,7 @@ from backend.modules.decision_engine import decide_for_invoice
 from backend.modules.execution import execute_due_actions, execute_recovery_action
 from backend.ai.ai_policy_reconciliation import reconcile_invoice
 from backend.ai.recovery_advisor import RecoveryAdvisor
+from backend.ai.historical_decision_context import get_historical_decision_context_dict
 from backend.agent.recovery_agent import RecoveryAgent
 
 
@@ -48,6 +49,13 @@ def startup():
 @app.get("/")
 def home():
     return FileResponse(BASE_DIR / "templates" / "index.html")
+
+
+
+@app.get("/ai-inspection")
+def ai_inspection_page():
+    """Serve the standalone AI inspection report."""
+    return FileResponse(BASE_DIR / "templates" / "ai_inspection.html")
 
 
 @app.post("/api/webhooks/razorpay")
@@ -315,11 +323,17 @@ def inspect_demo_case(invoice_id: str):
         advisor=advisor,
     )
 
+    historical_context = get_historical_decision_context_dict(
+        invoice_id,
+        limit=20,
+    )
+
     return {
         "invoice": get_invoice(invoice_id),
         "diagnosis": diagnosis,
         "decision": decision,
         "ai_reconciliation": reconciliation.to_dict(),
+        "historical_context": historical_context,
         "deterministic_authority": True,
         "ai_advisory_only": True,
         "read_only": True,
@@ -667,4 +681,6 @@ def inspect_recovery_agent(batch_id: str):
         ),
         "read_only": True,
     }
+
+
 

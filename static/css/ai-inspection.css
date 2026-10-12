@@ -1,0 +1,157 @@
+.dfr-modal{min-height:100vh;padding:0;background:#050b14}.dfr-modal.is-open{display:block}.dfr-panel{position:relative;z-index:2;width:100%;height:100%;overflow:auto;background:#070e19;color:#e8f0fb;font-family:inherit;padding:18px 20px 24px;box-sizing:border-box}.dfr-header{display:grid;grid-template-columns:205px minmax(220px,1fr) auto;gap:22px;align-items:center;border-bottom:1px solid #1d2b3e;padding:0 0 16px;margin-bottom:14px}.dfr-brand{display:flex;align-items:center;gap:12px;border-right:1px solid #1d2b3e;min-height:52px}.dfr-brand-mark{display:grid;place-items:center;width:38px;height:38px;border:2px solid #2385f4;border-radius:50%;color:#39a5ff;font-size:27px}.dfr-brand strong,.dfr-brand small{display:block}.dfr-brand strong{font-size:20px;color:#f5f8ff}.dfr-brand small{font-size:12px;color:#9aabc2;margin-top:3px}.dfr-title h2{margin:0;font-size:clamp(22px,2vw,30px);line-height:1.2;color:#f6f8fd}.dfr-title p{margin:5px 0 0;color:#9bacc2;font-size:13px}.dfr-actions{display:flex;gap:8px;align-items:center}.dfr-actions button{border:1px solid #315174;border-radius:8px;background:#0d1a2b;color:#edf5ff;padding:10px 13px;font-weight:650;cursor:pointer}.dfr-actions button:hover{background:#142844;border-color:#3999ff}.dfr-actions #closeDecisionModalBtn{font-size:24px;padding:4px 12px;margin-left:8px}.dfr-content{display:grid;gap:10px}.dfr-loading,.dfr-error{padding:18px;border:1px solid #26384f;border-radius:10px;color:#b9c9dc;background:#0b1524}.dfr-error{color:#ffc1c1;border-color:#763d4b}.dfr-summary{display:grid;grid-template-columns:1.15fr 1.15fr 1fr .75fr;gap:12px;border:1px solid #26384e;border-radius:12px;padding:14px 16px;background:linear-gradient(110deg,#0b1625,#08111e)}.dfr-summary-item{min-width:0;border-right:1px solid #19283b;padding-right:10px}.dfr-summary-item:last-child{border:0}.dfr-label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#91a5bf;margin-bottom:6px}.dfr-value{font-size:16px;font-weight:750;color:#f5f8ff;overflow-wrap:anywhere}.dfr-meta{font-size:12px;color:#a9b9ce;margin-top:5px;overflow-wrap:anywhere}.dfr-pill{display:inline-block;border-radius:99px;padding:4px 9px;background:#0c624a;color:#6af0bc;font-size:11px;font-weight:750;margin-left:8px}.dfr-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.dfr-kpi{display:flex;gap:12px;align-items:center;min-height:72px;padding:12px 14px;border:1px solid #24415e;border-radius:11px;background:linear-gradient(125deg,#0c1b30,#091421);min-width:0}.dfr-kpi-icon{display:grid;place-items:center;flex:0 0 48px;height:48px;border-radius:12px;background:#102b4d;color:#52aaff;font-size:23px}.dfr-kpi.ai{border-color:#1764a6}.dfr-kpi.policy{border-color:#14795f}.dfr-kpi.policy .dfr-kpi-icon{background:#0b302a;color:#4fe0a6}.dfr-kpi.outcome{border-color:#57369a}.dfr-kpi.outcome .dfr-kpi-icon{background:#281747;color:#bd8bff}.dfr-kpi.amount{border-color:#155f57}.dfr-kpi.amount .dfr-kpi-icon{background:#0c302d;color:#4de2b0}.dfr-kpi strong{display:block;font-size:17px;color:#f7f9ff;overflow-wrap:anywhere}.dfr-kpi small{display:block;font-size:11px;color:#9fb0c7;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}.dfr-kpi p{margin:4px 0 0;color:#a7b8cd;font-size:11px}.dfr-primary-grid{display:grid;grid-template-columns:minmax(220px,.95fr) minmax(360px,1.4fr) minmax(235px,.9fr);gap:10px;align-items:stretch}.dfr-card{border:1px solid #26374d;border-radius:12px;background:linear-gradient(145deg,#0b1523,#08111d);padding:13px;min-width:0}.dfr-card h3{font-size:14px;margin:0 0 12px;color:#d9e8fc;display:flex;align-items:center;gap:9px}.dfr-icon{width:28px;height:28px;display:grid;place-items:center;border-radius:8px;font-size:17px;flex:0 0 28px}.dfr-icon.red{color:#ff777b;background:#351923}.dfr-icon.blue{color:#50b7ff;background:#102944}.dfr-icon.green{color:#4be0ac;background:#0b302a}.dfr-icon.purple{color:#b78cff;background:#271942}.dfr-icon.orange{color:#ffad65;background:#352416}.dfr-diagnosis-category{display:inline-block;padding:7px 11px;border-radius:99px;background:#48212b;color:#ffbec5;font-weight:750;font-size:13px}.dfr-diagnosis-type{display:inline-block;padding:7px 10px;border-radius:99px;background:#122b46;color:#92cfff;font-size:11px;margin-left:6px}.dfr-description{font-size:12px;line-height:1.65;color:#bac9dc;margin:12px 0}.dfr-detail-box{border:1px solid #1e3047;border-radius:9px;padding:10px;background:#0b1726}.dfr-detail-row{display:grid;grid-template-columns:minmax(90px,.8fr) minmax(0,1.2fr);gap:8px;font-size:11px;padding:4px 0;color:#c3d1e2}.dfr-detail-row span:first-child{color:#8fa4be}.dfr-table-scroll{width:100%;overflow:auto}.dfr-card table{width:100%;border-collapse:collapse;font-size:11px;min-width:360px}.dfr-card th{text-align:left;color:#b7c7dc;background:#111f31;font-weight:600;padding:8px;border-bottom:1px solid #273950;white-space:nowrap}.dfr-card td{padding:8px;color:#d1deed;border-bottom:1px solid #1a2a3e;vertical-align:top}.dfr-card tr:last-child td{border-bottom:0}.dfr-result{display:inline-block;border-radius:99px;padding:3px 7px;background:#0b392d;color:#56e4ae;border:1px solid #126448;white-space:nowrap}.dfr-result.warn{background:#3a2a13;color:#ffcf72;border-color:#76531b}.dfr-result.neutral{background:#182536;color:#b6c5d8;border-color:#2d4059}.dfr-timeline{list-style:none;padding:0;margin:0;display:grid;gap:13px}.dfr-timeline li{position:relative;padding-left:31px;min-height:28px}.dfr-timeline li:not(:last-child):before{content:"";position:absolute;left:11px;top:24px;bottom:-14px;width:2px;background:#24527b}.dfr-step{position:absolute;left:0;top:0;display:grid;place-items:center;width:23px;height:23px;border-radius:50%;background:#183e69;color:#fff;font-weight:800;font-size:11px}.dfr-step.success{background:#0f7759}.dfr-timeline strong{display:block;font-size:12px;color:#f2f6fc}.dfr-timeline small{display:block;color:#91a5be;font-size:10px;margin-top:3px}.dfr-timeline p{font-size:11px;color:#aebed2;margin:4px 0 0;line-height:1.45}.dfr-evidence{padding:13px}.dfr-evidence-cards{display:grid;grid-template-columns:repeat(6,minmax(100px,1fr));gap:8px;margin-bottom:10px}.dfr-evidence-stat{border:1px solid #243950;border-radius:9px;background:#0d1928;padding:10px;min-width:0}.dfr-evidence-stat strong{display:block;font-size:18px;color:#52c9ff;overflow-wrap:anywhere}.dfr-evidence-stat:nth-child(2) strong,.dfr-evidence-stat:nth-child(3) strong{color:#4be1ac}.dfr-evidence-stat span{display:block;color:#d0dceb;font-size:11px;margin-top:4px}.dfr-evidence-stat small{display:block;color:#90a4be;font-size:10px;margin-top:3px}.dfr-evidence-grid{display:grid;grid-template-columns:1fr 1fr 1.1fr;gap:9px}.dfr-subcard{border:1px solid #203249;border-radius:9px;padding:10px;background:#091421;min-width:0}.dfr-subcard h4{font-size:11px;margin:0 0 10px;color:#e0eafa}.dfr-signal{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #17283b;font-size:11px;color:#aebfd3}.dfr-signal:last-child{border-bottom:0}.dfr-signal strong{color:#e1edfb;text-align:right}.dfr-bottom-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:10px}.dfr-footnote{font-size:10px;color:#8197b2;margin:8px 0 0}.dfr-safety{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:12px 14px;border:1px solid #25485c;border-radius:10px;background:#091d2a;font-size:11px;color:#a9bfd3}.dfr-safety strong{color:#5bd9f2}.dfr-safety span{flex:1;min-width:180px}.dfr-empty{color:#7f94ad;font-size:11px;padding:10px 0}.dfr-loading[hidden],.dfr-error[hidden],.dfr-content[hidden]{display:none!important}
+@media(max-width:1100px){.dfr-header{grid-template-columns:1fr auto}.dfr-brand{display:none}.dfr-primary-grid{grid-template-columns:1fr 1.4fr}.dfr-primary-grid>.dfr-card:last-child{grid-column:1/-1}.dfr-evidence-cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.dfr-panel{padding:12px}.dfr-header{grid-template-columns:1fr;gap:12px}.dfr-actions{justify-content:flex-start;flex-wrap:wrap}.dfr-summary{grid-template-columns:1fr 1fr}.dfr-summary-item:nth-child(2){border:0}.dfr-kpis{grid-template-columns:1fr 1fr}.dfr-primary-grid,.dfr-evidence-grid,.dfr-bottom-grid{grid-template-columns:1fr}.dfr-primary-grid>.dfr-card:last-child{grid-column:auto}.dfr-evidence-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.dfr-card table{min-width:520px}}
+@media print{body.dfr-printing *{visibility:hidden!important}body.dfr-printing #decisionIntelligenceModal,body.dfr-printing #decisionIntelligenceModal *{visibility:visible!important}body.dfr-printing #decisionIntelligenceModal{position:static!important;display:block!important;background:#fff!important;color:#111!important}body.dfr-printing .decision-modal-backdrop,body.dfr-printing .dfr-actions{display:none!important}.dfr-panel{height:auto;overflow:visible;background:#fff!important;color:#111!important}.dfr-card,.dfr-summary,.dfr-kpi,.dfr-subcard{background:#fff!important;color:#111!important;break-inside:avoid}.dfr-card h3,.dfr-value,.dfr-kpi strong,.dfr-timeline strong,.dfr-card td,.dfr-card th{color:#111!important}}
+
+.dfr-standalone{margin:0;min-height:100vh;background:#050b14;color:#e8f0fb;font-family:Inter,Segoe UI,Arial,sans-serif}.dfr-standalone #closeDecisionModalBtn{font-size:22px}
+
+/* Three-section inspection navigation */
+.dfr-workspace{display:grid;grid-template-columns:230px minmax(0,1fr);gap:16px;align-items:start;min-width:0}
+.dfr-sidebar{position:sticky;top:12px;display:flex;flex-direction:column;gap:7px;padding:12px;border:1px solid #20334a;border-radius:13px;background:#091421;min-width:0}
+.dfr-sidebar-heading{padding:8px 10px 10px;color:#7794b4;font-size:10px;font-weight:800;letter-spacing:.12em}
+.dfr-nav-btn{display:flex;align-items:center;gap:10px;width:100%;min-height:43px;padding:10px;border:1px solid transparent;border-radius:8px;background:transparent;color:#aebfd4;text-align:left;font:inherit;font-size:12px;line-height:1.4;cursor:pointer}
+.dfr-nav-btn>span:first-child{display:grid;place-items:center;flex:0 0 22px;width:22px;height:22px;border-radius:6px;color:#79baff;font-size:17px}
+.dfr-nav-btn:hover{background:#10223a;color:#f1f7ff}
+.dfr-nav-btn.is-active{background:#112a47;border-color:#1b4774;color:#f5f9ff;font-weight:750}
+.dfr-nav-btn.is-active>span:first-child{color:#54b3ff}
+.dfr-sidebar-note{margin-top:12px;padding:12px 9px 4px;border-top:1px solid #1c2d41;color:#7f9ab7;font-size:10px;line-height:1.6}
+.dfr-view-container,.dfr-view{display:grid;gap:12px;min-width:0}
+.dfr-view[hidden]{display:none!important}
+.dfr-view>.dfr-primary-grid{grid-template-columns:minmax(0,.85fr) minmax(0,1.4fr)}
+.dfr-view-intro{margin:-3px 0 14px;color:#9eb2ca;font-size:12px;line-height:1.6}
+.dfr-event-view{min-height:300px}
+.dfr-event-view .dfr-timeline{gap:16px}
+.dfr-event-view .dfr-timeline strong{font-size:13px}
+.dfr-event-view .dfr-timeline small{font-size:11px}
+.dfr-event-view .dfr-timeline p{font-size:12px;line-height:1.6}
+@media(max-width:900px){.dfr-workspace{grid-template-columns:1fr}.dfr-sidebar{position:static;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:8px}.dfr-sidebar-heading,.dfr-sidebar-note{grid-column:1/-1}.dfr-nav-btn{justify-content:center;min-height:42px;padding:8px 5px;font-size:11px}.dfr-nav-btn>span:first-child{display:none}}
+@media(max-width:600px){.dfr-sidebar{grid-template-columns:1fr}.dfr-nav-btn{justify-content:flex-start;font-size:12px}.dfr-nav-btn>span:first-child{display:grid}.dfr-view>.dfr-primary-grid{grid-template-columns:minmax(0,1fr)}}
+
+
+/* Inspection report readability refinements */
+.dfr-workspace{grid-template-columns:230px minmax(0,1fr);gap:18px}
+.dfr-view-container{min-width:0;overflow:hidden}
+.dfr-view{min-width:0}
+.dfr-kpis{align-items:stretch}
+.dfr-kpi{height:auto;min-height:116px;box-sizing:border-box;align-items:center;overflow:hidden}
+.dfr-kpi-copy{min-width:0;flex:1}
+.dfr-kpi strong{font-size:clamp(14px,1.05vw,18px);line-height:1.35;overflow-wrap:anywhere;word-break:normal}
+.dfr-kpi p{font-size:11px;line-height:1.5;overflow-wrap:anywhere;word-break:normal}
+.dfr-kpi .dfr-kpi-icon{flex-shrink:0}
+.dfr-summary-item{min-width:0;overflow-wrap:anywhere}
+.dfr-value,.dfr-meta{overflow-wrap:anywhere;word-break:normal}
+.dfr-primary-grid,.dfr-evidence-grid,.dfr-bottom-grid{min-width:0}
+.dfr-card{min-width:0;overflow:hidden}
+.dfr-card table{table-layout:auto}
+.dfr-card th,.dfr-card td{white-space:normal;overflow-wrap:anywhere;word-break:normal;line-height:1.5}
+.dfr-card th{vertical-align:bottom}
+.dfr-card td{max-width:420px}
+.dfr-comparison table{min-width:600px}
+.dfr-comparison td:nth-child(2),.dfr-comparison td:nth-child(3){min-width:110px}
+.dfr-comparison td:nth-child(4){min-width:90px}
+.dfr-detail-row{align-items:start}
+.dfr-detail-row span{overflow-wrap:anywhere;word-break:normal}
+.dfr-evidence-stat strong{font-size:clamp(14px,1.2vw,18px);line-height:1.35;overflow-wrap:anywhere}
+.dfr-evidence-stat span,.dfr-evidence-stat small{line-height:1.5;overflow-wrap:anywhere}
+.dfr-signal strong{overflow-wrap:anywhere;word-break:normal}
+.dfr-safety span{overflow-wrap:anywhere}
+@media(max-width:1200px){
+  .dfr-workspace{grid-template-columns:210px minmax(0,1fr);gap:12px}
+  .dfr-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dfr-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dfr-summary-item:nth-child(2){border-right:0}
+  .dfr-primary-grid{grid-template-columns:minmax(0,1fr)}
+  .dfr-evidence-grid,.dfr-bottom-grid{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:900px){
+  .dfr-workspace{grid-template-columns:minmax(0,1fr)}
+  .dfr-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dfr-evidence-cards{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:600px){
+  .dfr-kpis,.dfr-summary,.dfr-evidence-cards{grid-template-columns:minmax(0,1fr)}
+  .dfr-summary-item{border-right:0;border-bottom:1px solid #19283b;padding:0 0 10px}
+  .dfr-summary-item:last-child{border-bottom:0}
+  .dfr-kpi{min-height:92px}
+}
+
+/* Compact inspection comparison cards */
+.dfr-view .dfr-primary-grid{
+    grid-template-columns:minmax(0,.85fr) minmax(0,1.4fr);
+    align-items:start;
+    gap:12px;
+}
+.dfr-view .dfr-primary-grid>.dfr-card{
+    height:auto;
+    min-height:0;
+    align-self:start;
+    box-sizing:border-box;
+}
+.dfr-view .dfr-primary-grid>.dfr-card h3{
+    margin-bottom:10px;
+}
+.dfr-view .dfr-primary-grid .dfr-description{
+    margin:8px 0 10px;
+}
+.dfr-view .dfr-primary-grid .dfr-detail-box{
+    padding:9px 11px;
+}
+.dfr-view .dfr-primary-grid .dfr-detail-row{
+    padding:5px 0;
+}
+.dfr-view .dfr-comparison .dfr-table-scroll{
+    overflow-x:auto;
+    overflow-y:hidden;
+}
+.dfr-view .dfr-comparison table{
+    width:100%;
+    min-width:0;
+    table-layout:fixed;
+    font-size:12px;
+}
+.dfr-view .dfr-comparison th,
+.dfr-view .dfr-comparison td{
+    padding:9px 8px;
+    line-height:1.45;
+    vertical-align:top;
+    overflow-wrap:anywhere;
+}
+.dfr-view .dfr-comparison th:first-child,
+.dfr-view .dfr-comparison td:first-child{
+    width:20%;
+}
+.dfr-view .dfr-comparison th:nth-child(2),
+.dfr-view .dfr-comparison td:nth-child(2){
+    width:27%;
+}
+.dfr-view .dfr-comparison th:nth-child(3),
+.dfr-view .dfr-comparison td:nth-child(3){
+    width:27%;
+}
+.dfr-view .dfr-comparison th:nth-child(4),
+.dfr-view .dfr-comparison td:nth-child(4){
+    width:26%;
+}
+.dfr-view .dfr-comparison td .dfr-result{
+    white-space:normal;
+    overflow-wrap:anywhere;
+}
+@media(max-width:1200px){
+    .dfr-view .dfr-primary-grid{
+        grid-template-columns:minmax(0,1fr);
+    }
+    .dfr-view .dfr-comparison table{
+        min-width:560px;
+        table-layout:auto;
+    }
+}
+
+/* Official DunnFlow logo on the AI Inspection page */
+.dfr-brand-logo {
+    display: block;
+    width: 64px;
+    height: 64px;
+    flex: 0 0 64px;
+    object-fit: contain;
+    border-radius: 0;
+}

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * DunnFlow \u2014 Metrics & Recovery Orchestration
  *
  * Responsibilities:
@@ -358,6 +358,11 @@
                 getSelectedBatchId() !==
                 targetBatch
             ) {
+                return null;
+            }
+
+            // An in-flight batch request must not overwrite active Demo Lab metrics.
+            if (DunnFlowState && DunnFlowState.mode === "demo") {
                 return null;
             }
 
@@ -826,88 +831,126 @@
     }
 
 
-    function renderAIRecommendation(
-        payload
-    ) {
-        const ai =
-            extractAIRecommendation(
-                payload
+    function renderHistoricalEvidence(payload) {
+        const context = payload?.historical_context;
+        const status = byId("historicalEvidenceStatus");
+        const detail = byId("historicalEvidenceDetail");
+
+        if (!status || !detail) return;
+
+        status.textContent = "Historical evidence unavailable";
+        detail.textContent =
+            "No historical context was included in this response. " +
+            "Deterministic policy remains authoritative.";
+
+        if (!context || typeof context !== "object") return;
+
+        const consistency = context.historical_evidence_consistency || {};
+        const signals = consistency.signals || {};
+        const lines = [];
+
+        const labels = {
+            failure_category: "Failure category",
+            customer_behavior: "Customer behavior",
+            amount_band: "Amount band",
+            recency: "Recency"
+        };
+
+        for (const [key, label] of Object.entries(labels)) {
+            const value = signals[key];
+            if (value !== undefined && value !== null && value !== "") {
+                lines.push(`${label}: ${String(value).replaceAll("_", " ")}`);
+            }
+        }
+
+        if (consistency.consistency_signal) {
+            lines.push(
+                "Evidence alignment: " +
+                String(consistency.consistency_signal).replaceAll("_", " ")
             );
+        }
+
+        if (consistency.interpretation) {
+            lines.push(String(consistency.interpretation));
+        }
+
+        const summary = context.historical_evidence_summary || {};
+        if (summary.sample_size !== undefined) {
+            lines.unshift(`Evidence sample size: ${summary.sample_size}`);
+        } else if (summary.total_cases !== undefined) {
+            lines.unshift(`Evidence sample size: ${summary.total_cases}`);
+        }
+
+        status.textContent = consistency.consistency_signal
+            ? "Evidence: " + String(consistency.consistency_signal).replaceAll("_", " ")
+            : "Historical learning context available";
+
+        detail.textContent = lines.length
+            ? lines.join(" · ") +
+              ". Advisory evidence only; deterministic policy remains authoritative."
+            : "Historical context received, but no recognized evidence signals were available.";
+    }
+
+    function renderAIRecommendation(payload) {
+        const ai = extractAIRecommendation(payload);
+
+        /*
+         * Reset every field first. A missing field from the new response
+         * must never leave advice from the previously selected invoice.
+         */
+        setText("aiRecommendation", "AI unavailable");
+        setText("aiConfidence", "Confidence ?");
+        setText("aiAgreement", "Policy agreement ?");
+        setText(
+            "aiReason",
+            "No current AI recommendation is available. Deterministic policy remains authoritative."
+        );
 
         if (!ai) {
             return;
         }
 
+        const available = ai.available !== false;
 
-        const available =
-            ai.available !== false;
-
+        if (!available) {
+            if (ai.reason || ai.explanation) {
+                setText("aiReason", ai.reason || ai.explanation);
+            }
+            return;
+        }
 
         const recommendation =
             ai.recommended_action ||
             ai.action ||
-            ai.recommendation ||
-            "\u2014";
+            ai.recommendation;
 
-
-        const confidence =
-            ai.confidence;
-
-
-        const agreement =
-            ai.agreement;
-
-
-        const reason =
-            ai.reason ||
-            ai.explanation ||
-            "";
-
-
-        /*
-         * Prefer dedicated elements if they exist.
-         * Fall back to the existing pipeline status.
-         */
-
-        setText(
-            "aiRecommendation",
-            available
-                ? recommendation
-                : "AI unavailable"
-        );
-
+        if (recommendation) {
+            setText("aiRecommendation", recommendation);
+        }
 
         if (
-            confidence !== undefined &&
-            confidence !== null
+            ai.confidence !== undefined &&
+            ai.confidence !== null &&
+            Number.isFinite(Number(ai.confidence))
         ) {
             setText(
                 "aiConfidence",
-                `${(
-                    Number(confidence) * 100
-                ).toFixed(0)}%`
+                `Confidence: ${(Number(ai.confidence) * 100).toFixed(0)}%`
             );
         }
 
-
-        if (
-            agreement !== undefined &&
-            agreement !== null
-        ) {
+        if (typeof ai.agreement === "boolean") {
             setText(
                 "aiAgreement",
-                agreement
-                    ? "AGREES"
-                    : "ADVISORY DIFFERENCE"
+                `Policy agreement: ${
+                    ai.agreement ? "AGREES" : "ADVISORY DIFFERENCE"
+                }`
             );
         }
 
-
+        const reason = ai.reason || ai.explanation;
         if (reason) {
-            setText(
-                "aiReason",
-                reason
-            );
+            setText("aiReason", reason);
         }
     }
 
@@ -1145,6 +1188,7 @@
             renderAIRecommendation(
                 inspected
             );
+            renderHistoricalEvidence(inspected);
 
             renderDeterministicDecision(
                 deterministicDecision
@@ -1192,6 +1236,18 @@
                 "DunnFlow AI inspection failed:",
                 error
             );
+
+            renderHistoricalEvidence(null);
+            renderAIRecommendation({
+                ai_recommendation: {
+                    available: false,
+                    reason: `Inspection failed: ${
+                        error && error.message
+                            ? error.message
+                            : "Unknown error"
+                    }`
+                }
+            });
 
             return null;
         }
@@ -2636,7 +2692,35 @@ function renderReportDashboard(metrics) {
     }
 
 
+    function syncReportLaunchLink() {
+        const reportLink = document.getElementById("openReportMetricsBtn");
+        if (!reportLink) return;
+
+        const batchId = getSelectedBatchId() || DEFAULT_BATCH;
+        reportLink.href = `/reports/${encodeURIComponent(batchId)}`;
+
+        if (!reportLink.dataset.batchClickSyncBound) {
+            reportLink.addEventListener("click", function () {
+                const currentBatchId =
+                    getSelectedBatchId() || DEFAULT_BATCH;
+
+                reportLink.href =
+                    `/reports/${encodeURIComponent(currentBatchId)}`;
+            });
+
+            reportLink.dataset.batchClickSyncBound = "true";
+        }
+    }
+
     function initializeReportsDashboard() {
+        syncReportLaunchLink();
+
+        const batchSelect = document.getElementById("batchSelect");
+        if (batchSelect && !batchSelect.dataset.reportLinkBound) {
+            batchSelect.addEventListener("change", syncReportLaunchLink);
+            batchSelect.dataset.reportLinkBound = "true";
+        }
+
         const refreshButton =
             document.getElementById(
                 "refreshReportBtn"
@@ -3077,8 +3161,37 @@ function renderReportDashboard(metrics) {
 
         inspectSelectedDemoCase,
 
+        refreshSelectedDemoMetrics,
+
         resetPipeline
     };
+
+    /*
+     * Keep dashboard metrics synchronized with the active UI context:
+     * - Demo Lab selection: render read-only metrics for that invoice.
+     * - Control Center selection/deselection: reload selected batch metrics.
+     *
+     * This listener never detects, decides, schedules, or executes recovery.
+     */
+    document.addEventListener("dunnflow:demo-selected", function (event) {
+        const invoiceId = event && event.detail
+            ? event.detail.invoiceId
+            : null;
+
+        if (invoiceId) {
+            refreshSelectedDemoMetrics(String(invoiceId));
+            return;
+        }
+
+        refreshMetrics(
+            getSelectedBatchId() || DEFAULT_BATCH
+        ).catch(function (error) {
+            console.error(
+                "DunnFlow batch metrics refresh after context change failed:",
+                error
+            );
+        });
+    });
 
 
     /*
