@@ -33,6 +33,16 @@
         return document.getElementById(id);
     }
 
+    function isRazorpayDemoScenario(scenario) {
+        return scenario === "razorpayVideoDemo" ||
+            Boolean(
+                scenario &&
+                typeof scenario === "object" &&
+                scenario.key === "razorpayVideoDemo"
+            );
+    }
+
+
 
     function setText(id, value) {
         const element = byId(id);
@@ -188,48 +198,39 @@
             return;
         }
 
-        /*
-         * Demo financial truth:
-         * A paid invoice represents successfully recovered revenue.
-         * Therefore a single paid demo case must display:
-         *   Revenue at Risk = 0
-         *   Recovered      = invoice amount
-         *   Recovery Rate  = 100%
-         *
-         * Do not derive the demo card from the batch-level metrics.
-         */
+        // Razorpay demo dashboard must only display cumulative session metrics.
+        // Reject stale batch/single-invoice responses while this scenario is active.
         if (
-            DunnFlowState &&
-            DunnFlowState.mode === "demo" &&
-            metrics.invoice_id
+            window.DunnFlowState &&
+            window.DunnFlowState.mode === "demo" &&
+            (isRazorpayDemoScenario(window.DunnFlowState.scenario)) &&
+            metrics.scope !== "isolated_razorpay_demo"
         ) {
-            const demoAmount =
-                Number(metrics.amount || metrics.invoice_amount || 0);
-
-            const demoPaid =
-                Number(metrics.recovered_count || 0) === 1 ||
-                (
-                    Number(metrics.historical_amount_at_risk || 0) === 0 &&
-                    Number(metrics.amount_recovered || 0) > 0
-                );
-
-            if (demoPaid && demoAmount > 0) {
-                metrics = {
-                    ...metrics,
-                    historical_invoices_at_risk: 0,
-                    historical_amount_at_risk: 0,
-                    recovered_count: 1,
-                    amount_recovered: demoAmount,
-                    recovery_rate_pct: 100,
-                    in_progress_count: 0
-                };
-            }
+            console.debug(
+                "DunnFlow: ignored non-aggregate metrics for active Razorpay demo."
+            );
+            return;
         }
 
+        // Razorpay Demo Lab must display aggregate metrics only.
+        // Block any late single-invoice refresh from overwriting them.
+        if (
+            DunnFlowState &&
+            (isRazorpayDemoScenario(DunnFlowState.scenario)) &&
+            metrics.scope !== "isolated_razorpay_demo"
+        ) {
+            console.warn(
+                "DunnFlow: ignored non-aggregate metrics while Razorpay Demo Lab is selected."
+            );
+            return;
+        }
+
+        // Live dashboard risk is the amount still unpaid.
+        // Historical risk remains available for reports and recovery-rate baselines.
         const risk =
-            metrics.historical_amount_at_risk ??
             metrics.amount_at_risk ??
             metrics.revenue_at_risk ??
+            metrics.historical_amount_at_risk ??
             0;
 
         const recovered =
@@ -241,31 +242,6 @@
             metrics.recovery_rate_pct ??
             metrics.recovery_rate ??
             0;
-
-        /*
-         * Razorpay Test Mode isolated recovery:
-         * after the customer successfully pays the ?299 recovery order,
-         * the backend correctly reports zero CURRENT risk because the
-         * invoice is already paid. For this single-case demo, recovered
-         * amount therefore represents 100% recovery of the case amount.
-         *
-         * Do NOT apply this to the benchmark batch because its normal
-         * recovery-rate calculation must remain unchanged.
-         */
-        const selectedBatchForRate =
-            getSelectedBatchId() ||
-            metrics.batch_id ||
-            "";
-
-        if (
-            String(selectedBatchForRate)
-                .toLowerCase()
-                .includes("razorpay_isolated_test") &&
-            Number(metrics.amount_recovered || 0) > 0 &&
-            Number(metrics.historical_amount_at_risk || 0) === 0
-        ) {
-            rate = 100;
-        }
 
         const inProgress =
             metrics.in_progress_count ??
@@ -284,6 +260,36 @@
         setText(
             "riskAmount",
             formatRupeesFromPaise(risk)
+        );
+
+        const recoveryCount =
+            Number(
+                metrics.recovery_count ??
+                metrics.historical_invoices_at_risk ??
+                0
+            );
+
+        const recoveredCount =
+            Number(metrics.recovered_count || 0);
+
+        // Use case counts, not monetary amounts, for the recovery rate.
+        if (
+            metrics.recovery_count !== undefined ||
+            metrics.recovered_count !== undefined
+        ) {
+            rate = recoveryCount > 0
+                ? (recoveredCount / recoveryCount) * 100
+                : 0;
+        }
+
+        setText(
+            "recoveryCount",
+            recoveryCount
+        );
+
+        setText(
+            "recoveredCount",
+            recoveredCount
         );
 
         setText(
@@ -361,8 +367,18 @@
                 return null;
             }
 
-            // An in-flight batch request must not overwrite active Demo Lab metrics.
-            if (DunnFlowState && DunnFlowState.mode === "demo") {
+            // Do not let ordinary batch metrics overwrite the isolated Razorpay
+            // aggregate metrics while that scenario is the active dashboard context.
+            if (
+                DunnFlowState &&
+                (
+                    DunnFlowState.mode === "demo" ||
+                    (
+                        (isRazorpayDemoScenario(DunnFlowState.scenario)) &&
+                        DunnFlowState.razorpaySession
+                    )
+                )
+            ) {
                 return null;
             }
 
@@ -428,16 +444,18 @@
             getSelectedBatchId() ||
             DEFAULT_BATCH;
 
-        refreshMetrics(
-            batchId
-        ).catch(
-            function (error) {
-                console.error(
-                    "DunnFlow initial metrics load failed:",
-                    error
-                );
-            }
-        );
+        const loadMetrics =
+            String(batchId).startsWith("razorpay_") &&
+            typeof refreshIsolatedRazorpayAggregateMetrics === "function"
+                ? refreshIsolatedRazorpayAggregateMetrics()
+                : refreshMetrics(batchId);
+
+        Promise.resolve(loadMetrics).catch(function (error) {
+            console.error(
+                "DunnFlow initial metrics load failed:",
+                error
+            );
+        });
     }
 
 
@@ -886,7 +904,7 @@
             : "Historical learning context available";
 
         detail.textContent = lines.length
-            ? lines.join(" · ") +
+            ? lines.join(" ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· ") +
               ". Advisory evidence only; deterministic policy remains authoritative."
             : "Historical context received, but no recognized evidence signals were available.";
     }
@@ -1260,8 +1278,16 @@
          * If the invoice is paid, the demo case is fully recovered.
          */
         try {
+            const activeRunId = DunnFlowState.runId;
+
+            if (!activeRunId) {
+                throw new Error(
+                    "No isolated Demo Lab run is active."
+                );
+            }
+
             const demoResponse = await fetch(
-                `/api/demo/cases/${encodeURIComponent(invoiceId)}`
+                `/api/demo/cases/${encodeURIComponent(invoiceId)}?run_id=${encodeURIComponent(activeRunId)}`
             );
 
             if (demoResponse.ok) {
@@ -1274,34 +1300,8 @@
                         invoice.status === "paid" ||
                         Boolean(invoice.paid_at);
 
-                    if (DunnFlowState.mode === "demo" && paid && amount > 0) {
-                        const demoFinancial = {
-                            ...(DunnFlowState.lastMetrics || {}),
-                            invoice_id: invoice.invoice_id,
-                            amount: amount,
-                            invoice_status: invoice.status,
-                            historical_invoices_at_risk: 0,
-                            historical_amount_at_risk: 0,
-                            recovered_count: 1,
-                            amount_recovered: amount,
-                            recovery_rate_pct: 100,
-                            in_progress_count: 0
-                        };
-
-                        DunnFlowState.lastMetrics = demoFinancial;
-
-                        if (
-                            window.DunnFlowMetrics &&
-                            typeof window.DunnFlowMetrics.renderMetrics === "function"
-                        ) {
-                            window.DunnFlowMetrics.renderMetrics(demoFinancial);
-                        }
-
-                        console.log(
-                            "DUNNFLOW DEMO FINANCIAL SYNC:",
-                            demoFinancial
-                        );
-                    }
+                    // Do not fabricate dashboard totals from one paid invoice.
+                    // Persisted metrics remain authoritative for counts and revenue.
                 }
             }
         } catch (demoFinancialError) {
@@ -1367,6 +1367,113 @@
 
 
             if (
+                mode === "demo" &&
+                (isRazorpayDemoScenario(DunnFlowState.scenario))
+            ) {
+                const session = DunnFlowState.razorpaySession;
+
+                if (!session || !session.session_id ||
+                    !session.razorpay_order_id ||
+                    session.mode !== "razorpay_test_mode") {
+                    throw new Error(
+                        "Select the Razorpay Test Mode card and wait for its isolated session/order before running recovery."
+                    );
+                }
+
+                if (!window.DunnFlowAPI ||
+                    typeof window.DunnFlowAPI.runIsolatedRazorpayRecovery !== "function") {
+                    throw new Error("The isolated Razorpay recovery API is unavailable.");
+                }
+
+                updatePipeline("detect", "active");
+
+                const recovery =
+                    await window.DunnFlowAPI.runIsolatedRazorpayRecovery(
+                        session.session_id
+                    );
+
+                if (
+                    recovery.session_id !== session.session_id ||
+                    recovery.invoice_id !== session.invoice_id ||
+                    recovery.batch_id !== session.batch_id ||
+                    recovery.razorpay_order_id !== session.razorpay_order_id ||
+                    recovery.awaiting_payment !== true ||
+                    recovery.financial_execution_performed !== false
+                ) {
+                    throw new Error(
+                        "Isolated recovery response did not match the prepared session/order. Payment remains unverified."
+                    );
+                }
+
+                updatePipeline("detect", "complete");
+                updatePipeline("diagnose", "complete");
+                updatePipeline("decide", "complete");
+                updatePipeline("execute", "complete");
+                updatePipeline("outcome", "awaiting");
+
+                DunnFlowState.invoiceId = recovery.invoice_id;
+                DunnFlowState.lastDiagnosis = recovery.diagnosis;
+                DunnFlowState.lastDecision = recovery.decision;
+                DunnFlowState.lastExecution = {
+                    status: "pending",
+                    result: "awaiting_payment",
+                    razorpay_order_id: recovery.razorpay_order_id,
+                    mode: "razorpay_test_mode",
+                    financial_execution_performed: false
+                };
+
+                setText("outcomeResult", "AWAITING PAYMENT");
+
+                if (typeof renderIsolatedRazorpaySessionMetrics === "function") {
+                    try {
+                        const metricsRendered =
+                            await renderIsolatedRazorpaySessionMetrics(session, false);
+
+                        if (!metricsRendered) {
+                            console.warn(
+                                "DunnFlow: isolated recovery is awaiting payment; metrics were not refreshed."
+                            );
+                        }
+                    } catch (metricsError) {
+                        // Metrics are supplementary. A metrics failure must not
+                        // overwrite a validated awaiting-payment recovery result.
+                        console.error(
+                            "DunnFlow: isolated session metrics refresh failed:",
+                            metricsError
+                        );
+                    }
+                }
+
+                if (window.DunnFlowLiveFeed &&
+                    typeof window.DunnFlowLiveFeed.add === "function") {
+                    window.DunnFlowLiveFeed.add(
+                        "Detection, diagnosis and deterministic decision completed for the isolated Razorpay session. Existing order retained; awaiting customer payment.",
+                        "info"
+                    );
+                }
+
+                console.info("DunnFlow isolated Razorpay recovery prepared:", {
+                    session_id: recovery.session_id,
+                    invoice_id: recovery.invoice_id,
+                    razorpay_order_id: recovery.razorpay_order_id,
+                    diagnosis: recovery.diagnosis,
+                    decision: recovery.decision
+                });
+
+                return {
+                    observed: recovery.detection,
+                    diagnosis: recovery.diagnosis,
+                    decided: recovery.decision,
+                    executed: DunnFlowState.lastExecution,
+                    finalAction: recovery.decision,
+                    metrics: DunnFlowState.lastMetrics || null,
+                    completed: false,
+                    awaitingCheckout: true,
+                    session_id: recovery.session_id,
+                    razorpay_order_id: recovery.razorpay_order_id
+                };
+            }
+            if (
                 mode === "demo"
             ) {
                 
@@ -1395,21 +1502,6 @@
                     );
                 }
 
-                /*
-                 * Razorpay Test Mode always executes against
-                 * the dedicated Razorpay demo invoice.
-                 */
-                if (
-                    DunnFlowState.scenario ===
-                        "razorpayVideoDemo" &&
-                    selectedInvoiceId !==
-                        "inv_dunnflow_001"
-                ) {
-                    throw new Error(
-                        "Razorpay Test Mode target mismatch: expected inv_dunnflow_001, got " +
-                        selectedInvoiceId
-                    );
-                }
 
                 return await runDemoRecovery(
                     selectedInvoiceId
@@ -1689,12 +1781,12 @@
                 ? amount
                 : 0;
 
+        const recoveryCount = 1;
+        const recoveredCount = isPaid ? 1 : 0;
+
         const recoveryRate =
-            amount > 0
-                ? (
-                    recoveredAmount /
-                    amount
-                ) * 100
+            recoveryCount > 0
+                ? (recoveredCount / recoveryCount) * 100
                 : 0;
 
         /*
@@ -1728,14 +1820,22 @@
             invoice_status:
                 invoice.status,
 
+            // Current risk excludes an invoice already paid.
+            amount_at_risk:
+                revenueAtRisk,
+
+            // Preserve historical risk semantics for this demo case.
             historical_invoices_at_risk:
                 isPaid ? 0 : 1,
 
             historical_amount_at_risk:
                 revenueAtRisk,
 
+            recovery_count:
+                recoveryCount,
+
             recovered_count:
-                isPaid ? 1 : 0,
+                recoveredCount,
 
             amount_recovered:
                 recoveredAmount,
@@ -1939,10 +2039,7 @@
                 }
             ]);
 
-            const metrics =
-                await refreshMetrics(
-                    getSelectedBatchId()
-                );
+            const metrics = await refreshSelectedDemoMetrics(invoiceId);
 
             DunnFlowState.lastMetrics =
                 metrics;
@@ -2226,7 +2323,7 @@
             };
         }
 
-if (DunnFlowState.scenario === "razorpayVideoDemo") {
+if ((isRazorpayDemoScenario(DunnFlowState.scenario))) {
 
             updatePipeline(
                 "execute",
@@ -2904,7 +3001,10 @@ function renderReportDashboard(metrics) {
                  *
                  * Do not manufacture a successful state in the browser.
                  */
-                const batchId =
+                // Preserve the batch used to open this exact checkout.
+                const confirmationBatchId =
+                    checkout.batch_id ||
+                    batchId ||
                     getSelectedBatchId() ||
                     DEFAULT_BATCH;
 
@@ -2925,9 +3025,11 @@ function renderReportDashboard(metrics) {
                         }
                     );
 
+                    // Read authoritative backend metrics directly.
+                    // refreshMetrics() intentionally returns null in Demo mode.
                     const metrics =
-                        await refreshMetrics(
-                            batchId
+                        await getMetrics(
+                            confirmationBatchId
                         );
 
                     if (!metrics) {
@@ -2987,7 +3089,7 @@ function renderReportDashboard(metrics) {
                         try {
                             renderCases(
                                 await getDemoCases(
-                                    batchId
+                                    confirmationBatchId
                                 )
                             );
                         } catch (error) {
@@ -3087,61 +3189,389 @@ function renderReportDashboard(metrics) {
 
 
 
-    function initializeExistingRazorpayCheckout() {
-        const button =
-            document.getElementById(
-                "payExistingOrderBtn"
-            );
+    /*
+     * Render isolated Razorpay session metrics directly.
+     * This path does not require a synthetic demo run and never
+     * creates a recovery decision or executes a payment.
+     */
+    async function renderIsolatedRazorpaySessionMetrics(session, verifiedPaid) {
+        if (
+            !session ||
+            typeof session.invoice_id !== "string" ||
+            !session.invoice_id ||
+            typeof session.batch_id !== "string" ||
+            !session.batch_id
+        ) {
+            return false;
+        }
+
+        const amount = Number(session.amount || 0);
+        if (!Number.isFinite(amount) || amount <= 0) {
+            return false;
+        }
+
+        // Load aggregate metrics across registered isolated Razorpay sessions.
+        const response = await fetch("/api/demo/razorpay/metrics", {
+            cache: "no-store"
+        });
+
+        if (!response.ok) {
+            throw new Error("Could not load aggregate Razorpay demo metrics.");
+        }
+
+        const metrics = await response.json();
 
         if (
-            !button ||
-            button.dataset.bound === "true"
+            !metrics ||
+            metrics.exists === false ||
+            metrics.scope !== "isolated_razorpay_demo"
         ) {
+            return false;
+        }
+
+        // When payment is verified, also validate the persisted metrics
+        // for this specific session. Never trust the checkout callback alone.
+        if (verifiedPaid === true) {
+            const ownMetrics = await getMetrics(session.batch_id);
+
+            if (
+                !ownMetrics ||
+                ownMetrics.exists === false ||
+                ownMetrics.batch_id !== session.batch_id ||
+                Number(ownMetrics.recovered_count || 0) < 1 ||
+                Number(ownMetrics.amount_recovered || 0) < amount
+            ) {
+                return false;
+            }
+        }
+
+        renderMetrics(metrics);
+        DunnFlowState.lastMetrics = metrics;
+        return true;
+    }
+    async function refreshIsolatedRazorpayAggregateMetrics() {
+        const response = await fetch("/api/demo/razorpay/metrics", {
+            cache: "no-store"
+        });
+        if (!response.ok) {
+            throw new Error("Aggregate Razorpay metrics request failed.");
+        }
+
+        const metrics = await response.json();
+        if (!metrics || metrics.scope !== "isolated_razorpay_demo") {
+            throw new Error("Aggregate Razorpay metrics response was invalid.");
+        }
+
+        renderMetrics(metrics);
+        DunnFlowState.lastMetrics = metrics;
+        return metrics;
+    }
+
+    function refreshIsolatedRazorpayAudit(session) {
+        if (!session ||
+            !session.invoice_id ||
+            !session.batch_id ||
+            !window.DunnFlowAudit ||
+            typeof window.DunnFlowAudit.load !== "function") {
             return;
         }
 
-        button.addEventListener(
-            "click",
-            async function () {
-                const batchId =
-                    getSelectedBatchId() ||
-                    DEFAULT_BATCH;
+        window.DunnFlowAudit.load({
+            batchId: session.batch_id,
+            invoiceId: session.invoice_id
+        }).catch(function (error) {
+            console.warn(
+                "Isolated Razorpay audit refresh failed:",
+                error
+            );
+        });
+    }
+    // DUNNFLOW_SELECTION_SESSION_PATCH
+    let razorpaySessionPreparationPromise = null;
 
-                try {
-                    button.disabled = true;
-                    button.textContent =
-                        "OPENING CHECKOUT...";
+    function validateIsolatedRazorpayDemoSession(session) {
+        if (!session ||
+            session.mode !== "razorpay_test_mode" ||
+            typeof session.key_id !== "string" ||
+            !session.key_id.startsWith("rzp_test_") ||
+            !session.razorpay_order_id ||
+            Number(session.amount) !== 29900 ||
+            String(session.currency || "").toUpperCase() !== "INR" ||
+            !session.session_id ||
+            !session.invoice_id ||
+            !session.batch_id) {
+            throw new Error("Invalid isolated Razorpay Test Mode session.");
+        }
+        return session;
+    }
 
-                    await openExistingRazorpayCheckout(
-                        batchId
+    async function prepareIsolatedRazorpayDemoSession() {
+        if (DunnFlowState.mode !== "demo" ||
+            !isRazorpayDemoScenario(DunnFlowState.scenario)) {
+            throw new Error("Select the Razorpay Test Mode demo card first.");
+        }
+
+        if (!window.DunnFlowAPI ||
+            typeof window.DunnFlowAPI.createRazorpayDemoSession !== "function") {
+            throw new Error("Razorpay session API is unavailable.");
+        }
+
+        if (razorpaySessionPreparationPromise) {
+            return razorpaySessionPreparationPromise;
+        }
+
+        const existing = DunnFlowState.razorpaySession;
+        if (existing && existing.session_id && existing.razorpay_order_id) {
+            const session = validateIsolatedRazorpayDemoSession(existing);
+            DunnFlowState.invoiceId = session.invoice_id;
+            if (!(await renderIsolatedRazorpaySessionMetrics(session, false))) {
+                throw new Error("Could not load persisted session metrics.");
+            }
+            refreshIsolatedRazorpayAudit(session);
+            return session;
+        }
+
+        if (!DunnFlowState.razorpayIdempotencyKey) {
+            if (!window.crypto || typeof window.crypto.randomUUID !== "function") {
+                throw new Error("Secure idempotency-key generation is unavailable.");
+            }
+            DunnFlowState.razorpayIdempotencyKey =
+                "dunnflow-rpdemo-" + window.crypto.randomUUID();
+        }
+
+        const selectionKey = DunnFlowState.razorpayIdempotencyKey;
+
+        razorpaySessionPreparationPromise = (async function () {
+            const response =
+                await window.DunnFlowAPI.createRazorpayDemoSession(selectionKey);
+            const session = validateIsolatedRazorpayDemoSession(response);
+
+            if (DunnFlowState.mode !== "demo" ||
+                !isRazorpayDemoScenario(DunnFlowState.scenario) ||
+                DunnFlowState.razorpayIdempotencyKey !== selectionKey) {
+                throw new Error("Scenario changed while preparing the session.");
+            }
+
+            DunnFlowState.razorpaySession = session;
+            DunnFlowState.invoiceId = session.invoice_id;
+
+            if (!(await renderIsolatedRazorpaySessionMetrics(session, false))) {
+                throw new Error("Could not load persisted session metrics.");
+            }
+
+            refreshIsolatedRazorpayAudit(session);
+
+            if (window.DunnFlowLiveFeed &&
+                typeof window.DunnFlowLiveFeed.add === "function") {
+                window.DunnFlowLiveFeed.add(
+                    "Isolated Razorpay Test Mode order prepared: " +
+                    session.razorpay_order_id + " (INR 299). Awaiting customer action.",
+                    "info"
+                );
+            }
+            return session;
+        })();
+
+        try {
+            return await razorpaySessionPreparationPromise;
+        } finally {
+            razorpaySessionPreparationPromise = null;
+        }
+    }
+
+    async function openIsolatedRazorpayDemoCheckout() {
+        if (DunnFlowState.mode !== "demo" ||
+            !isRazorpayDemoScenario(DunnFlowState.scenario)) {
+            throw new Error("Select the Razorpay Test Mode demo card first.");
+        }
+
+        if (!window.DunnFlowAPI ||
+            typeof window.DunnFlowAPI.getRazorpayDemoSessionStatus !== "function") {
+            throw new Error("Razorpay session status API is unavailable.");
+        }
+
+        if (!window.Razorpay) {
+            throw new Error("Razorpay Checkout SDK is not loaded.");
+        }
+
+        // Do not create another session/order from the Pay button.
+        const session = DunnFlowState.razorpaySession;
+        if (!session) {
+            throw new Error("No prepared session. Reselect the Razorpay demo card.");
+        }
+
+        validateIsolatedRazorpayDemoSession(session);
+
+        if (DunnFlowState.invoiceId !== session.invoice_id) {
+            throw new Error("Invoice does not match the prepared session.");
+        }
+
+        if (!(await renderIsolatedRazorpaySessionMetrics(session, false))) {
+            throw new Error("Could not load persisted session metrics.");
+        }
+        refreshIsolatedRazorpayAudit(session);
+const options = {
+            key: session.key_id,
+            amount: session.amount,
+            currency: session.currency,
+            name: "DunnFlow",
+            description: "Isolated subscription recovery demo",
+            order_id: session.razorpay_order_id,
+
+            handler: async function () {
+                // Do not log or trust browser payment/signature fields.
+                updatePipeline("outcome", "awaiting");
+                setText("outcomeResult", "AWAITING CONFIRMATION");
+
+                if (window.DunnFlowLiveFeed &&
+                    typeof window.DunnFlowLiveFeed.add === "function") {
+                    window.DunnFlowLiveFeed.add(
+                        "Checkout submitted. Waiting for signed webhook reconciliation.",
+                        "info"
                     );
+                }
 
-                } catch (error) {
-                    console.error(
-                        "Existing Razorpay Checkout error:",
-                        error
-                    );
+                const maxAttempts = 15;
+                const pollDelayMs = 2000;
 
-                    if (
-                        window.DunnFlowLiveFeed &&
-                        typeof window.DunnFlowLiveFeed.error === "function"
-                    ) {
-                        window.DunnFlowLiveFeed.error(
-                            `Unable to open existing Razorpay Checkout: ${error.message}`
-                        );
+                for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+                    if (attempt > 0) {
+                        await new Promise(function (resolve) {
+                            setTimeout(resolve, pollDelayMs);
+                        });
                     }
 
-                } finally {
-                    button.disabled = false;
-                    button.textContent =
-                        "PAY EXISTING ORDER";
+                    let status;
+                    try {
+                        status =
+                            await window.DunnFlowAPI.getRazorpayDemoSessionStatus(
+                                session.session_id
+                            );
+                    } catch (error) {
+                        console.warn(
+                            "Unable to read isolated Razorpay session status.",
+                            error
+                        );
+                        continue;
+                    }
+
+                    if (status.verified_paid === true) {
+                        if (status.invoice_id !== session.invoice_id ||
+                            status.batch_id !== session.batch_id ||
+                            status.razorpay_order_id !== session.razorpay_order_id ||
+                            !(await renderIsolatedRazorpaySessionMetrics(status, true))) {
+                            updatePipeline("outcome", "awaiting");
+                            setText("outcomeResult", "MANUAL REVIEW");
+
+                            if (window.DunnFlowLiveFeed &&
+                                typeof window.DunnFlowLiveFeed.add === "function") {
+                                window.DunnFlowLiveFeed.add(
+                                    "Verified status context did not match the active checkout session. Metrics were not marked recovered.",
+                                    "warning"
+                                );
+                            }
+                            return;
+                        }
+
+                        DunnFlowState.invoiceId = status.invoice_id;
+                        refreshIsolatedRazorpayAudit(status);
+                        DunnFlowState.demoStage = "completed";
+
+                        updatePipeline("outcome", "success");
+                        setText("outcomeResult", "VERIFIED");
+
+                        if (window.DunnFlowLiveFeed &&
+                            typeof window.DunnFlowLiveFeed.add === "function") {
+                            window.DunnFlowLiveFeed.add(
+                                "Isolated recovery verified by backend reconciliation. Order: " +
+                                status.razorpay_order_id,
+                                "success"
+                            );
+                        }
+
+
+                        return;
+                    }
+
+                    if (status.session_status === "manual_review") {
+                        updatePipeline("outcome", "awaiting");
+                        setText("outcomeResult", "MANUAL REVIEW");
+                        return;
+                    }
+                }
+
+                updatePipeline("outcome", "awaiting");
+                setText("outcomeResult", "AWAITING CONFIRMATION");
+
+                if (window.DunnFlowLiveFeed &&
+                    typeof window.DunnFlowLiveFeed.add === "function") {
+                    window.DunnFlowLiveFeed.add(
+                        "No authoritative paid confirmation received yet. The recovery remains unverified.",
+                        "warning"
+                    );
+                }
+            },
+
+            modal: {
+                ondismiss: function () {
+                    if (window.DunnFlowLiveFeed &&
+                        typeof window.DunnFlowLiveFeed.add === "function") {
+                        window.DunnFlowLiveFeed.add(
+                            "Razorpay Test Mode Checkout was closed. Payment has not been verified.",
+                            "warning"
+                        );
+                    }
                 }
             }
-        );
+        };
+
+        new window.Razorpay(options).open();
+    }
+
+
+    function initializeExistingRazorpayCheckout() {
+        const button = document.getElementById("payExistingOrderBtn");
+
+        if (!button || button.dataset.bound === "true") {
+            return;
+        }
+
+        button.addEventListener("click", async function () {
+            const isIsolatedRazorpayDemo =
+                DunnFlowState.mode === "demo" &&
+                (isRazorpayDemoScenario(DunnFlowState.scenario));
+
+            const batchId =
+                getSelectedBatchId() || DEFAULT_BATCH;
+
+            try {
+                button.disabled = true;
+                button.textContent = isIsolatedRazorpayDemo
+                    ? "PREPARING TEST CHECKOUT..."
+                    : "OPENING CHECKOUT...";
+
+                if (isIsolatedRazorpayDemo) {
+                    await openIsolatedRazorpayDemoCheckout();
+                } else {
+                    await openExistingRazorpayCheckout(batchId);
+                }
+            } catch (error) {
+                console.error("Razorpay Checkout error:", error);
+
+                if (window.DunnFlowLiveFeed &&
+                    typeof window.DunnFlowLiveFeed.error === "function") {
+                    window.DunnFlowLiveFeed.error(
+                        "Unable to open Razorpay Checkout: " + error.message
+                    );
+                }
+            } finally {
+                button.disabled = false;
+                button.textContent = "PAY WITH RAZORPAY TEST MODE";
+            }
+        });
 
         button.dataset.bound = "true";
     }
-
 
     window.DunnFlowMetrics = {
         refresh:
@@ -3161,6 +3591,12 @@ function renderReportDashboard(metrics) {
 
         inspectSelectedDemoCase,
 
+        refreshIsolatedRazorpayAggregateMetrics,
+
+        prepareIsolatedRazorpayDemoSession,
+
+        isRazorpayDemoScenario,
+
         refreshSelectedDemoMetrics,
 
         resetPipeline
@@ -3174,20 +3610,57 @@ function renderReportDashboard(metrics) {
      * This listener never detects, decides, schedules, or executes recovery.
      */
     document.addEventListener("dunnflow:demo-selected", function (event) {
-        const invoiceId = event && event.detail
-            ? event.detail.invoiceId
-            : null;
+        const detail = event && event.detail ? event.detail : {};
+        const invoiceId = detail.invoiceId;
+
+        // Isolated Razorpay uses cumulative registered-session metrics,
+        // not the selected batch's single-session metrics.
+        if (
+            detail.scenario &&
+            isRazorpayDemoScenario(detail.scenario)
+        ) {
+            fetch("/api/demo/razorpay/metrics", { cache: "no-store" })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error("Aggregate Razorpay metrics request failed.");
+                    }
+                    return response.json();
+                })
+                .then(function (metrics) {
+                    if (
+                        metrics &&
+                        metrics.scope === "isolated_razorpay_demo"
+                    ) {
+                        renderMetrics(metrics);
+                        DunnFlowState.lastMetrics = metrics;
+                    }
+                })
+                .catch(function (error) {
+                    console.error(
+                        "DunnFlow aggregate Razorpay metrics refresh failed:",
+                        error
+                    );
+                });
+            return;
+        }
 
         if (invoiceId) {
             refreshSelectedDemoMetrics(String(invoiceId));
             return;
         }
 
-        refreshMetrics(
-            getSelectedBatchId() || DEFAULT_BATCH
-        ).catch(function (error) {
+        const batchId =
+            getSelectedBatchId() || DEFAULT_BATCH;
+
+        const loadMetrics =
+            String(batchId).startsWith("razorpay_") &&
+            typeof refreshIsolatedRazorpayAggregateMetrics === "function"
+                ? refreshIsolatedRazorpayAggregateMetrics()
+                : refreshMetrics(batchId);
+
+        Promise.resolve(loadMetrics).catch(function (error) {
             console.error(
-                "DunnFlow batch metrics refresh after context change failed:",
+                "DunnFlow metrics refresh after context change failed:",
                 error
             );
         });
@@ -3228,3 +3701,7 @@ function renderReportDashboard(metrics) {
         initialize();
     }
 })();
+
+
+
+

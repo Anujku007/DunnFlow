@@ -263,9 +263,9 @@
                             </span>
 
                             <select id="batchSelect" class="batch-select">
-    <option value="razorpay_isolated_test_001">Razorpay Test Mode — ₹299 Recovery</option>
+                                <option value="razorpay_isolated_test_002">Razorpay Test Mode 299 Recovery</option>
                                 <option value="benchmark_60_subscription_failures">Benchmark &#8212; 60 Subscription Failures</option>
-                            </select>
+</select>
 
                             <span class="batch-select-chevron">
                                &#8964;
@@ -307,7 +307,7 @@
                         </button>
 
                         <div class="run-recovery-caption">
-                            Pay the existing &#8377;299 Razorpay Test Mode recovery order.
+                            Create a fresh isolated Razorpay Test Mode session and pay securely in the test checkout.
                         </div>
 
                     </div>
@@ -493,9 +493,9 @@
                     <button
                         type="button"
                         class="scenario-card scenario-card-success"
-                        data-invoice="inv_dunnflow_001"
+                        data-invoice="razorpay_fresh_session_pending"
                     >
-                        <span class="scenario-check">?</span>
+                        <span class="scenario-check">&#10003;</span>
 
                         <div class="scenario-card-top">
                             <div class="scenario-icon scenario-icon-green">&#10003;</div>
@@ -508,7 +508,7 @@
                             </div>
 
                             <div class="scenario-card-name">
-                                ?299 Recovery
+                                299 Recovery
                             </div>
 
                             <p>
@@ -529,6 +529,8 @@
                             <span class="scenario-arrow">&#8594;</span>
                         </div>
                     </button>
+
+
 
                 </div>
 
@@ -575,11 +577,63 @@
                 </article>
 
 
+                <article class="metric-card metric-count">
+
+                    <div class="metric-top">
+                        <span class="metric-label">
+                            RECOVERY COUNT
+                        </span>
+
+                        <span class="metric-icon">
+                            &#35;
+                        </span>
+                    </div>
+
+                    <div
+                        id="recoveryCount"
+                        class="metric-value"
+                    >
+                        0
+                    </div>
+
+                    <div class="metric-description">
+                        Total cases in the selected batch
+                    </div>
+
+                </article>
+
+                <article class="metric-card metric-count">
+
+                    <div class="metric-top">
+                        <span class="metric-label">
+                            RECOVERED COUNT
+                        </span>
+
+                        <span class="metric-icon">
+                            &#10003;
+                        </span>
+                    </div>
+
+                    <div
+                        id="recoveredCount"
+                        class="metric-value"
+                    >
+                        0
+                    </div>
+
+                    <div class="metric-description">
+                        Successfully recovered cases
+                    </div>
+
+                </article>
+
+
+
                 <article class="metric-card metric-recovered">
 
                     <div class="metric-top">
                         <span class="metric-label">
-                            RECOVERED
+                            REVENUE RECOVERED
                         </span>
 
                         <span class="metric-icon">
@@ -779,6 +833,10 @@
 
                 </div>
 
+                <div class="outcome-result-panel" role="status" aria-live="polite">
+                    <span class="outcome-result-label">RECOVERY OUTCOME</span>
+                    <strong id="outcomeResult">READY</strong>
+                </div>
                 <div class="decision-intelligence-action">
 
                     <button
@@ -1015,20 +1073,18 @@
      JAVASCRIPT
 ========================================================= -->
 
-<script src="/static/js/state.js?v=20260903"></script>
-<script src="/static/js/api.js?v=20260903"></script>
+<script src="/static/js/state.js?v=20261016-aggregate-selection-4"></script>
+<script src="/static/js/api.js?v=20261016-aggregate-selection-4"></script>
 <script src="/static/js/navigation.js?v=20260903"></script>
 <script src="/static/js/audit-trail.js?v=20260903"></script>
 <script src="/static/js/live-feed.js?v=20260903"></script>
-<script src="/static/js/metrics.js?v=20261011-historical-evidence"></script>
-<script src="/static/js/scenario-cards.js?v=20261004"></script>
+<script src="/static/js/metrics.js?v=20261016-aggregate-selection-4"></script>
+<script src="/static/js/scenario-cards.js?v=20261016-aggregate-selection-4"></script>
 <script src="/static/js/ai-inspection-launcher.js?v=1"></script>
 
 
 <!-- =====================================================
      DECISIdy>
 </html>
-
-
 
 

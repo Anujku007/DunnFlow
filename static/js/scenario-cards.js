@@ -66,7 +66,7 @@ async function refreshRecoveryAgent(batchId) {
 }
 
 /*
- * DunnFlow — Demo Scenario Cards
+ * DunnFlow â€” Demo Scenario Cards
  *
  * Responsibilities:
  * - Define the three judge-facing demo scenarios.
@@ -92,7 +92,7 @@ async function refreshRecoveryAgent(batchId) {
                 "inv_dunnflow_006",
 
             label:
-                "Insufficient Funds — Fresh Demo",
+                "Insufficient Funds â€” Fresh Demo",
 
             failureCategory:
                 "insufficient_funds",
@@ -108,7 +108,7 @@ async function refreshRecoveryAgent(batchId) {
                 "inv_dunnflow_012",
 
             label:
-                "Insufficient Funds — Guardrail Demo",
+                "Insufficient Funds â€” Guardrail Demo",
 
             failureCategory:
                 "insufficient_funds",
@@ -124,7 +124,7 @@ async function refreshRecoveryAgent(batchId) {
                 "inv_dunnflow_060",
 
             label:
-                "Unclassified — Manual Review",
+                "Unclassified â€” Manual Review",
 
             failureCategory:
                 "unclassified",
@@ -152,7 +152,7 @@ async function refreshRecoveryAgent(batchId) {
             key: "razorpayVideoDemo",
 
             invoiceId:
-                "inv_dunnflow_001",
+                "razorpay_fresh_session_pending",
 
             label:
                 "Razorpay Test Mode ? ?299 Recovery",
@@ -303,10 +303,77 @@ async function refreshRecoveryAgent(batchId) {
     }
 
 
+        let syntheticDemoRunPromise = null;
+
     /**
+     * Create one isolated synthetic run per browser page session.
+     * This only creates fixture data; it never executes recovery.
+     */
+    async function ensureSyntheticDemoRun() {
+        const state = window.DunnFlowState;
+
+        if (
+            state &&
+            state.runId &&
+            state.demoScenarioCards
+        ) {
+            return {
+                run_id: state.runId,
+                batch_id: state.demoRunBatchId,
+                scenario_cards: state.demoScenarioCards
+            };
+        }
+
+        if (
+            !window.DunnFlowAPI ||
+            typeof window.DunnFlowAPI.createDemoRun !== "function"
+        ) {
+            throw new Error(
+                "Demo run API is unavailable. Reload the page after updating api.js."
+            );
+        }
+
+        if (!syntheticDemoRunPromise) {
+            syntheticDemoRunPromise =
+                window.DunnFlowAPI.createDemoRun()
+                    .then(function (run) {
+                        if (
+                            !run ||
+                            !run.run_id ||
+                            !run.batch_id ||
+                            !run.scenario_cards
+                        ) {
+                            throw new Error(
+                                "The server returned an incomplete demo run."
+                            );
+                        }
+
+                        if (state) {
+                            state.runId = run.run_id;
+                            state.demoRunBatchId = run.batch_id;
+                            state.demoScenarioCards = run.scenario_cards;
+                        }
+
+                        return run;
+                    })
+                    .finally(function () {
+                        syntheticDemoRunPromise = null;
+                    });
+        }
+
+        return syntheticDemoRunPromise;
+    }
+
+/**
      * Handle a Demo Lab card click.
      */
-    function handleCardClick(event) {
+    // DUNNFLOW_SELECTION_GENERATION_GUARD
+    // Invalidates asynchronous work from an older card selection.
+    let scenarioSelectionGeneration = window.__dunnflowScenarioSelectionGeneration || 0;
+
+    async function handleCardClick(event) {
+        const clickGeneration = ++scenarioSelectionGeneration;
+        window.__dunnflowScenarioSelectionGeneration = scenarioSelectionGeneration;
         const card =
             event.currentTarget;
 
@@ -389,9 +456,72 @@ async function refreshRecoveryAgent(batchId) {
          * The selected Demo Batch belongs to the batch selector
          * and must remain untouched.
          */
+                let selectedScenario = scenario;
+
+        /*
+         * Synthetic scenarios use invoices from this visitor's
+         * isolated 60-case run, never the reference benchmark.
+         * The Razorpay card is intentionally left for its separate
+         * fresh-order integration patch.
+         */
+        if (scenario.key !== "razorpayVideoDemo") {
+            let run;
+
+            try {
+                run = await ensureSyntheticDemoRun();
+                if (clickGeneration !== scenarioSelectionGeneration) {
+                    return;
+                }
+            } catch (error) {
+                console.error(
+                    "DunnFlow could not create an isolated demo run:",
+                    error
+                );
+                window.alert(
+                    "Could not prepare an isolated demo run. Please reload and try again."
+                );
+                return;
+            }
+
+            const scenarioKeyMap = {
+                fresh: "fresh",
+                guardrail: "guardrail",
+                manualReview: "manual_review",
+                successfulRecovery: "successful_recovery"
+            };
+
+            const serverScenarioKey =
+                scenarioKeyMap[scenario.key];
+
+            const isolatedInvoiceId =
+                serverScenarioKey
+                    ? run.scenario_cards[serverScenarioKey]
+                    : null;
+
+            if (!isolatedInvoiceId) {
+                console.error(
+                    "DunnFlow: the isolated run has no invoice for scenario:",
+                    scenario.key
+                );
+                window.alert(
+                    "This scenario is not available in the isolated demo run."
+                );
+                return;
+            }
+
+            selectedScenario = {
+                ...scenario,
+                invoiceId: isolatedInvoiceId
+            };
+        }
+
+        if (clickGeneration !== scenarioSelectionGeneration) {
+            return;
+        }
+
         enterDemoMode(
-            scenario.invoiceId,
-            scenario.key
+            selectedScenario.invoiceId,
+            selectedScenario
         );
 
         /*
@@ -414,22 +544,48 @@ async function refreshRecoveryAgent(batchId) {
          * Tell other UI components that the
          * selected Demo Lab case changed.
          */
-        refreshAuditContext({
-            invoiceId: scenario.invoiceId
-        });
+        refreshAuditContext({ invoiceId: selectedScenario.invoiceId });
 
         document.dispatchEvent(
             new CustomEvent(
                 "dunnflow:demo-selected",
                 {
-                    detail: {
-                        scenario,
-                        invoiceId:
-                            scenario.invoiceId
-                    }
+                    detail: { scenario: selectedScenario, invoiceId: selectedScenario.invoiceId }
                 }
             )
         );
+        // Prepare a fresh isolated Test Mode session after card selection.
+        // This does not open Checkout or execute recovery.
+        if (selectedScenario.key === "razorpayVideoDemo") {
+            if (!window.DunnFlowMetrics ||
+                typeof window.DunnFlowMetrics.prepareIsolatedRazorpayDemoSession !== "function") {
+                console.error("DunnFlow: isolated Razorpay session preparation is unavailable.");
+                if (window.DunnFlowLiveFeed &&
+                    typeof window.DunnFlowLiveFeed.error === "function") {
+                    window.DunnFlowLiveFeed.error(
+                        "Razorpay session preparation is unavailable. Reload the page and try again."
+                    );
+                }
+                return;
+            }
+
+            try {
+                await window.DunnFlowMetrics.prepareIsolatedRazorpayDemoSession();
+            } catch (error) {
+                console.error(
+                    "DunnFlow: could not prepare the isolated Razorpay demo session:",
+                    error
+                );
+                if (window.DunnFlowLiveFeed &&
+                    typeof window.DunnFlowLiveFeed.error === "function") {
+                    window.DunnFlowLiveFeed.error(
+                        "Could not prepare Razorpay Test Mode session: " + error.message
+                    );
+                }
+            }
+        }
+
+
     }
 
 
@@ -621,3 +777,5 @@ async function refreshRecoveryAgent(batchId) {
         initScenarioCards();
     }
 })();
+
+

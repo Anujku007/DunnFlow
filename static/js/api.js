@@ -217,9 +217,45 @@ function getReportUrl(batchId) {
 
 
 /**
+ * Visitor-isolated synthetic demo run.
+ */
+async function createDemoRun() {
+    return apiRequest("/api/demo/runs", {
+        method: "POST"
+    });
+}
+
+async function getDemoRun(runId) {
+    if (!runId) {
+        throw new Error("Demo run ID is required.");
+    }
+
+    return apiRequest(
+        `/api/demo/runs/${encodeURIComponent(runId)}`
+    );
+}
+
+function requireDemoRunId(runId) {
+    const resolved =
+        runId ||
+        (window.DunnFlowState && window.DunnFlowState.runId);
+
+    if (!resolved) {
+        throw new Error(
+            "No isolated demo run is active. Create a demo run first."
+        );
+    }
+
+    return resolved;
+}
+
+
+/**
  * Demo case
  */
-async function getDemoCase(invoiceId) {
+async function getDemoCase(invoiceId, runId = null) {
+    const activeRunId = requireDemoRunId(runId);
+
     if (!invoiceId) {
         throw new Error(
             "Demo invoice ID is required."
@@ -227,12 +263,14 @@ async function getDemoCase(invoiceId) {
     }
 
     return apiRequest(
-        `/api/demo/cases/${encodeURIComponent(invoiceId)}`
+        `/api/demo/cases/${encodeURIComponent(invoiceId)}?run_id=${encodeURIComponent(activeRunId)}`
     );
 }
 
 
-async function inspectDemoCase(invoiceId) {
+async function inspectDemoCase(invoiceId, runId = null) {
+    const activeRunId = requireDemoRunId(runId);
+
     if (!invoiceId) {
         throw new Error(
             "Demo invoice ID is required."
@@ -240,7 +278,7 @@ async function inspectDemoCase(invoiceId) {
     }
 
     return apiRequest(
-        `/api/demo/cases/${encodeURIComponent(invoiceId)}/inspect`
+        `/api/demo/cases/${encodeURIComponent(invoiceId)}/inspect?run_id=${encodeURIComponent(activeRunId)}`
     );
 }
 
@@ -248,7 +286,9 @@ async function inspectDemoCase(invoiceId) {
 /**
  * Demo decision
  */
-async function decideDemoCase(invoiceId) {
+async function decideDemoCase(invoiceId, runId = null) {
+    const activeRunId = requireDemoRunId(runId);
+
     if (!invoiceId) {
         throw new Error(
             "Demo invoice ID is required for decision."
@@ -256,7 +296,7 @@ async function decideDemoCase(invoiceId) {
     }
 
     return apiRequest(
-        `/api/demo/cases/${encodeURIComponent(invoiceId)}/decide`,
+        `/api/demo/cases/${encodeURIComponent(invoiceId)}/decide?run_id=${encodeURIComponent(activeRunId)}`,
         {
             method: "POST"
         }
@@ -267,7 +307,9 @@ async function decideDemoCase(invoiceId) {
 /**
  * Demo execution
  */
-async function executeDemoCase(invoiceId) {
+async function executeDemoCase(invoiceId, runId = null) {
+    const activeRunId = requireDemoRunId(runId);
+
     if (!invoiceId) {
         throw new Error(
             "Demo invoice ID is required for execution."
@@ -275,7 +317,7 @@ async function executeDemoCase(invoiceId) {
     }
 
     return apiRequest(
-        `/api/demo/cases/${encodeURIComponent(invoiceId)}/execute`,
+        `/api/demo/cases/${encodeURIComponent(invoiceId)}/execute?run_id=${encodeURIComponent(activeRunId)}`,
         {
             method: "POST"
         }
@@ -324,6 +366,62 @@ async function getAuditTrail({
 /**
  * Existing Razorpay checkout information.
  */
+
+
+/**
+ * Create or retrieve an isolated Razorpay Test Mode demo session.
+ * The caller must retain the same idempotency key after an ambiguous
+ * network failure. This helper does not run automatically.
+ */
+async function createRazorpayDemoSession(idempotencyKey) {
+    if (
+        typeof idempotencyKey !== "string" ||
+        !idempotencyKey.trim()
+    ) {
+        throw new Error(
+            "An idempotency key is required for the Razorpay demo session."
+        );
+    }
+
+    return apiRequest(
+        "/api/demo/razorpay/session",
+        {
+            method: "POST",
+            headers: {
+                "Idempotency-Key": idempotencyKey
+            }
+        }
+    );
+}
+
+
+/**
+ * Read authoritative status for one Razorpay demo session.
+ */
+async function getRazorpayDemoSessionStatus(sessionId) {
+    if (!sessionId) {
+        throw new Error(
+            "Session ID is required to inspect Razorpay demo status."
+        );
+    }
+
+    return apiRequest(
+        `/api/demo/razorpay/session/${encodeURIComponent(sessionId)}`
+    );
+}
+
+async function runIsolatedRazorpayRecovery(sessionId) {
+    if (!sessionId) {
+        throw new Error("An isolated Razorpay session ID is required for recovery.");
+    }
+
+    return apiRequest(
+        `/api/demo/razorpay/session/${encodeURIComponent(sessionId)}/recover`,
+        { method: "POST" }
+    );
+}
+
+
 async function getRazorpayCheckout(batchId) {
     if (!batchId) {
         throw new Error(
@@ -358,6 +456,8 @@ async function getRecoveryAgent(batchId) {
 }
 
 window.DunnFlowAPI = {
+    createDemoRun,
+    getDemoRun,
     getRecoveryAgent,
     apiRequest,
 
@@ -378,5 +478,8 @@ window.DunnFlowAPI = {
 
     getAuditTrail,
 
-    getRazorpayCheckout
+    getRazorpayCheckout,
+    createRazorpayDemoSession,
+    getRazorpayDemoSessionStatus,
+    runIsolatedRazorpayRecovery
 };

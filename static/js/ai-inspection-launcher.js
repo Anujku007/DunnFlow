@@ -41,9 +41,19 @@
                 return;
             }
 
-            window.location.assign(
-                "/ai-inspection?invoice_id=" + encodeURIComponent(invoiceId)
-            );
+            const isRazorpayInvoice = invoiceId.startsWith("inv_rp_demo_");
+            const runId = window.DunnFlowState?.runId;
+
+            if (!isRazorpayInvoice && !runId) {
+                window.alert("No active synthetic demo run was found. Select a demo scenario and try again.");
+                return;
+            }
+
+            let url = "/ai-inspection?invoice_id=" + encodeURIComponent(invoiceId);
+            if (!isRazorpayInvoice && runId) {
+                url += "&run_id=" + encodeURIComponent(runId);
+            }
+            window.location.assign(url);
         });
 
         button.dataset.standaloneLauncherBound = "true";
@@ -55,3 +65,4 @@
         init();
     }
 })();
+

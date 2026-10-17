@@ -52,7 +52,7 @@
   const amountTitle=confirmedRecovery===undefined?"Not supplied":money(confirmedRecovery,currency);
   setHTML("dfrKpis",[
   `<div class="dfr-kpi ai"><div class="dfr-kpi-icon">✧</div><div class="dfr-kpi-copy"><small>AI Recommendation</small><strong>${esc(aiTitle)}</strong><p>${esc(aiUnavailable?"Advisory service did not return a recommendation":confidence===undefined?"Confidence not supplied":"Confidence: "+confidence)}</p></div></div>`,
-  `<div class="dfr-kpi policy"><div class="dfr-kpi-icon">⬡</div><div class="dfr-kpi-copy"><small>Policy Decision</small><strong>${esc(policyTitle)}</strong><p>Deterministic policy is authoritative</p></div></div>`,
+  `<div class="dfr-kpi policy"><div class="dfr-kpi-icon">◈</div><div class="dfr-kpi-copy"><small>Policy Decision</small><strong>${esc(policyTitle)}</strong><p>Deterministic policy is authoritative</p></div></div>`,
   `<div class="dfr-kpi outcome"><div class="dfr-kpi-icon">◉</div><div class="dfr-kpi-copy"><small>Invoice Status</small><strong>${esc(outcomeTitle)}</strong><p>${esc(String(invoiceStatus).toLowerCase()==="paid"?"Backend reports this invoice as paid":humanError(first(recon.detail,"No execution outcome was supplied")))}</p></div></div>`,
   `<div class="dfr-kpi amount"><div class="dfr-kpi-icon">↗</div><div class="dfr-kpi-copy"><small>Confirmed Recovery</small><strong>${esc(amountTitle)}</strong><p>${confirmedRecovery===undefined?"No confirmed recovery amount was supplied":"Amount supplied by the backend"}</p></div></div>`].join(""));
  const rawError=first(diagnosis.raw_error_code,diagnosis.error_code,diagnosis.gateway_error_code,"Not recorded"),gateway=first(diagnosis.gateway_message,diagnosis.error_message,diagnosis.failure_reason,diagnosis.reason,"No diagnosis detail returned.");
@@ -63,17 +63,81 @@
  const timeline=[];timeline.push({title:"Failure / invoice context",detail:`Category: ${category}`,time:first(invoice.updated_at,invoice.created_at)});timeline.push({title:"Diagnosis",detail:first(diagnosis.reason,diagnosis.failure_reason,"Diagnosis details returned by API"),time:first(diagnosis.created_at)});timeline.push({title:"AI recommendation",detail:`${aiAction} · ${String(first(reason,"No rationale returned"))}`,time:first(ai.created_at)});timeline.push({title:"Deterministic policy",detail:`${policyAction} · deterministic policy retains authority`,time:first(decision.created_at,decision.decided_at)});events.forEach(e=>timeline.push({title:first(e.stage,e.type,e.event_type,"Recorded event"),detail:first(e.detail,e.result,e.action_taken,"Recorded event"),time:first(e.timestamp,e.created_at,e.executed_at)}));
  setHTML("dfrTimeline",timeline.map((t,i)=>`<li><span class="dfr-step${/paid|captur|recover|success/i.test(t.detail)?" success":""}">${i+1}</span><strong>${esc(t.title)}</strong><small>${esc(date(t.time))}</small><p>${esc(t.detail)}</p></li>`).join(""));
  const sample=first(signal.sample_size,hist.similar_case_count,arr(hist.historical_cases).length),rate=first(signal.historical_recovery_rate,hist.historical_recovery_rate),quality=first(summary.overall_evidence_quality,summary.evidence_quality,summary.quality,signal.signal,"Not supplied"),caseRows=arr(first(hist.historical_cases,hist.comparable_cases,[]));
- setHTML("dfrEvidenceCards",[
- [sample===undefined?"—":sample,"Similar Cases","Sample size"],[rate===undefined?"—":`${Math.round(Number(rate)*100)}%`,"Historical Recovery Rate","Observed history, not prediction"],[first(hist.failure_category_learning?.learning_signal?.signal,hist.failure_category_learning?.signal,hist.failure_category_learning?.assessment,"Unavailable"),"Failure Category","Historical signal"],[first(hist.amount_band_learning?.learning_signal?.signal,hist.amount_band_learning?.signal,hist.amount_band_learning?.assessment,"Unavailable"),"Amount Band","Historical signal"],[first(hist.recency_learning?.recency_signal,hist.recency_learning?.signal,hist.recency_learning?.assessment,"Unavailable"),"Recency","Historical signal"],[evidenceLabel(first(consistency.consistency_signal,summary.confidence_signal,"Unavailable")),"Evidence Alignment","Historical evidence only"]].map(x=>`<div class="dfr-evidence-stat"><strong>${esc(evidenceLabel(x[0]))}</strong><span>${esc(x[1])}</span><small>${esc(x[2])}</small></div>`).join(""));
- const signals=[["Learning signal",first(signal.signal,"Not supplied")],["Evidence quality",quality],["Historical sample size",sample??"Not supplied"],["Observed recovery rate",rate===undefined?"Not supplied":`${(Number(rate)*100).toFixed(1)}%`],["AI learning used",learning.used===undefined?"Not supplied":String(learning.used)],["AI feedback cases",Object.values(obj(learning.ai_action_feedback?.actions)).reduce((n,v)=>n+Number(v.total_cases||0),0)]];
+  setHTML("dfrEvidenceCards",[
+  [sample===undefined?"?":sample,"Similar Cases","Returned historical sample"],
+  [rate===undefined?"?":`${(Number(rate)*100).toFixed(1)}%`,"Observed Recovery Rate","Historical observation, not prediction"],
+  [first(hist.failure_category_learning?.learning_signal?.signal,"Unavailable"),"Failure Category","Historical signal"],
+  [first(hist.amount_band_learning?.learning_signal?.signal,"Unavailable"),"Amount Band","Historical signal"],
+  [first(hist.customer_behavior?.learning_signal?.signal,hist.customer_behavior?.signal,"Unavailable"),"Customer Behavior","Historical signal"],
+  [first(hist.recency_learning?.evidence_quality,"Unavailable"),"Recency Quality",first(hist.recency_learning?.recency_signal,"Timestamp evidence status")],
+  [first(hist.historical_evidence_consistency?.consistency_signal,"Unavailable"),"Evidence Alignment","Advisory context only"],
+  [first(summary.overall_evidence_quality,"Unavailable"),"Overall Evidence Quality","Not financial-decision confidence"]
+  ].map(x=>`<div class="dfr-evidence-stat"><strong>${esc(evidenceLabel(x[0]))}</strong><span>${esc(x[1])}</span><small>${esc(x[2])}</small></div>`).join(""));
+  const fc=obj(hist.failure_category_learning),ab=obj(hist.amount_band_learning),rc=obj(hist.recency_learning),out=obj(fc.outcome_statistics),dimensions=obj(summary.dimensions),customer=obj(hist.customer_behavior);
+  const signals=[["Learning signal",first(signal.signal,"Not supplied")],["Evidence quality",quality],["Historical sample size",sample??"Not supplied"],["Observed recovery rate",rate===undefined?"Not supplied":`${(Number(rate)*100).toFixed(1)}%`],["Failure-category sample",fc.sample_size??"Not supplied"],["Amount band",first(ab.current_amount_band,"Not supplied")],["Amount-band evidence quality",first(ab.evidence_quality,"Not supplied")],["Customer behavior",first(customer.learning_signal?.signal,customer.signal,customer.assessment,"Not supplied")],["Recency signal",first(rc.recency_signal,"Not supplied")],["Recency evidence quality",first(rc.evidence_quality,"Not supplied")],["Recent timestamped cases",rc.recent_sample_size??"Not supplied"],["Older timestamped cases",rc.older_sample_size??"Not supplied"],["Historical outcome cases",out.total_cases??"Not supplied"],["Recovered cases",out.recovered??"Not supplied"],["Blocked cases",out.blocked??"Not supplied"],["In-progress cases",out.in_progress??"Not supplied"],["Available evidence dimensions",Object.entries(dimensions).filter(([k,v])=>v===true).map(([k])=>k).join(", ")||"Not supplied"],["AI learning used",learning.used===undefined?"Not supplied":String(learning.used)],["AI feedback cases",Object.values(obj(learning.ai_action_feedback?.actions)).reduce((n,v)=>n+Number(v.total_cases||0),0)]];
  setHTML("dfrSignals",signals.map(x=>`<div class="dfr-signal"><span>${esc(evidenceLabel(x[0]))}</span><strong>${esc(x[1])}</strong></div>`).join(""));
  setHTML("dfrConsistency",`<div class="dfr-evidence-stat"><strong>${esc(first(consistency.consistency_signal,summary.confidence_signal,"Not available"))}</strong><span>Evidence consistency</span><small>${esc(first(consistency.interpretation,consistency.detail,summary.interpretation,summary.detail,"No consistency explanation returned."))}</small></div><p class="dfr-description">Historical evidence labels describe evidence depth, not probability of financial success.</p>`);
  setHTML("dfrCases",caseRows.length?caseRows.slice(0,10).map(c=>`<tr><td>${esc(first(c.invoice_id,"—"))}</td><td>${c.amount===undefined?"—":money(c.amount,first(c.currency,"INR"))}</td><td>${statusBadge(first(c.outcome,c.deterministic_status,"Unknown"))}</td></tr>`).join(""):empty("No comparable case records were returned."));
- setHTML("dfrAttempts",attempts.length?attempts.map(a=>`<tr><td>${esc(first(a.attempt_id,a.attempt_number,"—"))}</td><td>${esc(date(first(a.executed_at,a.created_at,a.timestamp)))}</td><td>${esc(first(a.action_type,a.attempt_type,a.action_taken,"—"))}</td><td>${statusBadge(first(a.gateway_status,"Not recorded"))}</td><td>${statusBadge(first(a.result,"Not recorded"))}</td><td>${a.amount===undefined?"—":money(a.amount,first(a.currency,currency))}</td></tr>`).join(""):empty("The inspection endpoint does not include payment attempts; no execution records inferred."));
+  setHTML("dfrAttempts",attempts.length?attempts.map(a=>`<tr><td>${esc(first(a.attempt_id,a.attempt_number,"?"))}</td><td>${esc(date(first(a.executed_at,a.created_at,a.timestamp)))}</td><td>${esc(first(a.attempt_type,a.action_type,a.action_taken,"?"))}<small class="dfr-attempt-detail">${esc(first(a.action_type,""))}</small></td><td>${statusBadge(first(a.gateway_status,"Not recorded"))}</td><td>${statusBadge(first(a.result,"Not recorded"))}</td><td>${esc(first(a.razorpay_payment_id,"?"))}</td><td>${esc(first(a.raw_error_code,"?"))}</td><td>${a.amount===undefined?"?":money(a.amount,first(a.currency,currency))}</td><td>${esc(first(a.result_detail,a.failure_reason,"No attempt detail returned."))}</td></tr>`).join(""):empty("No payment attempts were returned by the inspection API."));
  setHTML("dfrAudit",events.length?events.slice(0,30).map(e=>`<tr><td>${esc(date(first(e.timestamp,e.created_at)))}</td><td>${esc(first(e.stage,e.type,e.event_type,"Event"))}</td><td>${esc(first(e.detail,e.result,e.action_taken,"—"))}</td></tr>`).join(""):empty("No audit events were returned for this invoice."));
  $("dfrDataNote").textContent="Data is limited to fields returned by the inspection and audit APIs. Missing execution data is not inferred.";
  }
- async function inspect(){const loading=$("dfrLoading"),error=$("dfrError"),report=$("dfrReport");loading.hidden=false;error.hidden=true;report.hidden=true;loading.textContent="Loading inspection data…";const invoiceId=window.DunnFlowState?.invoiceId;if(!invoiceId){loading.hidden=true;error.hidden=false;error.textContent="Missing invoice_id. Open this page as /ai-inspection?invoice_id=YOUR_INVOICE_ID";return;}try{let data;if(window.DunnFlowAPI?.inspectDemoCase){data=await window.DunnFlowAPI.inspectDemoCase(invoiceId);}else{const response=await fetch(`/api/demo/cases/${encodeURIComponent(invoiceId)}/inspect`,{headers:{Accept:"application/json"}});if(!response.ok)throw new Error(`Inspection API returned HTTP ${response.status}`);data=await response.json();}let audit={events:[]};try{if(window.DunnFlowAPI?.getAuditTrail){audit=await window.DunnFlowAPI.getAuditTrail({invoiceId:invoiceId});}else{const response=await fetch(`/api/audit?invoice_id=${encodeURIComponent(invoiceId)}`,{headers:{Accept:"application/json"}});if(response.ok)audit=await response.json();}}catch(e){console.warn("Audit trail unavailable:",e);}render(obj(data),obj(audit));loading.hidden=true;report.hidden=false;}catch(e){loading.hidden=true;error.hidden=false;error.textContent=`Unable to load inspection report: ${e?.message||e}. No payment action was triggered.`;}}
+ async function inspect(){
+ const loading=$("dfrLoading"),error=$("dfrError"),report=$("dfrReport");
+ loading.hidden=false;error.hidden=true;report.hidden=true;
+ loading.textContent="Loading inspection data…";
+ const invoiceId=window.DunnFlowState?.invoiceId;
+ const runId=window.DunnFlowState?.runId;
+ if(!invoiceId){
+   loading.hidden=true;error.hidden=false;
+   error.textContent="Missing invoice_id. Open this page with an invoice_id query parameter.";
+   return;
+ }
+ try{
+   let data;
+   if(String(invoiceId).startsWith("inv_rp_demo_")){
+     const response=await fetch(
+       `/api/demo/razorpay/inspect/${encodeURIComponent(invoiceId)}`,
+       {headers:{Accept:"application/json"}}
+     );
+     if(!response.ok){
+       let detail="";
+       try{detail=(await response.json()).detail||"";}catch(_){}
+       throw new Error(detail||`Razorpay inspection API returned HTTP ${response.status}`);
+     }
+     data=await response.json();
+     data.invoice=data.invoice||{};
+     data.invoice_id=data.invoice_id||invoiceId;
+   }else if(window.DunnFlowAPI?.inspectDemoCase){
+     if(!runId)throw new Error("Synthetic demo inspection requires a valid run_id.");
+     data=await window.DunnFlowAPI.inspectDemoCase(invoiceId,runId);
+   }else{
+     if(!runId)throw new Error("Synthetic demo inspection requires a valid run_id.");
+     const response=await fetch(
+       `/api/demo/cases/${encodeURIComponent(invoiceId)}/inspect?run_id=${encodeURIComponent(runId)}`,
+       {headers:{Accept:"application/json"}}
+     );
+     if(!response.ok)throw new Error(`Inspection API returned HTTP ${response.status}`);
+     data=await response.json();
+   }
+   let audit={events:[]};
+   try{
+     if(window.DunnFlowAPI?.getAuditTrail){
+       audit=await window.DunnFlowAPI.getAuditTrail({invoiceId:invoiceId});
+     }else{
+       const response=await fetch(
+         `/api/audit?invoice_id=${encodeURIComponent(invoiceId)}`,
+         {headers:{Accept:"application/json"}}
+       );
+       if(response.ok)audit=await response.json();
+     }
+   }catch(e){console.warn("Audit trail unavailable:",e);}
+   render(obj(data),obj(audit));
+   loading.hidden=true;report.hidden=false;
+ }catch(e){
+   loading.hidden=true;error.hidden=false;
+   error.textContent=`Unable to load inspection report: ${e?.message||e}. No payment action was triggered.`;
+ }}
  function initSectionNavigation(){
     const sidebar=$("dfrSidebar");
     if(!sidebar)return;
@@ -99,7 +163,7 @@
     });
     activate("overview");
 }
-function init(){const close=$("closeDecisionModalBtn");const params=new URLSearchParams(window.location.search);const queryInvoice=params.get("invoice_id");if(queryInvoice){window.DunnFlowState=window.DunnFlowState||{};window.DunnFlowState.invoiceId=queryInvoice;}if(close)close.addEventListener("click",()=>{if(document.referrer && new URL(document.referrer).origin===window.location.origin)history.back();else window.location.href="/";});$("dfrPrintBtn")?.addEventListener("click",()=>{document.body.classList.add("dfr-printing");window.print();setTimeout(()=>document.body.classList.remove("dfr-printing"),500);});$("dfrExportBtn")?.addEventListener("click",async()=>{
+function init(){const close=$("closeDecisionModalBtn");const params=new URLSearchParams(window.location.search);const queryInvoice=params.get("invoice_id");const queryRunId=params.get("run_id");if(queryInvoice){window.DunnFlowState=window.DunnFlowState||{};window.DunnFlowState.invoiceId=queryInvoice;}if(queryRunId){window.DunnFlowState=window.DunnFlowState||{};window.DunnFlowState.runId=queryRunId;}if(close)close.addEventListener("click",()=>{if(document.referrer && new URL(document.referrer).origin===window.location.origin)history.back();else window.location.href="/";});$("dfrPrintBtn")?.addEventListener("click",()=>{document.body.classList.add("dfr-printing");window.print();setTimeout(()=>document.body.classList.remove("dfr-printing"),500);});$("dfrExportBtn")?.addEventListener("click",async()=>{
 const button=$("dfrExportBtn"),report=$("dfrReport");
 if(!report||report.hidden){alert("The inspection report is not available yet.");return;}
 const originalText=button.textContent;
@@ -280,4 +344,5 @@ button.textContent=originalText;
 });initSectionNavigation();inspect();}
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();window.DunnFlowDecisionIntelligence={open:openModal,close:closeModal,refresh:inspect};
 })();
+
 

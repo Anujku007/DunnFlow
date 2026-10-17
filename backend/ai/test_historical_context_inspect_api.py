@@ -1,4 +1,4 @@
-﻿from fastapi.testclient import TestClient
+from fastapi.testclient import TestClient
 import unittest
 from unittest.mock import patch
 
@@ -51,6 +51,10 @@ class HistoricalContextInspectAPITest(unittest.TestCase):
                 "invoice_id": "test_invoice",
                 "status": "issued",
             }),
+            patch("backend.api._require_demo_run_invoice", return_value={
+                "invoice_id": "test_invoice",
+                "status": "issued",
+            }) as validate_demo_run,
             patch("backend.api.diagnose_invoice", return_value={
                 "failure_category": "card_expired",
             }),
@@ -65,10 +69,11 @@ class HistoricalContextInspectAPITest(unittest.TestCase):
         ):
             client = TestClient(app)
             response = client.get(
-                "/api/demo/cases/test_invoice/inspect"
+                "/api/demo/cases/test_invoice/inspect",
+                params={"run_id": "test_run"},
             )
 
-        assert response.status_code == 200
+        assert response.status_code == 200, response.text
         body = response.json()
 
         assert body["historical_context"]["historical_evidence_summary"][

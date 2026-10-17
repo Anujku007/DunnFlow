@@ -31,7 +31,13 @@ const DunnFlowState = {
 
     batchId: DUNNFLOW_DEFAULT_BATCH,
 
+    runId: null,
+
     invoiceId: null,
+
+    razorpaySession: null,
+
+    razorpayIdempotencyKey: null,
 
     scenario: null,
 
@@ -57,6 +63,8 @@ function enterControlMode(batchId) {
         DUNNFLOW_DEFAULT_BATCH;
 
     DunnFlowState.invoiceId = null;
+    DunnFlowState.razorpaySession = null;
+    DunnFlowState.razorpayIdempotencyKey = null;
     DunnFlowState.scenario = null;
 
     DunnFlowState.lastDiagnosis = null;
@@ -82,6 +90,8 @@ function enterDemoMode(invoiceId, scenario = null) {
     DunnFlowState.invoiceId = invoiceId;
 
     DunnFlowState.scenario = scenario;
+    DunnFlowState.razorpaySession = null;
+    DunnFlowState.razorpayIdempotencyKey = null;
     DunnFlowState.demoStage = "idle";
 
     DunnFlowState.lastDiagnosis = null;

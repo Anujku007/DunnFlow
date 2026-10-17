@@ -1,4 +1,4 @@
-"""
+﻿"""
 DunnFlow data-access layer.
 
 All database access is centralized here. Business modules should never
@@ -7,12 +7,12 @@ contain raw SQL; they should call these functions instead.
 Domain model:
 
     batch_run
-        └── subscription
-                └── invoice
-                        └── payment_attempt
-                └── recovery_action
-        └── revenue_event
-        └── audit_log
+        â””â”€â”€ subscription
+                â””â”€â”€ invoice
+                        â””â”€â”€ payment_attempt
+                â””â”€â”€ recovery_action
+        â””â”€â”€ revenue_event
+        â””â”€â”€ audit_log
 
 SQLite is used for the buildathon demo, but keeping DB access behind this
 module makes the application easier to move to PostgreSQL later.
@@ -23,6 +23,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import os
 import sqlite3
 
 
@@ -30,7 +31,8 @@ import sqlite3
 # Paths / time
 # ---------------------------------------------------------------------------
 
-DB_PATH = Path(__file__).resolve().parents[2] / "dunnflow.db"
+_DEFAULT_DB_PATH = Path(__file__).resolve().parents[2] / "dunnflow.db"
+DB_PATH = Path(os.environ.get("DUNNFLOW_DB_PATH", str(_DEFAULT_DB_PATH))).expanduser().resolve()
 SCHEMA_PATH = Path(__file__).resolve().parent / "schema.sql"
 
 
@@ -73,6 +75,17 @@ def init_db() -> None:
     """
     with get_conn() as conn:
         conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
+
+        # Additive migration for databases created before Razorpay order
+        # mapping was added. Existing invoice/payment records are preserved.
+        invoice_columns = {
+            row["name"]
+            for row in conn.execute("PRAGMA table_info(invoices)").fetchall()
+        }
+        if "razorpay_order_id" not in invoice_columns:
+            conn.execute(
+                "ALTER TABLE invoices ADD COLUMN razorpay_order_id TEXT"
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -1169,10 +1182,21 @@ def get_batch_metrics(batch_id: str) -> dict:
         if event.get("invoice_id")
     }
 
-    amount_recovered = sum(
-        int(event.get("amount", 0))
-        for event in recovery_events
-    )
+    # A captured Razorpay payment may be observed more than once.
+    # Count each identified payment only once in recovered revenue.
+    # Legacy events without a payment ID remain individually countable.
+    amount_recovered = 0
+    counted_payment_ids = set()
+
+    for event in recovery_events:
+        payment_id = event.get("razorpay_event_id")
+
+        if payment_id:
+            if payment_id in counted_payment_ids:
+                continue
+            counted_payment_ids.add(payment_id)
+
+        amount_recovered += int(event.get("amount", 0))
 
         # ------------------------------------------------------------------
     # Current revenue at risk
@@ -1327,22 +1351,15 @@ def get_batch_metrics(batch_id: str) -> dict:
     # Recovery rate
     # ------------------------------------------------------------------
 
-    recovery_rate_pct = (
-    round(
-        (
-            amount_recovered
-            / historical_amount_at_risk
-        )
-        * 100,
-        1,
-    )
-    if historical_amount_at_risk
-    else 0.0
-)
+    # Count each invoice case once, regardless of its outcome.
+    recovery_count = len(invoices)
 
-    # ------------------------------------------------------------------
-    # Failure category metrics
-    # ------------------------------------------------------------------
+    # Count-based rate: successful recovery cases / all cases in scope.
+    recovery_rate_pct = (
+        round((recovered_count / recovery_count) * 100, 1)
+        if recovery_count
+        else 0.0
+    )
 
     failure_categories = _fetchall(
         """
@@ -1491,8 +1508,14 @@ def get_batch_metrics(batch_id: str) -> dict:
         # Financial metrics
         # --------------------------------------------------------------
 
+        # Current unpaid exposure; zero when all invoices are paid.
+        "amount_at_risk": amount_at_risk,
+
+        # Historical baseline, retained for reports and recovery rate.
         "historical_invoices_at_risk": historical_invoices_at_risk,
         "historical_amount_at_risk": historical_amount_at_risk,
+
+        "recovery_count": recovery_count,
 
         "recovered_count": recovered_count,
         "amount_recovered": amount_recovered,

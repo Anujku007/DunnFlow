@@ -1,4 +1,4 @@
-﻿from pathlib import Path
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
@@ -24,6 +24,8 @@ from backend.ai.ai_policy_reconciliation import reconcile_invoice
 from backend.ai.recovery_advisor import RecoveryAdvisor
 from backend.ai.historical_decision_context import get_historical_decision_context_dict
 from backend.agent.recovery_agent import RecoveryAgent
+from backend.data.demo_runs import create_isolated_demo_run, get_demo_run
+from backend.data.db import create_batch_run, upsert_subscription, upsert_invoice
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -106,6 +108,33 @@ async def razorpay_webhook(request: Request):
 
 
 # ============================================================================
+@app.post("/api/demo/runs")
+def create_demo_run():
+    """Create a fresh visitor-isolated 60-case synthetic benchmark."""
+    try:
+        return create_isolated_demo_run()
+    except Exception as exc:
+        # Avoid returning internal exception details to public visitors.
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to create an isolated demo run.",
+        ) from exc
+
+
+@app.get("/api/demo/runs/{run_id}")
+def inspect_demo_run(run_id: str):
+    """Return run metadata only; this endpoint never executes recovery."""
+    run = get_demo_run(run_id)
+    if not run or run["status"] != "ready":
+        raise HTTPException(status_code=404, detail="Demo run not found.")
+    from backend.data.db import get_invoices
+    invoices = get_invoices(batch_id=run["batch_id"])
+    return {
+        **run,
+        "case_count": len(invoices),
+        "invoice_ids": [item["invoice_id"] for item in invoices],
+    }
+
 # AUDIT TRAIL API
 # ============================================================================
 # Read-only judge-facing audit/timeline surface.
@@ -246,6 +275,27 @@ def decide_batch(batch_id: str):
 # - Execution delegates to the existing guarded execution engine.
 # ============================================================================
 
+
+
+def _require_demo_run_invoice(run_id: str, invoice_id: str, *, for_execution: bool = False) -> dict:
+    """Require a ready isolated run that owns the requested invoice."""
+    run = get_demo_run(run_id)
+    if not run or run.get("status") != "ready":
+        raise HTTPException(status_code=404, detail="Demo run not found.")
+
+    invoice = get_invoice(invoice_id)
+    if not invoice or invoice.get("batch_id") != run.get("batch_id"):
+        raise HTTPException(status_code=404, detail="Invoice not found in this demo run.")
+
+    if for_execution:
+        from backend.modules.execution import EXECUTION_MODE
+        if EXECUTION_MODE != "synthetic_test_mode":
+            raise HTTPException(
+                status_code=409,
+                detail="Isolated synthetic runs can execute only in synthetic_test_mode.",
+            )
+    return invoice
+
 DEMO_CASES = {
     "fresh": "inv_dunnflow_006",
     "guardrail": "inv_dunnflow_012",
@@ -254,8 +304,10 @@ DEMO_CASES = {
 
 
 @app.get("/api/demo/cases/{invoice_id}")
-def get_demo_case(invoice_id: str):
+def get_demo_case(invoice_id: str, run_id: str):
     """Return the current single-invoice demo state without mutation."""
+
+    _require_demo_run_invoice(run_id, invoice_id)
 
     invoice = get_invoice(invoice_id)
 
@@ -291,7 +343,7 @@ def get_demo_case(invoice_id: str):
 
 
 @app.get("/api/demo/cases/{invoice_id}/inspect")
-def inspect_demo_case(invoice_id: str):
+def inspect_demo_case(invoice_id: str, run_id: str):
     """
     Read-only Decision Intelligence preview for one demo invoice.
 
@@ -299,6 +351,8 @@ def inspect_demo_case(invoice_id: str):
     Deterministic policy is evaluated with persist=False.
     AI remains advisory and cannot authorize execution.
     """
+
+    _require_demo_run_invoice(run_id, invoice_id)
 
     invoice = get_invoice(invoice_id)
 
@@ -341,13 +395,15 @@ def inspect_demo_case(invoice_id: str):
 
 
 @app.post("/api/demo/cases/{invoice_id}/decide")
-def decide_demo_case(invoice_id: str):
+def decide_demo_case(invoice_id: str, run_id: str):
     """
     Create the deterministic recovery action for one demo invoice and
     reconcile AI advice against it.
 
     AI never changes or authorizes the deterministic decision.
     """
+
+    _require_demo_run_invoice(run_id, invoice_id)
 
     invoice = get_invoice(invoice_id)
 
@@ -383,7 +439,7 @@ def decide_demo_case(invoice_id: str):
 
 
 @app.post("/api/demo/cases/{invoice_id}/execute")
-def execute_demo_case(invoice_id: str):
+def execute_demo_case(invoice_id: str, run_id: str):
     """
     Execute the already-created deterministic recovery action for one
     demo invoice through the scheduler's virtual demo clock.
@@ -409,6 +465,8 @@ def execute_demo_case(invoice_id: str):
         get_demo_time_for_action,
         is_action_due,
     )
+
+    _require_demo_run_invoice(run_id, invoice_id, for_execution=True)
 
     invoice = get_invoice(invoice_id)
 
@@ -498,7 +556,20 @@ def execute_demo_case(invoice_id: str):
 
 
 @app.post("/api/batches/{batch_id}/execute")
-def execute_batch(batch_id: str):
+def execute_batch(batch_id: str, run_id: str | None = None):
+    demo_run = get_demo_run(run_id) if run_id else None
+    if demo_run and demo_run.get("batch_id") != batch_id:
+        raise HTTPException(status_code=404, detail="Demo run not found.")
+    if batch_id.startswith("demo_"):
+        if not demo_run or demo_run.get("status") != "ready":
+            raise HTTPException(status_code=404, detail="Demo run not found.")
+        from backend.modules.execution import EXECUTION_MODE
+        if EXECUTION_MODE != "synthetic_test_mode":
+            raise HTTPException(
+                status_code=409,
+                detail="Isolated synthetic runs can execute only in synthetic_test_mode.",
+            )
+
     if not get_batch_run(batch_id):
         raise HTTPException(
             status_code=404,
@@ -507,6 +578,546 @@ def execute_batch(batch_id: str):
 
     return execute_due_actions(batch_id)
 
+
+
+@app.post("/api/demo/razorpay/session")
+def create_razorpay_demo_session(request: Request):
+    """Create an isolated Ã¢â€šÂ¹299 Razorpay Test Mode demo session."""
+    from datetime import datetime, timezone
+
+    from backend.data.razorpay_demo import (
+        DEMO_AMOUNT_PAISE,
+        DEMO_CURRENCY,
+        attach_order_to_razorpay_demo_session,
+        claim_razorpay_demo_order_creation,
+        get_razorpay_demo_session,
+        register_razorpay_demo_session,
+        update_razorpay_demo_session_status,
+    )
+    from backend.integrations.razorpay_client import (
+        RazorpayClient,
+        RazorpayClientError,
+    )
+    from backend.data.seed_data import (
+        build_subscription,
+        build_invoice,
+        build_initial_failed_attempt,
+        record_initial_revenue_events,
+    )
+    from backend.data.db import create_payment_attempt
+
+    idempotency_key = request.headers.get("idempotency-key", "").strip()
+    if not idempotency_key:
+        raise HTTPException(
+            status_code=400,
+            detail="The Idempotency-Key header is required.",
+        )
+
+    try:
+        session = register_razorpay_demo_session(idempotency_key)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    # A retry after a successful request returns the same order.
+    if session["status"] == "order_created" and session.get("razorpay_order_id"):
+        client = RazorpayClient()
+        if (
+            client.get_mode() != "test"
+            or not client.configured
+            or not client.key_id.startswith("rzp_test_")
+        ):
+            raise HTTPException(
+                status_code=503,
+                detail="Razorpay Test Mode configuration is unavailable.",
+            )
+        return {
+            "session_id": session["session_id"],
+            "batch_id": session["batch_id"],
+            "invoice_id": session["invoice_id"],
+            "razorpay_order_id": session["razorpay_order_id"],
+            "key_id": client.key_id,
+            "amount": session["amount_paise"],
+            "currency": session["currency"],
+            "status": session["status"],
+            "mode": "razorpay_test_mode",
+        }
+
+    if session["status"] != "creating":
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "This demo session cannot start another order request. "
+                "Its current status requires inspection or manual review."
+            ),
+        )
+
+    try:
+        client = RazorpayClient()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Razorpay configuration is unavailable.",
+        ) from exc
+
+    # Never make an external request unless all three checks pass.
+    if (
+        client.get_mode() != "test"
+        or not client.configured
+        or not client.key_id.startswith("rzp_test_")
+    ):
+        raise HTTPException(
+            status_code=503,
+            detail="Razorpay Test Mode configuration is required.",
+        )
+
+    if not claim_razorpay_demo_order_creation(session["session_id"]):
+        latest = get_razorpay_demo_session(session["session_id"])
+        if latest and latest["status"] == "order_created" and latest.get("razorpay_order_id"):
+            raise HTTPException(
+                status_code=409,
+                detail="The session already has an order; retrieve the session status.",
+            )
+        raise HTTPException(
+            status_code=409,
+            detail="Order creation is already claimed or requires manual review.",
+        )
+
+    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+    try:
+        create_batch_run(session["batch_id"], started_at=now, status="running")
+
+        subscription = build_subscription(
+            index=0,
+            batch_id=session["batch_id"],
+            created_at=now,
+            scenario="card_expired",
+            initial_retry_count=0,
+        )
+        subscription.update({
+            "subscription_id": session["subscription_id"],
+            "razorpay_subscription_id": (
+                "sub_test_rpdemo_"
+                + session["session_id"].replace("-", "")[:24]
+            ),
+            "batch_id": session["batch_id"],
+            "amount": DEMO_AMOUNT_PAISE,
+            "currency": DEMO_CURRENCY,
+            "status": "pending",
+            "created_at": now,
+            "updated_at": now,
+        })
+        upsert_subscription(subscription)
+
+        invoice = build_invoice(
+            index=0,
+            batch_id=session["batch_id"],
+            subscription=subscription,
+            created_at=now,
+            scenario="card_expired",
+        )
+        invoice.update({
+            "invoice_id": session["invoice_id"],
+            "batch_id": session["batch_id"],
+            "subscription_id": session["subscription_id"],
+            "razorpay_invoice_id": None,
+            "razorpay_order_id": None,
+            "amount": DEMO_AMOUNT_PAISE,
+            "currency": DEMO_CURRENCY,
+            "status": "issued",
+            "issued_at": now,
+            "paid_at": None,
+            "created_at": now,
+            "updated_at": now,
+        })
+        upsert_invoice(invoice)
+
+        # This is a synthetic pre-existing failure signal for the demo.
+        # It is not a Razorpay payment or a gateway webhook.
+        initial_attempt = build_initial_failed_attempt(
+            index=0,
+            batch_id=session["batch_id"],
+            subscription=subscription,
+            invoice=invoice,
+            created_at=now,
+            scenario="card_expired",
+        )
+        initial_attempt["razorpay_payment_id"] = None
+        initial_attempt["result_detail"] = (
+            "Synthetic pre-existing failed charge for the isolated "
+            "Razorpay Test Mode recovery demo; not a gateway transaction."
+        )
+        attempt_id = create_payment_attempt(initial_attempt)
+        record_initial_revenue_events(
+            batch_id=session["batch_id"],
+            subscription=subscription,
+            invoice=invoice,
+            payment_attempt_id=attempt_id,
+            created_at=now,
+            scenario="card_expired",
+        )
+    except Exception as exc:
+        update_razorpay_demo_session_status(
+            session["session_id"], "manual_review"
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to prepare the isolated demo invoice; manual review required.",
+        ) from exc
+
+    # Once this call begins, a network error may be ambiguous. Never retry it
+    # automatically under the same session.
+    try:
+        order = client.create_order(
+            amount=DEMO_AMOUNT_PAISE,
+            currency=DEMO_CURRENCY,
+            receipt=session["invoice_id"],
+            notes={
+                "dunnflow_invoice_id": session["invoice_id"],
+                "dunnflow_demo_session_id": session["session_id"],
+                "dunnflow_mode": "razorpay_test_mode",
+            },
+        )
+    except RazorpayClientError as exc:
+        update_razorpay_demo_session_status(
+            session["session_id"], "manual_review"
+        )
+        raise HTTPException(
+            status_code=502,
+            detail="Razorpay order result is uncertain; manual review required.",
+        ) from exc
+    except Exception as exc:
+        update_razorpay_demo_session_status(
+            session["session_id"], "manual_review"
+        )
+        raise HTTPException(
+            status_code=502,
+            detail="Order request failed or returned an uncertain result; manual review required.",
+        ) from exc
+
+    order_id = order.get("id") if isinstance(order, dict) else None
+    if (
+        not isinstance(order_id, str)
+        or not order_id
+        or order.get("amount") != DEMO_AMOUNT_PAISE
+        or str(order.get("currency", "")).upper() != DEMO_CURRENCY
+    ):
+        update_razorpay_demo_session_status(
+            session["session_id"], "manual_review"
+        )
+        raise HTTPException(
+            status_code=502,
+            detail="Razorpay order response failed validation; manual review required.",
+        )
+
+    try:
+        attach_razorpay_order_to_invoice(session["invoice_id"], order_id)
+        attached = attach_order_to_razorpay_demo_session(
+            session["session_id"], order_id
+        )
+    except Exception as exc:
+        update_razorpay_demo_session_status(
+            session["session_id"], "manual_review"
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="Order was returned but could not be safely linked; manual review required.",
+        ) from exc
+
+    return {
+        "session_id": attached["session_id"],
+        "batch_id": attached["batch_id"],
+        "invoice_id": attached["invoice_id"],
+        "razorpay_order_id": attached["razorpay_order_id"],
+        "key_id": client.key_id,
+        "amount": DEMO_AMOUNT_PAISE,
+        "currency": DEMO_CURRENCY,
+        "status": attached["status"],
+        "mode": "razorpay_test_mode",
+    }
+
+
+
+
+
+@app.post("/api/demo/razorpay/session/{session_id}/recover")
+def recover_isolated_razorpay_demo_session(session_id: str):
+    """
+    Run detection, diagnosis and deterministic decision for one isolated
+    Razorpay session. This endpoint never executes a payment or creates
+    an order. Decision persistence is deliberately disabled so a scheduler
+    cannot later execute a customer-checkout decision unexpectedly.
+    """
+    from backend.data.razorpay_demo import get_razorpay_demo_session
+
+    session = get_razorpay_demo_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Razorpay demo session not found.")
+
+    if session.get("status") != "order_created" or not session.get("razorpay_order_id"):
+        raise HTTPException(
+            status_code=409,
+            detail="An existing Razorpay Test Mode order is required before recovery preparation.",
+        )
+
+    invoice = get_invoice(session["invoice_id"])
+    if not invoice or invoice.get("batch_id") != session.get("batch_id"):
+        raise HTTPException(
+            status_code=409,
+            detail="The isolated session invoice is missing or mismatched.",
+        )
+
+    if invoice.get("status") == "paid" or session.get("status") == "paid":
+        raise HTTPException(
+            status_code=409,
+            detail="This isolated session is already paid; use authoritative status verification.",
+        )
+
+    if invoice.get("razorpay_order_id") != session.get("razorpay_order_id"):
+        raise HTTPException(
+            status_code=409,
+            detail="Session and invoice order IDs do not match.",
+        )
+
+    try:
+        amount_matches = (
+            int(invoice.get("amount")) == int(session.get("amount_paise"))
+        )
+    except (TypeError, ValueError):
+        amount_matches = False
+
+    if (
+        not amount_matches
+        or str(invoice.get("currency") or "").upper()
+        != str(session.get("currency") or "").upper()
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail="Session and invoice amount/currency do not match.",
+        )
+
+    detection = detect_revenue_at_risk(session["batch_id"])
+    diagnosis = diagnose_invoice(session["invoice_id"])
+    decision = decide_for_invoice(session["invoice_id"], persist=False)
+
+    return {
+        "session_id": session["session_id"],
+        "batch_id": session["batch_id"],
+        "invoice_id": session["invoice_id"],
+        "razorpay_order_id": session["razorpay_order_id"],
+        "detection": detection,
+        "diagnosis": diagnosis,
+        "decision": decision,
+        "pipeline": {
+            "detection": "complete",
+            "diagnosis": "complete",
+            "decision": "complete",
+            "execution": "prepared_existing_order",
+            "payment": "awaiting_customer",
+        },
+        "awaiting_payment": True,
+        "financial_execution_performed": False,
+        "decision_persisted": False,
+        "deterministic_authority": True,
+        "ai_advisory_only": True,
+    }
+
+
+@app.get("/api/demo/razorpay/session/{session_id}")
+def get_razorpay_demo_session_status(session_id: str):
+    """Read session and invoice state without changing financial state."""
+    from backend.data.razorpay_demo import get_razorpay_demo_session
+
+    session = get_razorpay_demo_session(session_id)
+    if not session:
+        raise HTTPException(
+            status_code=404,
+            detail="Razorpay demo session not found.",
+        )
+
+    invoice = get_invoice(session["invoice_id"])
+    if not invoice:
+        raise HTTPException(
+            status_code=409,
+            detail="Session invoice is missing; manual review is required.",
+        )
+
+    session_order_id = session.get("razorpay_order_id")
+    invoice_order_id = invoice.get("razorpay_order_id")
+    order_matches = bool(
+        session_order_id
+        and invoice_order_id
+        and session_order_id == invoice_order_id
+    )
+    try:
+        invoice_amount_matches = (
+            int(invoice.get("amount")) == int(session.get("amount_paise"))
+        )
+    except (TypeError, ValueError):
+        invoice_amount_matches = False
+
+    invoice_currency = str(invoice.get("currency") or "").upper()
+    session_currency = str(session.get("currency") or "").upper()
+    invoice_currency_matches = bool(
+        invoice_currency
+        and invoice_currency == session_currency
+    )
+
+    verified_paid = bool(
+        session.get("status") == "paid"
+        and invoice.get("status") == "paid"
+        and order_matches
+        and invoice_amount_matches
+        and invoice_currency_matches
+    )
+
+    return {
+        "session_id": session["session_id"],
+        "batch_id": session["batch_id"],
+        "invoice_id": session["invoice_id"],
+        "razorpay_order_id": session_order_id,
+        "session_status": session["status"],
+        "invoice_status": invoice.get("status"),
+        "order_matches": order_matches,
+        "verified_paid": verified_paid,
+        "amount": session["amount_paise"],
+        "currency": session["currency"],
+        "mode": "razorpay_test_mode",
+    }
+
+
+@app.get("/api/demo/razorpay/inspect/{invoice_id}")
+def inspect_razorpay_demo_invoice(invoice_id: str):
+    """Read an existing Razorpay demo invoice and session without mutations."""
+    from backend.data.razorpay_demo import (
+        get_razorpay_demo_session_by_invoice_id,
+    )
+
+    session = get_razorpay_demo_session_by_invoice_id(invoice_id)
+    if not session:
+        raise HTTPException(
+            status_code=404,
+            detail="No existing Razorpay demo session was found for this invoice.",
+        )
+
+    invoice = get_invoice(invoice_id)
+    if not invoice:
+        raise HTTPException(
+            status_code=409,
+            detail="The Razorpay demo session exists, but its invoice is missing.",
+        )
+
+    session_order_id = session.get("razorpay_order_id")
+    invoice_order_id = invoice.get("razorpay_order_id")
+    order_matches = bool(
+        session_order_id
+        and invoice_order_id
+        and session_order_id == invoice_order_id
+    )
+
+    try:
+        amount_matches = (
+            int(invoice.get("amount")) == int(session.get("amount_paise"))
+        )
+    except (TypeError, ValueError):
+        amount_matches = False
+
+    currency_matches = (
+        str(invoice.get("currency") or "").upper()
+        == str(session.get("currency") or "").upper()
+    )
+
+    verified_paid = bool(
+        session.get("status") == "paid"
+        and invoice.get("status") == "paid"
+        and order_matches
+        and amount_matches
+        and currency_matches
+    )
+
+    # Read-only: retrieve existing records for this invoice.
+    from backend.data.db import (
+        get_payment_attempts,
+        get_recovery_timeline,
+        get_revenue_events,
+    )
+
+    payment_attempts = get_payment_attempts(invoice_id=invoice_id)
+    timeline = get_recovery_timeline(invoice_id=invoice_id)
+    revenue_events = get_revenue_events(invoice_id=invoice_id)
+
+    diagnosis_event = next(
+        (
+            event for event in timeline
+            if event.get("type") == "audit"
+            and event.get("stage") == "diagnose"
+        ),
+        None,
+    )
+    diagnosis = {}
+    if diagnosis_event:
+        diagnosis = {
+            "category": invoice.get("failure_category"),
+            "reason": diagnosis_event.get("detail"),
+            "source": "persisted_audit_event",
+            "created_at": diagnosis_event.get("timestamp"),
+        }
+
+    historical_context = get_historical_decision_context_dict(
+        invoice_id,
+        limit=20,
+    )
+
+    # Do not recommend recovery for an invoice/session already marked paid.
+    # This is a read-only status summary, not a persisted decision.
+    if invoice.get("status") == "paid" or session.get("status") == "paid":
+        decision = {
+            "action": "no_action",
+            "reason": "The invoice or session is already marked paid; no further recovery action is appropriate.",
+            "source": "read_only_paid_state",
+            "persisted": False,
+        }
+    else:
+        decision = decide_for_invoice(invoice_id, persist=False)
+
+    return {
+        "invoice_id": invoice_id,
+        "invoice": invoice,
+        "session": {
+            "session_id": session["session_id"],
+            "batch_id": session["batch_id"],
+            "session_status": session["status"],
+            "razorpay_order_id": session_order_id,
+            "order_matches": order_matches,
+            "amount_matches": amount_matches,
+            "currency_matches": currency_matches,
+            "verified_paid": verified_paid,
+            "mode": "razorpay_test_mode",
+        },
+        "diagnosis": diagnosis,
+        "decision": decision,
+        "ai_reconciliation": {
+            "result": "not_evaluated",
+            "detail": "Read-only inspection; no AI request or decision was executed.",
+        },
+        "historical_context": historical_context,
+        "payment_attempts": payment_attempts,
+        "audit": {
+            "read_only": True,
+            "events": timeline,
+            "count": len(timeline),
+        },
+        "revenue_events": revenue_events,
+    }
+
+
+
+@app.get("/api/demo/razorpay/metrics")
+def get_isolated_razorpay_metrics():
+    """Return aggregate metrics for registered isolated Razorpay demo sessions."""
+    from backend.data.razorpay_demo import get_isolated_razorpay_demo_metrics
+
+    return get_isolated_razorpay_demo_metrics()
 
 @app.get("/api/batches/{batch_id}/razorpay-checkout")
 def razorpay_checkout(batch_id: str):
@@ -681,6 +1292,4 @@ def inspect_recovery_agent(batch_id: str):
         ),
         "read_only": True,
     }
-
-
 

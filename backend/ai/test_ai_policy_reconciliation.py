@@ -255,13 +255,13 @@ def test_ai_learning_influence_is_observable() -> None:
     assert result.learning_influence["used"] is True
     assert (
         result.learning_influence["signal"]
-        == "historically_unfavorable"
+        == "insufficient_outcome_evidence"
     )
-    assert result.learning_influence["sample_size"] == 5
-    assert result.learning_influence["confidence"] == 0.5
+    assert result.learning_influence["sample_size"] == 20
+    assert result.learning_influence["confidence"] == 0.0
     assert (
         result.learning_influence["historical_recovery_rate"]
-        == 0.0
+        is None
     )
 
     result_dict = result.to_dict()

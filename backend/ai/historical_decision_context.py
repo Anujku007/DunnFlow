@@ -179,22 +179,29 @@ def _determine_outcome(
         "recovery_confirmed" in event_types
     )
 
+    # Only recovery_confirmed is authoritative financial recovery.
+    # A captured payment without confirmation remains unresolved.
     recovered_amount = sum(
         int(event.get("amount") or 0)
         for event in revenue_events
         if str(event.get("event_type", "")).lower()
-        in {
-            "payment_captured",
-            "recovery_confirmed",
-        }
+        == "recovery_confirmed"
     )
 
-    if recovery_confirmed or payment_captured:
+    if recovery_confirmed:
         return (
             "recovered",
             recovered_amount,
-            recovery_confirmed,
+            True,
             payment_captured,
+        )
+
+    if payment_captured:
+        return (
+            "in_progress",
+            0,
+            False,
+            True,
         )
 
     action_statuses = {
@@ -411,14 +418,22 @@ def _build_action_statistics(
         )
 
         total = len(action_cases)
+        resolved = sum(
+            1 for case in action_cases
+            if case.outcome in {
+                "recovered", "executed_no_recovery",
+                "blocked", "no_action", "exhausted", "failed",
+            }
+        )
 
         statistics[action] = {
             "total_cases": total,
+            "resolved_sample_size": resolved,
             "recovered_cases": recovered,
             "recovery_rate": (
-                recovered / total
-                if total
-                else 0.0
+                recovered / resolved
+                if resolved
+                else None
             ),
             "blocked_cases": sum(
                 1
@@ -464,6 +479,13 @@ def _build_ai_statistics(
         if case.outcome == "recovered"
     )
 
+    resolved_ai_cases = [
+        case for case in ai_cases
+        if case.outcome in {
+            "recovered", "executed_no_recovery",
+            "blocked", "no_action", "exhausted", "failed",
+        }
+    ]
     total = len(ai_cases)
 
     return {
@@ -476,10 +498,11 @@ def _build_ai_statistics(
             else 0.0
         ),
         "recovered_cases_after_ai_review": recovered_after_ai,
+        "resolved_sample_size_after_ai_review": len(resolved_ai_cases),
         "recovery_rate_after_ai_review": (
-            recovered_after_ai / total
-            if total
-            else 0.0
+            recovered_after_ai / len(resolved_ai_cases)
+            if resolved_ai_cases
+            else None
         ),
     }
 
@@ -567,13 +590,22 @@ def _build_ai_action_statistics(
             if case.ai_result == "disagreement"
         )
 
+        resolved = sum(
+            1 for case in action_cases
+            if case.outcome in {
+                "recovered", "executed_no_recovery",
+                "blocked", "no_action", "exhausted", "failed",
+            }
+        )
+
         statistics[action] = {
             "total_cases": total,
+            "resolved_sample_size": resolved,
             "recovered_cases": recovered,
             "recovery_rate": (
-                recovered / total
-                if total
-                else 0.0
+                recovered / resolved
+                if resolved
+                else None
             ),
             "recovered_amount": recovered_amount,
             "blocked_cases": blocked,
@@ -653,10 +685,7 @@ def _build_outcome_statistics(
 def _build_learning_signal(
     cases: list[HistoricalCase],
 ) -> dict[str, Any]:
-    """Build a bounded historical learning signal.
-
-    This is evidence for the AI only. It does not alter policy.
-    """
+    """Build a bounded, advisory-only signal from resolved outcomes."""
 
     total = len(cases)
 
@@ -665,22 +694,44 @@ def _build_learning_signal(
             "available": False,
             "confidence": 0.0,
             "signal": "no_historical_evidence",
+            "sample_size": 0,
+            "historical_recovery_rate": None,
+        }
+
+    # In-progress episodes are not evidence of success or failure.
+    resolved_outcomes = {
+        "recovered",
+        "executed_no_recovery",
+        "blocked",
+        "no_action",
+        "exhausted",
+        "failed",
+    }
+    resolved_cases = [
+        case for case in cases
+        if case.outcome in resolved_outcomes
+    ]
+    resolved_total = len(resolved_cases)
+
+    if not resolved_total:
+        return {
+            "available": True,
+            "confidence": 0.0,
+            "signal": "insufficient_outcome_evidence",
+            "sample_size": total,
+            "resolved_sample_size": 0,
+            "historical_recovery_rate": None,
         }
 
     recovered = sum(
-        1
-        for case in cases
+        1 for case in resolved_cases
         if case.outcome == "recovered"
     )
+    recovery_rate = recovered / resolved_total
 
-    recovery_rate = recovered / total
-
-    if total >= 10:
-        confidence = min(
-            0.95,
-            0.50 + (total / 100),
-        )
-    elif total >= 3:
+    if resolved_total >= 10:
+        confidence = min(0.95, 0.50 + (resolved_total / 100))
+    elif resolved_total >= 3:
         confidence = 0.50
     else:
         confidence = 0.25
@@ -694,18 +745,12 @@ def _build_learning_signal(
 
     return {
         "available": True,
-        "confidence": round(
-            confidence,
-            3,
-        ),
+        "confidence": round(confidence, 3),
         "signal": signal,
         "sample_size": total,
-        "historical_recovery_rate": round(
-            recovery_rate,
-            3,
-        ),
+        "resolved_sample_size": resolved_total,
+        "historical_recovery_rate": round(recovery_rate, 3),
     }
-
 
 
 
@@ -764,9 +809,17 @@ def _build_amount_band_learning(
             if case.outcome == "in_progress"
         )
 
+        resolved = sum(
+            1 for case in cases
+            if case.outcome in {
+                "recovered", "executed_no_recovery",
+                "blocked", "no_action", "exhausted", "failed",
+            }
+        )
+
         recovery_rate = (
-            recovered / total
-            if total
+            recovered / resolved
+            if resolved
             else None
         )
 
@@ -1066,8 +1119,17 @@ def _build_customer_behavior(
             recovery_actions = []
 
         try:
-            payment_attempts = get_payment_attempts(
+            revenue_events = get_revenue_events(
                 invoice_id=invoice_id
+            )
+        except Exception:
+            revenue_events = []
+
+        try:
+            payment_attempts = (
+                get_payment_attempts(invoice_id=invoice_id)
+                if get_payment_attempts
+                else []
             )
         except Exception:
             payment_attempts = []
@@ -1079,7 +1141,7 @@ def _build_customer_behavior(
             _payment_captured,
         ) = _determine_outcome(
             recovery_actions,
-            payment_attempts,
+            revenue_events,
         )
 
         if outcome == "recovered":
@@ -1118,11 +1180,8 @@ def _build_customer_behavior(
             "advisory_only": True,
         }
 
-    outcome_count = (
-        recovered_count
-        + failed_count
-        + in_progress_count
-    )
+    # Only resolved outcomes belong in the recovery-rate denominator.
+    outcome_count = recovered_count + failed_count
 
     recovery_rate = (
         recovered_count / outcome_count
@@ -1266,27 +1325,37 @@ def _build_recency_learning(
     recent_cases = dated_cases[:recent_count]
     older_cases = dated_cases[recent_count:]
 
+    resolved_outcomes = {
+        "recovered", "executed_no_recovery",
+        "blocked", "no_action", "exhausted", "failed",
+    }
+
+    recent_resolved = [
+        case for case in recent_cases
+        if case.outcome in resolved_outcomes
+    ]
+    overall_resolved = [
+        case for case in dated_cases
+        if case.outcome in resolved_outcomes
+    ]
+
     recent_recovered = sum(
-        1
-        for case in recent_cases
+        1 for case in recent_resolved
         if case.outcome == "recovered"
     )
-
     overall_recovered = sum(
-        1
-        for case in dated_cases
+        1 for case in overall_resolved
         if case.outcome == "recovered"
     )
 
     recent_rate = (
-        recent_recovered / len(recent_cases)
-        if recent_cases
+        recent_recovered / len(recent_resolved)
+        if recent_resolved
         else None
     )
-
     overall_rate = (
-        overall_recovered / len(dated_cases)
-        if dated_cases
+        overall_recovered / len(overall_resolved)
+        if overall_resolved
         else None
     )
 
@@ -1310,7 +1379,9 @@ def _build_recency_learning(
         "available": True,
         "sample_size": len(historical_cases),
         "dated_sample_size": total,
+        "resolved_sample_size": len(overall_resolved),
         "recent_sample_size": len(recent_cases),
+        "recent_resolved_sample_size": len(recent_resolved),
         "older_sample_size": len(older_cases),
         "recent_recovery_rate": (
             round(recent_rate, 4)

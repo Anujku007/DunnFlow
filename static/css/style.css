@@ -7016,3 +7016,58 @@ body.decision-modal-open {
 .demo-lab-section .section-header {
     margin-top: 0 !important;
 }
+
+/* Recovery outcome status */
+.outcome-result-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 18px;
+    padding: 14px 18px;
+    border: 1px solid rgba(100, 140, 190, 0.28);
+    border-radius: 12px;
+    background: rgba(12, 22, 40, 0.72);
+}
+
+.outcome-result-label {
+    color: #9eacc4;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+}
+
+#outcomeResult {
+    color: #35e4cf;
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
+
+/* DUNNFLOW FIVE-CARD METRICS ROW PATCH */
+/* Keep the five dashboard metric cards on one desktop row. */
+.metrics-section .metrics-grid {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+    align-items: stretch;
+}
+
+.metrics-section .metrics-grid > .metric-card {
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 1199px) {
+    .metrics-section .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .metrics-section .metrics-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+}

@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS invoices (
         REFERENCES subscriptions(subscription_id),
 
     razorpay_invoice_id        TEXT UNIQUE,
-
+    razorpay_order_id          TEXT UNIQUE,
     amount                     INTEGER NOT NULL,
     currency                   TEXT NOT NULL DEFAULT 'INR',
 
@@ -313,3 +313,4 @@ CREATE INDEX IF NOT EXISTS idx_audit_batch
 
 CREATE INDEX IF NOT EXISTS idx_audit_subscription
     ON audit_log(subscription_id);
+
