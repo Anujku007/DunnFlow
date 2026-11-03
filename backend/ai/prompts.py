@@ -163,12 +163,31 @@ For the current case:
 When historical evidence materially influences the recommendation, explain
 that influence in the reason field using only the supplied evidence.
 
+Action selection contract — STRICT:
+
+- You MUST select recommended_action from the six allowed actions listed in the JSON contract.
+- Never invent, rename, paraphrase, or return any other action.
+- insufficient_funds: recommend retry_payment when a retry is appropriate.
+- bank_timeout: recommend auto_retry_same_card when a retry is appropriate.
+- auth_failed: recommend customer_action.
+- card_expired: recommend payment_method_update.
+- unclassified or ambiguous evidence: recommend manual_review or no_action. Never guess.
+- Treat these mappings as advisory guidance, not permission to execute an action.
+- Never claim that a payment was retried, scheduled, executed, captured, or recovered.
+- The deterministic DunnFlow policy remains the final authority for every action.
 Return ONLY the required JSON recommendation using this JSON contract:
 
 {
   "priority_score": <integer 0-100>,
   "urgency": "low" | "normal" | "high",
-  "recommended_action": <allowed action>,
+  "recommended_action": one of [
+    "retry_payment",
+    "auto_retry_same_card",
+    "customer_action",
+    "payment_method_update",
+    "manual_review",
+    "no_action"
+],
   "confidence": <number 0.0-1.0>,
   "reason": <string>,
   "customer_strategy": <string>,

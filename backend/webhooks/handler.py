@@ -7,7 +7,11 @@ from typing import Any
 
 from backend.integrations.razorpay_adapter import RazorpayAdapter
 from backend.integrations.razorpay_ingestion import RazorpayIngestion
-from backend.data.db import record_webhook_event, webhook_event_exists
+from backend.data.db import (
+    claim_webhook_event,
+    release_webhook_event_claim,
+    webhook_event_exists,
+)
 
 
 class WebhookHandlerError(Exception):
@@ -119,45 +123,55 @@ def handle_razorpay_webhook(
             RazorpayIngestion
         )
 
-        result = ingestion.ingest_payment(
-            normalized_payment
-        )
+        if event_id and not claim_webhook_event(
+            event_id,
+            event_type,
+            datetime.now(timezone.utc).isoformat(),
+        ):
+            return {
+                "status": "duplicate",
+                "event": event_type,
+                "event_id": event_id,
+            }
 
-        # Update only the session belonging to this exact Razorpay order.
-        # The stored invoice status is authoritative.
-        if normalized_payment.get("status") == "captured":
-            from backend.data.db import get_invoice
-            from backend.data.razorpay_demo import (
-                get_razorpay_demo_session_by_order_id,
-                update_razorpay_demo_session_status,
+        try:
+            result = ingestion.ingest_payment(
+                normalized_payment
             )
 
-            order_id = normalized_payment.get("razorpay_order_id")
-            session = (
-                get_razorpay_demo_session_by_order_id(order_id)
-                if order_id
-                else None
-            )
+            # Update only the session belonging to this exact Razorpay order.
+            # The stored invoice status is authoritative.
+            if normalized_payment.get("status") == "captured":
+                from backend.data.db import get_invoice
+                from backend.data.razorpay_demo import (
+                    get_razorpay_demo_session_by_order_id,
+                    update_razorpay_demo_session_status,
+                )
 
-            if session:
-                invoice = get_invoice(session["invoice_id"])
-                if (
-                    invoice
-                    and invoice.get("invoice_id") == session["invoice_id"]
-                    and invoice.get("razorpay_order_id") == order_id
-                    and invoice.get("status") == "paid"
-                ):
-                    update_razorpay_demo_session_status(
-                        session["session_id"],
-                        "paid",
-                    )
+                order_id = normalized_payment.get("razorpay_order_id")
+                session = (
+                    get_razorpay_demo_session_by_order_id(order_id)
+                    if order_id
+                    else None
+                )
 
-        if event_id:
-            record_webhook_event(
-                event_id,
-                event_type,
-                datetime.now(timezone.utc).isoformat(),
-            )
+                if session:
+                    invoice = get_invoice(session["invoice_id"])
+                    if (
+                        invoice
+                        and invoice.get("invoice_id") == session["invoice_id"]
+                        and invoice.get("razorpay_order_id") == order_id
+                        and invoice.get("status") == "paid"
+                    ):
+                        update_razorpay_demo_session_status(
+                            session["session_id"],
+                            "paid",
+                        )
+
+        except Exception:
+            if event_id:
+                release_webhook_event_claim(event_id)
+            raise
 
         return {
             "status": "processed",

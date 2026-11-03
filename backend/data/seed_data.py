@@ -760,6 +760,9 @@ def record_initial_revenue_events(
 # SEED
 # ===========================================================================
 
+from backend.ai.test_db_safety import require_isolated_test_db
+
+
 def seed_benchmark(
     *,
     reset: bool = True,
@@ -782,6 +785,10 @@ def seed_benchmark(
             f"Benchmark size cannot exceed "
             f"{len(SCENARIO_SEQUENCE)}."
         )
+
+    # This function writes benchmark records even when reset=False.
+    # Always require an explicitly authorized isolated test database.
+    require_isolated_test_db()
 
     init_db()
 

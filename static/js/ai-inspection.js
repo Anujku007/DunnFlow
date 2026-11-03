@@ -44,14 +44,22 @@
  `<div class="dfr-summary-item"><span class="dfr-label">Last Updated</span><div class="dfr-value">${esc(date(first(invoice.updated_at,invoice.created_at)))}</div><div class="dfr-meta">Based on the invoice record timestamp returned by the API.</div></div></div>`,
  `<div class="dfr-summary-item"><span class="dfr-label">Current Status</span><div class="dfr-value">${esc(invoiceStatus)}</div><div class="dfr-meta">Outcome: ${esc(outcome)}</div></div>`].join(""));
  const confidence=first(ai.confidence,learning.confidence),priority=first(ai.priority_score,decision.priority_score),recoveredAmount=first(recovered,0);
- const aiUnavailable=!recon.ai_available||String(recon.result||"").toLowerCase()==="ai_unavailable";
-  const aiTitle=aiUnavailable?"AI unavailable":displayAction(aiAction);
+  const reconResult=String(recon.result||"not_evaluated").toLowerCase();
+  const aiNotEvaluated=reconResult==="not_evaluated";
+  const aiUnavailable=!aiNotEvaluated&&(
+    recon.ai_available===false||reconResult==="ai_unavailable"
+  );
+  const aiTitle=aiNotEvaluated
+    ?"Not evaluated"
+    :aiUnavailable
+      ?"AI unavailable"
+      :displayAction(aiAction);
   const policyTitle=displayAction(policyAction);
   const outcomeTitle=String(invoiceStatus).toLowerCase()==="paid"?"Payment recorded":displayAction(result);
   const confirmedRecovery=first(invoice.recovered_amount,invoice.amount_recovered,data.recovered_amount);
   const amountTitle=confirmedRecovery===undefined?"Not supplied":money(confirmedRecovery,currency);
   setHTML("dfrKpis",[
-  `<div class="dfr-kpi ai"><div class="dfr-kpi-icon">✧</div><div class="dfr-kpi-copy"><small>AI Recommendation</small><strong>${esc(aiTitle)}</strong><p>${esc(aiUnavailable?"Advisory service did not return a recommendation":confidence===undefined?"Confidence not supplied":"Confidence: "+confidence)}</p></div></div>`,
+  `<div class="dfr-kpi ai"><div class="dfr-kpi-icon">✧</div><div class="dfr-kpi-copy"><small>AI Recommendation</small><strong>${esc(aiTitle)}</strong><p>${esc(aiNotEvaluated?"AI was not requested for this read-only inspection":aiUnavailable?"Advisory service did not return a recommendation":confidence===undefined?"Confidence not supplied":"Confidence: "+confidence)}</p></div></div>`,
   `<div class="dfr-kpi policy"><div class="dfr-kpi-icon">◈</div><div class="dfr-kpi-copy"><small>Policy Decision</small><strong>${esc(policyTitle)}</strong><p>Deterministic policy is authoritative</p></div></div>`,
   `<div class="dfr-kpi outcome"><div class="dfr-kpi-icon">◉</div><div class="dfr-kpi-copy"><small>Invoice Status</small><strong>${esc(outcomeTitle)}</strong><p>${esc(String(invoiceStatus).toLowerCase()==="paid"?"Backend reports this invoice as paid":humanError(first(recon.detail,"No execution outcome was supplied")))}</p></div></div>`,
   `<div class="dfr-kpi amount"><div class="dfr-kpi-icon">↗</div><div class="dfr-kpi-copy"><small>Confirmed Recovery</small><strong>${esc(amountTitle)}</strong><p>${confirmedRecovery===undefined?"No confirmed recovery amount was supplied":"Amount supplied by the backend"}</p></div></div>`].join(""));

@@ -614,6 +614,13 @@ async function refreshRecoveryAgent(batchId) {
 
         if (
             window.DunnFlowMetrics &&
+            typeof window.DunnFlowMetrics.updateRecoveryButtonLabel === "function"
+        ) {
+            window.DunnFlowMetrics.updateRecoveryButtonLabel();
+        }
+
+        if (
+            window.DunnFlowMetrics &&
             typeof window.DunnFlowMetrics.resetPipeline ===
                 "function"
         ) {

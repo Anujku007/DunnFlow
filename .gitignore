@@ -1,3 +1,28 @@
 .env
 *.db
-__pycache__/
+__pycache__/# Environment and secrets
+.env
+.env.*
+!.env.example
+# Python environments and cache
+venv/
+.venv/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+# Local databases and test data
+*.db
+*.sqlite
+*.sqlite3
+.test_dbs/
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+*.old
+*.orig
+*~
+# Local development
+.vscode/
+.idea/
+node_modules/

@@ -1,4 +1,4 @@
-﻿from pathlib import Path
+from pathlib import Path
 import ast
 import sqlite3
 import sys
@@ -125,8 +125,13 @@ require(
 )
 
 require(
-    "record_webhook_event" in handler_text,
-    "Webhook event persistence is missing."
+    "claim_webhook_event" in handler_text,
+    "Atomic webhook event claim is missing."
+)
+
+require(
+    "release_webhook_event_claim" in handler_text,
+    "Webhook claim release on processing failure is missing."
 )
 
 require(

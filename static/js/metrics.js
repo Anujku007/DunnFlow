@@ -341,10 +341,25 @@
     async function refreshMetrics(
         batchId = null
     ) {
-        const targetBatch =
+        let targetBatch =
             batchId ||
             getSelectedBatchId() ||
             DEFAULT_BATCH;
+
+        const selectedBatchAtRequest = getSelectedBatchId();
+
+        // Never load historical reference metrics into a fresh Benchmark 60 view.
+        // If this page already has an isolated run, use that run instead.
+        if (targetBatch === DEFAULT_BATCH) {
+            const isolatedBatchId = DunnFlowState.benchmarkAllBatchId;
+
+            if (isolatedBatchId) {
+                targetBatch = isolatedBatchId;
+            } else {
+                renderEmptyBenchmarkMetrics();
+                return null;
+            }
+        }
 
         try {
             const metrics =
@@ -362,7 +377,7 @@
              */
             if (
                 getSelectedBatchId() !==
-                targetBatch
+                selectedBatchAtRequest
             ) {
                 return null;
             }
@@ -439,10 +454,32 @@
      * ------------------------------------------------------------------
      */
 
+    function renderEmptyBenchmarkMetrics() {
+        setText("riskAmount", "	₹0.00");
+        setText("recoveryCount", "0");
+        setText("recoveredCount", "0");
+        setText("recoveredAmount", "	₹0.00");
+        setText("recoveryRate", "0%");
+        setText("inProgress", "0");
+        setText("blockedCases", "0");
+        setText("manualReviewCases", "0");
+
+        DunnFlowState.lastMetrics = null;
+    }
+
+
     function initializeMetrics() {
         const batchId =
             getSelectedBatchId() ||
             DEFAULT_BATCH;
+
+        if (
+            batchId === DEFAULT_BATCH &&
+            !DunnFlowState.benchmarkAllBatchId
+        ) {
+            renderEmptyBenchmarkMetrics();
+            return;
+        }
 
         const loadMetrics =
             String(batchId).startsWith("razorpay_") &&
@@ -533,6 +570,33 @@
             labels[status] ||
             descriptions[stage] ||
             String(status).toUpperCase();
+    }
+
+
+    function updateRecoveryButtonLabel() {
+        const button = byId("runBatchBtn");
+        if (!button) return;
+
+        if (getSelectedBatchId() === DEFAULT_BATCH) {
+            const stage = DunnFlowState.benchmarkAllStage || "idle";
+            button.textContent =
+                stage === "prepared"
+                    ? "EXECUTE & RECONCILE ALL 60"
+                    : stage === "execution_partial"
+                        ? "RETRY REMAINING CASES"
+                        : stage === "completed"
+                            ? "RUN ALL 60 AGAIN (NEW RUN)"
+                            : stage === "preparing"
+                                ? "PREPARING BENCHMARK 60..."
+                                : "DETECT & DECIDE ALL 60";
+        } else if (
+            DunnFlowState.mode === "demo" &&
+            DunnFlowState.demoStage === "scheduled"
+        ) {
+            button.textContent = "EXECUTE SCHEDULED RECOVERY";
+        } else {
+            button.textContent = "RUN RECOVERY";
+        }
     }
 
 
@@ -904,7 +968,7 @@
             : "Historical learning context available";
 
         detail.textContent = lines.length
-            ? lines.join(" ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· ") +
+            ? lines.join(" · ") +
               ". Advisory evidence only; deterministic policy remains authoritative."
             : "Historical context received, but no recognized evidence signals were available.";
     }
@@ -1365,6 +1429,24 @@
         try {
             resetRecoveryResult();
 
+            // Benchmark 60 must take priority over stale demo scenario state.
+            if (getSelectedBatchId() === DEFAULT_BATCH) {
+                return await runBenchmarkAllRecovery();
+            }
+
+            // Safety guard: never route a selected Benchmark 60 batch
+            // through a previously selected Razorpay demo scenario.
+            const selectedBatchForRouting = getSelectedBatchId();
+            if (
+                selectedBatchForRouting === DEFAULT_BATCH &&
+                mode === "demo" &&
+                isRazorpayDemoScenario(DunnFlowState.scenario)
+            ) {
+                throw new Error(
+                    "Benchmark 60 is selected, but a Razorpay demo scenario is still active. " +
+                    "No recovery was executed. Select the Benchmark 60 experience before continuing."
+                );
+            }
 
             if (
                 mode === "demo" &&
@@ -1556,19 +1638,316 @@
                 runButton.disabled =
                     false;
 
-                if (
+                if (getSelectedBatchId() === DEFAULT_BATCH) {
+                    const stage = DunnFlowState.benchmarkAllStage || "idle";
+                    runButton.textContent =
+                        stage === "prepared"
+                            ? "EXECUTE & RECONCILE ALL 60"
+                            : stage === "execution_partial"
+                                ? "RETRY REMAINING CASES"
+                                : stage === "completed"
+                                    ? "RUN ALL 60 AGAIN (NEW RUN)"
+                                    : "DETECT & DECIDE ALL 60";
+                } else if (
                     mode === "demo" &&
-                    DunnFlowState.demoStage ===
-                        "scheduled"
+                    DunnFlowState.demoStage === "scheduled"
                 ) {
-                    runButton.textContent =
-                        "EXECUTE SCHEDULED RECOVERY";
+                    runButton.textContent = "EXECUTE SCHEDULED RECOVERY";
                 } else {
-                    runButton.textContent =
-                        "RUN RECOVERY";
+                    runButton.textContent = "RUN RECOVERY";
                 }
             }
         }
+    }
+
+
+    /*
+     * ------------------------------------------------------------------
+     * Benchmark 60: isolated two-click synthetic recovery
+     * ------------------------------------------------------------------
+     *
+     * Click 1: create a fresh run of 60 synthetic cases and decide them.
+     * Click 2: execute only through the guarded per-case demo endpoint.
+     *
+     * Never calls the reference batch execution endpoint.
+     * Never initiates Razorpay checkout/payment.
+     */
+
+    async function runBenchmarkAllRecovery() {
+        const api = window.DunnFlowAPI;
+        if (!api ||
+            typeof api.createDemoRun !== "function" ||
+            typeof api.getDemoRun !== "function" ||
+            typeof api.getDemoCase !== "function" ||
+            typeof api.decideDemoCase !== "function" ||
+            typeof api.executeDemoCase !== "function" ||
+            typeof api.getMetrics !== "function") {
+            throw new Error("Benchmark 60 APIs are not all available.");
+        }
+
+        let stage = DunnFlowState.benchmarkAllStage || "idle";
+
+        const refreshIsolatedMetrics = async (batchId) => {
+            const metrics = await api.getMetrics(batchId);
+            if (getSelectedBatchId() === DEFAULT_BATCH &&
+                typeof renderMetrics === "function") {
+                renderMetrics(metrics);
+                DunnFlowState.lastMetrics = metrics;
+            }
+            return metrics;
+        };
+
+        // CLICK 1: prepare decisions only.
+        if (stage === "failed") {
+            DunnFlowState.benchmarkAllStage = "idle";
+            stage = "idle";
+        }
+
+        if (stage === "idle" || stage === "completed") {
+            DunnFlowState.benchmarkAllStage = "preparing";
+            setText("outcomeResult", "PREPARING ISOLATED BENCHMARK 60");
+
+            let runId = null;
+            let metadata = null;
+
+            try {
+                // Always create a new isolated run; never reuse the reference batch.
+                const created = await api.createDemoRun();
+                if (!created || !created.run_id || !created.batch_id) {
+                    throw new Error("The isolated demo run was not created correctly.");
+                }
+
+                runId = created.run_id;
+                metadata = await api.getDemoRun(runId);
+
+                const invoiceIds =
+                    metadata && Array.isArray(metadata.invoice_ids)
+                        ? metadata.invoice_ids
+                        : [];
+
+                if (metadata.status !== "ready" || invoiceIds.length !== 60) {
+                    throw new Error(
+                        `Expected 60 ready isolated cases; received ${invoiceIds.length}.`
+                    );
+                }
+
+                DunnFlowState.benchmarkAllRunId = runId;
+                DunnFlowState.benchmarkAllBatchId = created.batch_id;
+                DunnFlowState.benchmarkAllInvoiceIds = invoiceIds;
+                DunnFlowState.runId = runId;
+                DunnFlowState.demoRunBatchId = created.batch_id;
+
+                updatePipeline("detect", "active");
+
+                let decidedCount = 0;
+                for (const invoiceId of invoiceIds) {
+                    // Read the case and persist its decision. No execution here.
+                    await api.getDemoCase(invoiceId, runId);
+                    await api.decideDemoCase(invoiceId, runId);
+                    decidedCount += 1;
+                }
+
+                await refreshIsolatedMetrics(created.batch_id);
+
+                DunnFlowState.benchmarkAllStage = "prepared";
+                updatePipeline("detect", "complete");
+                updatePipeline("diagnose", "complete");
+                updatePipeline("decide", "complete");
+                updatePipeline("execute", "awaiting");
+                updatePipeline("outcome", "awaiting");
+
+                setText(
+                    "outcomeResult",
+                    `DECISIONS PREPARED: ${decidedCount}/60. NO RECOVERY EXECUTED.`
+                );
+
+                if (window.DunnFlowLiveFeed &&
+                    typeof window.DunnFlowLiveFeed.add === "function") {
+                    window.DunnFlowLiveFeed.add(
+                        `Benchmark 60: ${decidedCount} isolated decisions prepared; execution has not started.`,
+                        "info"
+                    );
+                }
+
+                return {
+                    stage: "prepared",
+                    run_id: runId,
+                    batch_id: created.batch_id,
+                    decided_count: decidedCount,
+                    executed: false
+                };
+            } catch (error) {
+                DunnFlowState.benchmarkAllStage = "failed";
+                throw error;
+            }
+        }
+
+        // CLICK 2: guarded per-case execution on the isolated run.
+        if (stage === "prepared" || stage === "execution_partial") {
+            const runId = DunnFlowState.benchmarkAllRunId;
+            const batchId = DunnFlowState.benchmarkAllBatchId;
+            const invoiceIds = DunnFlowState.benchmarkAllInvoiceIds;
+
+            if (!runId || !batchId ||
+                !Array.isArray(invoiceIds) || invoiceIds.length !== 60) {
+                DunnFlowState.benchmarkAllStage = "idle";
+                throw new Error(
+                    "The isolated Benchmark 60 run is incomplete. Start again with the first click."
+                );
+            }
+
+            updatePipeline("execute", "active");
+            setText("outcomeResult", "EXECUTING GUARDED SYNTHETIC RECOVERY");
+
+            let endpointSuccesses = 0;
+            let recoveredCount = 0;
+            let safelySkipped = 0;
+            const errors = [];
+            const completedIds = new Set(
+                Array.isArray(DunnFlowState.benchmarkAllCompletedIds)
+                    ? DunnFlowState.benchmarkAllCompletedIds
+                    : []
+            );
+
+            for (const invoiceId of invoiceIds) {
+                if (completedIds.has(invoiceId)) {
+                    safelySkipped += 1;
+                    continue;
+                }
+
+                try {
+                    // Re-read authoritative case state before attempting execution.
+                    const currentCase = await api.getDemoCase(invoiceId);
+                    const currentInvoice = currentCase && currentCase.invoice;
+                    const currentDecision = currentCase && currentCase.decision;
+                    const currentStatus = String(currentInvoice && currentInvoice.status || "").toLowerCase();
+                    const decisionType = String(currentDecision && currentDecision.decision || "").toLowerCase();
+
+                    if (currentStatus === "paid") {
+                        safelySkipped += 1;
+                        completedIds.add(invoiceId);
+                        DunnFlowState.benchmarkAllCompletedIds = Array.from(completedIds);
+                        continue;
+                    }
+
+                    if (["blocked", "manual_review", "no_action"].includes(decisionType)) {
+                        safelySkipped += 1;
+                        completedIds.add(invoiceId);
+                        DunnFlowState.benchmarkAllCompletedIds = Array.from(completedIds);
+                        continue;
+                    }
+
+                    const response = await api.executeDemoCase(invoiceId, runId);
+                    endpointSuccesses += 1;
+
+                    const invoice = response && response.invoice;
+                    const execution = response && response.execution;
+                    const action = response && response.action;
+
+                    if (!invoice || invoice.invoice_id !== invoiceId) {
+                        throw new Error(
+                            "Execution response did not include the expected invoice."
+                        );
+                    }
+
+                    const finalStatus =
+                        String(invoice.status || "").toLowerCase();
+
+                    if (finalStatus === "paid") {
+                        recoveredCount += 1;
+                        completedIds.add(invoiceId);
+                    } else if (
+                        execution &&
+                        action &&
+                        ["executed", "blocked", "cancelled", "failed", "awaiting_customer"].includes(
+                            String(action.status || "").toLowerCase()
+                        )
+                    ) {
+                        // The action reached a terminal state. Financial metrics
+                        // remain authoritative for confirmed recovered revenue.
+                        completedIds.add(invoiceId);
+                    } else {
+                        throw new Error(
+                            "Execution response did not verify a terminal action outcome."
+                        );
+                    }
+                } catch (error) {
+                    const message = String(error && error.message || error);
+
+                    if (
+                        /no planned recovery action exists/i.test(message) ||
+                        /recovery action is not due under the scheduler/i.test(message)
+                    ) {
+                        // No executable action is available now. Do not retry it
+                        // repeatedly during this run or bypass scheduler guardrails.
+                        safelySkipped += 1;
+                        completedIds.add(invoiceId);
+                    } else {
+                        // Unexpected errors remain visible for investigation.
+                        errors.push({
+                            invoice_id: invoiceId,
+                            error: message
+                        });
+                    }
+                }
+
+                DunnFlowState.benchmarkAllCompletedIds =
+                    Array.from(completedIds);
+            }
+
+            const metrics = await refreshIsolatedMetrics(batchId);
+
+            DunnFlowState.lastExecution = {
+                endpoint_successes: endpointSuccesses,
+                recovered_count_from_responses: recoveredCount,
+                safely_skipped: safelySkipped,
+                errors: errors
+            };
+
+            DunnFlowState.benchmarkAllStage =
+                errors.length ? "execution_partial" : "completed";
+
+            updatePipeline("execute", "complete");
+            updatePipeline("outcome", errors.length ? "error" : "complete");
+
+            setText(
+                "outcomeResult",
+                errors.length
+                    ? `PARTIAL: ${endpointSuccesses} endpoint successes, ${safelySkipped} safely skipped, ${errors.length} errors.`
+                    : `EXECUTION FINISHED: ${endpointSuccesses} endpoint successes, ${safelySkipped} safely skipped. Check reconciled metrics for actual recoveries.`
+            );
+
+            if (window.DunnFlowLiveFeed &&
+                typeof window.DunnFlowLiveFeed.add === "function") {
+                window.DunnFlowLiveFeed.add(
+                    `Benchmark 60: ${endpointSuccesses} endpoint successes, ${safelySkipped} safely skipped, ${errors.length} errors.`,
+                    errors.length ? "warning" : "success"
+                );
+            }
+
+            return {
+                stage: DunnFlowState.benchmarkAllStage,
+                run_id: runId,
+                batch_id: batchId,
+                endpoint_successes: endpointSuccesses,
+                safely_skipped: safelySkipped,
+                errors: errors,
+                metrics: metrics
+            };
+        }
+
+        if (stage === "failed") {
+            DunnFlowState.benchmarkAllStage = "idle";
+            throw new Error(
+                "The previous preparation failed. Click again to create a fresh isolated run."
+            );
+        }
+
+        if (stage === "preparing") {
+            throw new Error("Benchmark 60 preparation is already in progress.");
+        }
+
+        throw new Error(`Unexpected Benchmark 60 stage: ${stage}`);
     }
 
 
@@ -3599,6 +3978,8 @@ const options = {
 
         refreshSelectedDemoMetrics,
 
+        updateRecoveryButtonLabel,
+
         resetPipeline
     };
 
@@ -3683,6 +4064,8 @@ const options = {
         initializeExistingRazorpayCheckout();
 
         resetPipeline();
+
+        updateRecoveryButtonLabel();
 
         initializeMetrics();
     }

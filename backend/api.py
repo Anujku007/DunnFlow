@@ -287,13 +287,8 @@ def _require_demo_run_invoice(run_id: str, invoice_id: str, *, for_execution: bo
     if not invoice or invoice.get("batch_id") != run.get("batch_id"):
         raise HTTPException(status_code=404, detail="Invoice not found in this demo run.")
 
-    if for_execution:
-        from backend.modules.execution import EXECUTION_MODE
-        if EXECUTION_MODE != "synthetic_test_mode":
-            raise HTTPException(
-                status_code=409,
-                detail="Isolated synthetic runs can execute only in synthetic_test_mode.",
-            )
+    # Execution mode is selected by the verified endpoint, not by the
+    # process-wide environment setting. Run ownership was checked above.
     return invoice
 
 DEMO_CASES = {
@@ -533,6 +528,7 @@ def execute_demo_case(invoice_id: str, run_id: str):
     result = execute_recovery_action(
         action["action_id"],
         as_of=demo_time,
+        execution_mode="synthetic_test_mode",
     )
 
     return {
@@ -563,12 +559,7 @@ def execute_batch(batch_id: str, run_id: str | None = None):
     if batch_id.startswith("demo_"):
         if not demo_run or demo_run.get("status") != "ready":
             raise HTTPException(status_code=404, detail="Demo run not found.")
-        from backend.modules.execution import EXECUTION_MODE
-        if EXECUTION_MODE != "synthetic_test_mode":
-            raise HTTPException(
-                status_code=409,
-                detail="Isolated synthetic runs can execute only in synthetic_test_mode.",
-            )
+        # The ready isolated run is forced to synthetic execution below.
 
     if not get_batch_run(batch_id):
         raise HTTPException(
@@ -576,6 +567,11 @@ def execute_batch(batch_id: str, run_id: str | None = None):
             detail="Batch not found",
         )
 
+    if batch_id.startswith("demo_"):
+        return execute_due_actions(
+            batch_id,
+            execution_mode="synthetic_test_mode",
+        )
     return execute_due_actions(batch_id)
 
 

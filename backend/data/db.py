@@ -1,4 +1,4 @@
-﻿"""
+"""
 DunnFlow data-access layer.
 
 All database access is centralized here. Business modules should never
@@ -1092,6 +1092,24 @@ def record_webhook_event(event_id: str, event_type: str, received_at: str) -> bo
     return cursor.rowcount == 1
 
 
+def claim_webhook_event(event_id: str, event_type: str, received_at: str) -> bool:
+    """Atomically claim an event ID before webhook processing."""
+    with get_conn() as conn:
+        cursor = conn.execute(
+            "INSERT OR IGNORE INTO razorpay_webhook_events "
+            "(event_id, event_type, received_at) VALUES (?, ?, ?)",
+            (event_id, event_type, received_at),
+        )
+        conn.commit()
+    return cursor.rowcount == 1
+
+
+def release_webhook_event_claim(event_id: str) -> None:
+    """Release an event claim after processing raises an exception."""
+    with get_conn() as conn:
+        conn.execute("DELETE FROM razorpay_webhook_events WHERE event_id = ?", (event_id,))
+        conn.commit()
+
 def get_audit_log(
     *,
     batch_id: str | None = None,
@@ -1351,13 +1369,19 @@ def get_batch_metrics(batch_id: str) -> dict:
     # Recovery rate
     # ------------------------------------------------------------------
 
-    # Count each invoice case once, regardless of its outcome.
-    recovery_count = len(invoices)
+    # Use the batch's original at-risk cohort as the fixed denominator.
+    # Legacy batches without revenue_at_risk events fall back to their
+    # invoice count. The frontend uses this same recovery_count field.
+    recovery_count = (
+        historical_invoices_at_risk
+        if historical_invoices_at_risk > 0
+        else len(invoices)
+    )
 
-    # Count-based rate: successful recovery cases / all cases in scope.
+    # Count-based recovery rate: confirmed recovered cases / initial cohort.
     recovery_rate_pct = (
         round((recovered_count / recovery_count) * 100, 1)
-        if recovery_count
+        if recovery_count > 0
         else 0.0
     )
 

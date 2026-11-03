@@ -177,9 +177,13 @@ def run_batch(
     # 2. DECIDE ONCE
     # ================================================================
 
+    from backend.modules.scheduler import get_batch_demo_timestamps
+    demo_times = get_batch_demo_timestamps(batch_id)
+    decision_time = as_of if as_of is not None else demo_times["now"]
+
     decisions = decide_batch(
         batch_id,
-        as_of=as_of,
+        as_of=decision_time,
     )
 
     # ================================================================
@@ -303,7 +307,7 @@ def run_batch(
                 invoice_id=deterministic_decision["invoice_id"],
                 deterministic_decision=deterministic_decision,
                 advisor=ai_advisor,
-                as_of=as_of,
+                as_of=decision_time,
             )
 
             ai_reconciliation["checked"] += 1
@@ -340,9 +344,7 @@ def run_batch(
     schedule_now = schedule_batch(
         batch_id,
         as_of=(
-            as_of
-            if as_of is not None
-            else demo_times["now"]
+            decision_time
         ),
     )
 

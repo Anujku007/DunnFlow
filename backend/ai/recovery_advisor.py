@@ -135,6 +135,9 @@ class AIConfig:
         elif provider == "gemini":
             api_key = os.getenv("GEMINI_API_KEY")
             default_model = "gemini-2.5-flash"
+        elif provider == "nvidia":
+            api_key = os.getenv("NVIDIA_API_KEY")
+            default_model = "nvidia/nemotron-3.5-super-vl-120b-a12b"
         else:
             raise AIConfigurationError(
                 f"Unsupported AI provider: {provider}"
@@ -428,6 +431,91 @@ class OpenRouterProvider(AIProvider):
         return output_text
 
 
+
+
+class NVIDIAProvider(AIProvider):
+    """
+    NVIDIA NIM provider using the OpenAI-compatible Chat Completions API.
+
+    AI output is advisory only. It cannot authorize or execute
+    financial operations.
+    """
+
+    def __init__(self, config: AIConfig):
+        self.config = config
+
+        if not config.api_key:
+            raise AIConfigurationError(
+                "NVIDIA_API_KEY is not configured."
+            )
+
+        try:
+            from openai import OpenAI
+        except ImportError as exc:
+            raise AIConfigurationError(
+                "The 'openai' package is not installed."
+            ) from exc
+
+        self._client = OpenAI(
+            api_key=config.api_key,
+            base_url="https://integrate.api.nvidia.com/v1",
+            timeout=config.timeout_seconds,
+        )
+
+    def generate(
+        self,
+        *,
+        system_prompt: str,
+        user_prompt: str,
+    ) -> str:
+
+        try:
+            response = self._client.chat.completions.create(
+                model=self.config.model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": system_prompt,
+                    },
+                    {
+                        "role": "user",
+                        "content": user_prompt,
+                    },
+                ],
+                temperature=1,
+                top_p=0.95,
+                max_tokens=16384,
+            )
+
+        except Exception as exc:
+            raise AIProviderError(
+                f"NVIDIA request failed: {exc}"
+            ) from exc
+
+        choices = getattr(response, "choices", None)
+
+        if not choices:
+            raise AIProviderError(
+                "NVIDIA returned no choices."
+            )
+
+        message = getattr(choices[0], "message", None)
+
+        if message is None:
+            raise AIProviderError(
+                "NVIDIA returned no message."
+            )
+
+        output_text = getattr(message, "content", None)
+
+        if not output_text:
+            raise AIProviderError(
+                "NVIDIA returned an empty response."
+            )
+
+        return output_text
+
+
 class RecoveryAdvisor:
     """
     High-level AI advisory service.
@@ -471,6 +559,10 @@ class RecoveryAdvisor:
                     )
                 elif self.config.provider == "gemini":
                     self.provider = GeminiProvider(
+                        self.config
+                    )
+                elif self.config.provider == "nvidia":
+                    self.provider = NVIDIAProvider(
                         self.config
                     )
                 else:
@@ -1014,6 +1106,28 @@ class RecoveryAdvisor:
         the recommendation becomes an AIRecoveryRecommendation.
         The deterministic recovery policy remains the authority.
         """
+
+        if not isinstance(parsed, dict):
+            raise AIProviderError(
+                "AI recommendation must be a JSON object."
+            )
+
+        required_fields = {
+            "recommended_action",
+            "priority_score",
+            "urgency",
+            "confidence",
+            "reason",
+            "customer_strategy",
+        }
+
+        missing_fields = required_fields - set(parsed.keys())
+
+        if missing_fields:
+            missing = ", ".join(sorted(missing_fields))
+            raise AIProviderError(
+                f"AI recommendation is missing required fields: {missing}"
+            )
 
         priority_score = parsed["priority_score"]
 

@@ -428,10 +428,20 @@ def _refresh_batch_recovery_totals(
         if event.get("invoice_id")
     }
 
-    amount_recovered = sum(
-        int(event.get("amount", 0))
-        for event in recovery_events
-    )
+    # Count each identified payment once. Legacy events without a payment
+    # ID remain individually countable because they cannot be safely matched.
+    amount_recovered = 0
+    counted_payment_ids = set()
+
+    for event in recovery_events:
+        payment_id = event.get("razorpay_event_id")
+
+        if payment_id:
+            if payment_id in counted_payment_ids:
+                continue
+            counted_payment_ids.add(payment_id)
+
+        amount_recovered += int(event.get("amount", 0))
 
     invoices = get_invoices(
         batch_id=batch_id
@@ -589,6 +599,7 @@ def _execute_payment_retry(
     subscription: dict,
     *,
     as_of=None,
+    execution_mode: str | None = None,
 ) -> dict:
     """
     Execute one DunnFlow recovery payment attempt.
@@ -603,6 +614,7 @@ def _execute_payment_retry(
         recovery_attempt_number
     """
 
+    effective_execution_mode = execution_mode or EXECUTION_MODE
     executed_at = as_of or _now()
 
     payment_attempt_number = (
@@ -788,7 +800,7 @@ def _execute_payment_retry(
                     f"{MAX_AUTOMATED_PAYMENT_RETRIES}. "
                     f"₹{invoice['amount'] / 100:,.2f} "
                     "confirmed recovered. "
-                    f"Execution mode: {EXECUTION_MODE}."
+                    f"Execution mode: {effective_execution_mode}."
                 ),
             }
         )
@@ -903,7 +915,7 @@ def _execute_payment_retry(
                 f"{detail} "
                 f"Gateway result: "
                 f"{gateway_result['message']} "
-                f"Execution mode: {EXECUTION_MODE}."
+                f"Execution mode: {effective_execution_mode}."
             ),
         }
     )
@@ -1182,6 +1194,7 @@ def execute_recovery_action(
     action_id: int,
     *,
     as_of=None,
+    execution_mode: str | None = None,
 ) -> dict:
     """
     Execute exactly one planned recovery action.
@@ -1191,6 +1204,12 @@ def execute_recovery_action(
     When provided, execution timestamps use `as_of` rather than wall-clock
     time. This keeps scheduler and execution deterministic during demos/tests.
     """
+
+    effective_execution_mode = execution_mode or EXECUTION_MODE
+    if effective_execution_mode not in {
+        "synthetic_test_mode", "razorpay_test_mode"
+    }:
+        raise ValueError("Unsupported execution mode.")
 
     execution_time = as_of or _now()
 
@@ -1405,7 +1424,7 @@ def execute_recovery_action(
 
     if action["action_type"] in PAYMENT_RETRY_ACTIONS:
 
-        if EXECUTION_MODE == "razorpay_test_mode":
+        if effective_execution_mode == "razorpay_test_mode":
 
             return _execute_razorpay_payment(
                 action=action,
@@ -1419,6 +1438,7 @@ def execute_recovery_action(
             invoice=invoice,
             subscription=subscription,
             as_of=as_of,
+            execution_mode=effective_execution_mode,
         )
 
     # ------------------------------------------------------------------
@@ -1478,6 +1498,7 @@ def execute_due_actions(
     batch_id: str,
     *,
     as_of=None,
+    execution_mode: str | None = None,
 ) -> dict:
     """
     Execute ONLY actions that scheduler.py says are due.
@@ -1486,6 +1507,12 @@ def execute_due_actions(
 
     The same virtual timestamp is passed into each action execution.
     """
+
+    effective_execution_mode = execution_mode or EXECUTION_MODE
+    if effective_execution_mode not in {
+        "synthetic_test_mode", "razorpay_test_mode"
+    }:
+        raise ValueError("Unsupported execution mode.")
 
     from backend.modules.scheduler import get_due_actions
 
@@ -1501,6 +1528,7 @@ def execute_due_actions(
         result = execute_recovery_action(
             action["action_id"],
             as_of=as_of,
+            execution_mode=effective_execution_mode,
         )
 
         results.append(
@@ -1517,7 +1545,7 @@ def execute_due_actions(
 
     return {
         "batch_id": batch_id,
-        "execution_mode": EXECUTION_MODE,
+        "execution_mode": effective_execution_mode,
         "as_of": (
             as_of.isoformat(
                 timespec="seconds"

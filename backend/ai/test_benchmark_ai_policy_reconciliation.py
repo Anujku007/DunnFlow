@@ -11,6 +11,7 @@ from backend.data.db import (
     get_invoice,
 )
 from backend.modules.decision_engine import decide_for_invoice
+from backend.ai.test_db_safety import require_isolated_test_db
 
 
 class ControlledAIProvider(AIProvider):
@@ -100,6 +101,7 @@ def count_revenue_events(invoice_id: str) -> int:
 
 
 def test_real_benchmark_ai_policy_reconciliation() -> None:
+    require_isolated_test_db()
     invoice = find_card_expired_invoice()
     invoice_id = invoice["invoice_id"]
 

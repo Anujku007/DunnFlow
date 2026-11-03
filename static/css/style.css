@@ -7045,11 +7045,11 @@ body.decision-modal-open {
 }
 
 
-/* DUNNFLOW FIVE-CARD METRICS ROW PATCH */
-/* Keep the five dashboard metric cards on one desktop row. */
+/* DUNNFLOW EIGHT-CARD METRICS GRID */
+/* Eight dashboard metrics: four columns on desktop. */
 .metrics-section .metrics-grid {
     display: grid !important;
-    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
     gap: 16px !important;
     align-items: stretch;
 }
@@ -7071,3 +7071,210 @@ body.decision-modal-open {
         grid-template-columns: minmax(0, 1fr) !important;
     }
 }
+
+
+/* =========================================================
+   DUNNFLOW METRICS CARD POLISH - 20261020
+   Visual-only styles. No JavaScript or payment changes.
+   ========================================================= */
+
+.metrics-section .metrics-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 18px !important;
+    align-items: stretch;
+}
+
+.metrics-section .metrics-grid > .metric-card {
+    --metric-accent: #42c8f5;
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: 158px;
+    padding: 22px;
+    border: 1px solid rgba(133, 164, 207, 0.20);
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 100% 0%, rgba(66, 200, 245, 0.10), transparent 48%),
+        linear-gradient(145deg, #142239 0%, #0c1526 100%);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.20);
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.metrics-section .metrics-grid > .metric-card::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 20px;
+    right: 20px;
+    height: 2px;
+    border-radius: 0 0 4px 4px;
+    background: linear-gradient(90deg, transparent, var(--metric-accent), transparent);
+}
+
+.metrics-section .metrics-grid > .metric-card::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    width: 105px;
+    height: 105px;
+    top: -52px;
+    right: -45px;
+    border-radius: 50%;
+    background: var(--metric-accent);
+    opacity: 0.055;
+    pointer-events: none;
+}
+
+.metrics-section .metrics-grid > .metric-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--metric-accent);
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.27);
+}
+
+.metrics-section .metric-card .metric-label,
+.metrics-section .metric-card .metric-title,
+.metrics-section .metric-card .label {
+    color: #a8b8ce;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.5;
+    letter-spacing: 0.105em;
+    text-transform: uppercase;
+}
+
+.metrics-section .metric-card .metric-value,
+.metrics-section .metric-card .value {
+    color: #f4f8ff;
+    font-size: clamp(25px, 2vw, 34px);
+    font-weight: 750;
+    line-height: 1.2;
+    letter-spacing: -0.035em;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+    margin-top: 12px;
+}
+
+.metrics-section .metric-card .metric-description,
+.metrics-section .metric-card .description {
+    color: #8497b2;
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.metrics-section .metric-card.metric-risk { --metric-accent: #ffb45f; }
+.metrics-section .metric-card.metric-count { --metric-accent: #64b5ff; }
+.metrics-section .metric-card.metric-recovered { --metric-accent: #48dfad; }
+.metrics-section .metric-card.metric-rate { --metric-accent: #b59aff; }
+.metrics-section .metric-card.metric-progress { --metric-accent: #43c9ee; }
+.metrics-section .metric-card.metric-blocked { --metric-accent: #ff7f91; }
+.metrics-section .metric-card.metric-review { --metric-accent: #f0ca72; }
+
+@media (max-width: 1199px) {
+    .metrics-section .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 15px !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .metrics-section .metrics-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    .metrics-section .metrics-grid > .metric-card {
+        min-height: 136px;
+        padding: 19px;
+        border-radius: 15px;
+    }
+
+    .metrics-section .metric-card .metric-value,
+    .metrics-section .metric-card .value {
+        font-size: 28px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .metrics-section .metrics-grid > .metric-card,
+    .metrics-section .metrics-grid > .metric-card:hover {
+        transition: none;
+        transform: none;
+    }
+}
+
+/* End DunnFlow metrics card polish. */
+
+
+/* =========================================================
+   DUNNFLOW METRICS GRID ORDER - 20261020
+   Visual layout only; HTML IDs and JavaScript stay unchanged.
+   ========================================================= */
+
+.metrics-section .metrics-grid {
+    grid-template-areas:
+        "risk recovery recovered blocked"
+        "review revenue rate progress" !important;
+}
+
+.metrics-section .metrics-grid > .metric-risk {
+    grid-area: risk;
+}
+
+.metrics-section .metrics-grid > .metric-count:nth-of-type(2) {
+    grid-area: recovery;
+}
+
+.metrics-section .metrics-grid > .metric-count:nth-of-type(3) {
+    grid-area: recovered;
+}
+
+.metrics-section .metrics-grid > .metric-recovered {
+    grid-area: revenue;
+}
+
+.metrics-section .metrics-grid > .metric-rate {
+    grid-area: rate;
+}
+
+.metrics-section .metrics-grid > .metric-progress {
+    grid-area: progress;
+}
+
+.metrics-section .metrics-grid > .metric-blocked {
+    grid-area: blocked;
+}
+
+.metrics-section .metrics-grid > .metric-review {
+    grid-area: review;
+}
+
+@media (max-width: 1199px) {
+    .metrics-section .metrics-grid {
+        grid-template-areas:
+            "risk recovery"
+            "recovered blocked"
+            "review revenue"
+            "rate progress" !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .metrics-section .metrics-grid {
+        grid-template-areas:
+            "risk"
+            "recovery"
+            "recovered"
+            "blocked"
+            "review"
+            "revenue"
+            "rate"
+            "progress" !important;
+    }
+}
+
+/* End DunnFlow metrics grid order. */

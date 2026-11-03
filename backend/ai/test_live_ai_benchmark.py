@@ -17,12 +17,14 @@ from backend.data.db import (
 )
 from backend.data.seed_data import seed_benchmark
 from backend.modules.decision_engine import decide_for_invoice
+from backend.ai.test_db_safety import require_isolated_test_db
 
 
 BATCH_ID = "benchmark_60_subscription_failures"
 
 
 def main() -> None:
+    require_isolated_test_db()
     print("=" * 72)
     print("DUNNFLOW LIVE AI 60-CASE BENCHMARK")
     print("=" * 72)

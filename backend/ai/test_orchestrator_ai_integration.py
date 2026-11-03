@@ -28,6 +28,7 @@ from backend.data.db import (
 )
 from backend.data.seed_data import seed_benchmark
 from orchestrator import run_batch
+from backend.ai.test_db_safety import require_isolated_test_db
 
 
 BATCH_ID = "benchmark_60_subscription_failures"
@@ -37,8 +38,8 @@ EXPECTED = {
     "historical_amount_at_risk": 6354000,
     "recovered_count": 29,
     "amount_recovered": 3147100,
-    "recovery_rate_pct": 49.5,
-    "in_progress_count": 21,
+    "recovery_rate_pct": 48.3,
+    "in_progress_count": 18,
     "blocked_count": 4,
     "manual_review_count": 6,
     "outcome_count_total": 60,
@@ -110,6 +111,7 @@ def fetch_ai_policy_audit_rows() -> list[dict]:
 
 
 def main() -> None:
+    require_isolated_test_db()
     print("=" * 72)
     print("DUNNFLOW CONTROLLED AI / ORCHESTRATOR INTEGRATION TEST")
     print("=" * 72)
