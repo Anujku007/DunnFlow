@@ -1,10 +1,6 @@
-```{=html}
 <p align="center">
-```
-`<img src="https://capsule-render.vercel.app/api?type=waving&height=260&color=0:07111F,45:123B65,100:6D45D9&text=⚡%20DunnFlow&fontSize=58&fontAlign=50&fontAlignY=35&fontColor=ffffff&animation=fadeIn&desc=AI-Assisted%20Subscription%20Revenue%20Recovery%20Control%20Center&descAlignY=58&descAlign=50&descSize=19" />`{=html}
-```{=html}
+<img src="https://capsule-render.vercel.app/api?type=waving&height=260&color=0:07111F,45:123B65,100:6D45D9&text=⚡%20DunnFlow&fontSize=58&fontAlign=50&fontAlignY=35&fontColor=ffffff&animation=fadeIn&desc=AI-Assisted%20Subscription%20Revenue%20Recovery%20Control%20Center&descAlignY=58&descAlign=50&descSize=19" />
 </p>
-```
 ::: {align="center"}
 # ⚡ DunnFlow
 
@@ -21,7 +17,7 @@ advisory AI layer, scheduled actions, guarded payment execution,
 Razorpay Test Mode integration, webhook reconciliation, and an auditable
 outcome-tracking layer.
 
-`<br/>`{=html}
+<br/>
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white)
@@ -31,7 +27,7 @@ outcome-tracking layer.
 ![Status](https://img.shields.io/badge/Project-Research_Prototype-16A34A?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-Not_Yet_Specified-lightgrey?style=for-the-badge)
 
-`<br/>`{=html}
+<br/>
 
 [Overview](#-overview) • [Architecture](#️-system-architecture) •
 [Evaluation](#-evaluation) • [Installation](#️-installation) •
@@ -42,20 +38,12 @@ outcome-tracking layer.
 
 # 📸 Project Preview
 
-```{=html}
 <p align="center">
-```
-`<img src="screenshots/01-dashboard.png" alt="DunnFlow Main Dashboard" width="96%">`{=html}
-```{=html}
+<img src="./screenshots/01-dashboard.png" alt="DunnFlow Main Dashboard" width="96%">
 </p>
-```
-```{=html}
 <p align="center">
-```
-`<em>`{=html}DunnFlow --- Revenue Recovery Control Center`</em>`{=html}
-```{=html}
+<em>DunnFlow --- Revenue Recovery Control Center`</em>`{=html}
 </p>
-```
 
 ------------------------------------------------------------------------
 
@@ -224,13 +212,9 @@ DunnFlow tracks recovery outcomes using distinct categories:
 DunnFlow separates the browser interface, API layer, recovery modules,
 AI advisory components, Razorpay integration, and persistent data layer.
 
-```{=html}
 <p align="center">
-```
-`<img src="screenshots/02-system-architecture.png" alt="DunnFlow System Architecture" width="100%">`{=html}
-```{=html}
+<img src="./screenshots/02-system-architecture.png" alt="DunnFlow System Architecture" width="100%">
 </p>
-```
 ## Architecture layers
 
   -----------------------------------------------------------------------
@@ -280,13 +264,7 @@ AI advisory components, Razorpay integration, and persistent data layer.
 
 The recovery workflow is organized as a sequence of controlled stages.
 
-```{=html}
-<p align="center">
-```
-`<img src="screenshots/03-recovery-pipeline.png" alt="DunnFlow Recovery Pipeline" width="100%">`{=html}
-```{=html}
-</p>
-```
+
 ## Pipeline stages
 
   -----------------------------------------------------------------------
@@ -354,13 +332,9 @@ Supported recommendation categories include:
 The recommendation is then compared with the deterministic policy
 decision.
 
-```{=html}
 <p align="center">
-```
-`<img src="screenshots/06-ai-inspection.png" alt="DunnFlow AI Inspection and Policy Comparison" width="100%">`{=html}
-```{=html}
+<img src="./screenshots/06-ai-inspection.png" alt="DunnFlow AI Inspection and Policy Comparison" width="100%">
 </p>
-```
 ## Separation of authority
 
   Component                       Authority
@@ -409,14 +383,10 @@ interpreted within their respective test contexts.
 
 ## 1. Synthetic Test Mode
 
-```{=html}
 <p align="center">
-```
-`<img src="screenshots/03-synthetic-metrics.png" alt="DunnFlow Synthetic Benchmark Metrics" width="100%">`{=html}
-```{=html}
+<img src="./screenshots/03-synthetic-metrics.png" alt="DunnFlow Synthetic Benchmark Metrics" width="100%">
 </p>
-```
-`<em>`{=html}Displayed benchmark batch:
+<em>Displayed benchmark batch:
 benchmark_60_subscription_failures`</em>`{=html}
 
   Metric                Displayed result
@@ -436,14 +406,10 @@ captured dashboard.
 
 ## 2. Razorpay Test Mode
 
-```{=html}
 <p align="center">
-```
-`<img src="screenshots/04-razorpay-metrics.png" alt="DunnFlow Razorpay Test Mode Metrics" width="100%">`{=html}
-```{=html}
+<img src="./screenshots/04-razorpay-metrics.png" alt="DunnFlow Razorpay Test Mode Metrics" width="100%">
 </p>
-```
-`<em>`{=html}Displayed batch: razorpay_isolated_test_002`</em>`{=html}
+<em>Displayed batch: razorpay_isolated_test_002`</em>`{=html}
 
   Metric                Displayed result
   ------------------- ------------------
@@ -464,13 +430,9 @@ definitions and aggregation logic.
 
 ## 3. Successful Razorpay payment evidence
 
-```{=html}
 <p align="center">
-```
-`<img src="screenshots/05-razorpay-payment-success.png" alt="DunnFlow Razorpay Test Mode Payment Success" width="96%">`{=html}
-```{=html}
+<img src="./screenshots/05-razorpay-payment-success.png" alt="DunnFlow Razorpay Test Mode Payment Success" width="96%">
 </p>
-```
 The supplied checkout screenshot shows a successful ₹299 Razorpay Test
 Mode payment. The audit and reconciliation views provide additional
 evidence of the application recording payment capture, invoice payment,
@@ -497,13 +459,9 @@ Recovery automation needs an explainable history. DunnFlow maintains
 audit records for important decisions, policy checks, execution steps,
 webhook events, and state changes.
 
-```{=html}
 <p align="center">
-```
-`<img src="screenshots/07-audit.png" alt="DunnFlow Audit Log and Recovery Activity Feed" width="100%">`{=html}
-```{=html}
+<img src="./screenshots/07-audit.png" alt="DunnFlow Audit Log and Recovery Activity Feed" width="100%">
 </p>
-```
 The audit view is intended to help reviewers follow the recovery
 lifecycle, including:
 
@@ -946,5 +904,5 @@ is licensed for unrestricted reuse, modification, or redistribution.
 If DunnFlow is useful or interesting, consider giving the repository a
 star.
 
-`<img src="https://capsule-render.vercel.app/api?type=waving&color=0:07111F,45:123B65,100:6D45D9&height=120&section=footer" />`{=html}
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:07111F,45:123B65,100:6D45D9&height=120&section=footer" />
 :::
