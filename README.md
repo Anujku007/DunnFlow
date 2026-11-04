@@ -1,42 +1,46 @@
 <p align="center">
-<img src="https://capsule-render.vercel.app/api?type=waving&height=260&color=0:07111F,45:123B65,100:6D45D9&text=⚡%20DunnFlow&fontSize=58&fontAlign=50&fontAlignY=35&fontColor=ffffff&animation=fadeIn&desc=AI-Assisted%20Subscription%20Revenue%20Recovery%20Control%20Center&descAlignY=58&descAlign=50&descSize=19" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&height=260&color=0:07111F,45:123B65,100:6D45D9&text=DunnFlow&fontSize=58&fontAlign=50&fontAlignY=35&fontColor=ffffff&animation=fadeIn&desc=AI-Assisted%20Subscription%20Revenue%20Recovery%20Control%20Center&descAlignY=58&descAlign=50&descSize=19" width="100%" alt="DunnFlow banner">
 </p>
-::: {align="center"}
-# ⚡ DunnFlow
 
-### AI-Assisted Subscription Revenue Recovery Framework
+<p align="center">
+  <img src="./static/images/dunnflow-logo.png" alt="DunnFlow Official Logo" width="150">
+</p>
 
-**Detect payment failures. Diagnose the cause. Recommend safe recovery
-actions. Execute only within deterministic guardrails. Verify the
-financial outcome.**
+<h1 align="center">DunnFlow</h1>
+<h3 align="center">AI-Assisted Subscription Revenue Recovery Framework</h3>
+
+<p align="center">
+  Detect payment failures. Diagnose the cause. Recommend safe recovery actions.
+  Execute only within deterministic guardrails. Verify the financial outcome.
+</p>
 
 DunnFlow is an AI-assisted subscription payment recovery system designed
-to help identify at-risk recurring revenue and coordinate bounded
-recovery workflows. It combines deterministic recovery policies, an
-advisory AI layer, scheduled actions, guarded payment execution,
-Razorpay Test Mode integration, webhook reconciliation, and an auditable
-outcome-tracking layer.
+to help identify at-risk recurring revenue and coordinate bounded recovery
+workflows. It combines deterministic recovery policies, an advisory AI layer,
+scheduled actions, guarded payment execution, Razorpay Test Mode integration,
+webhook reconciliation, and an auditable outcome-tracking layer.
 
-<br/>
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
+  <img src="https://img.shields.io/badge/SQLite-Database-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite">
+  <img src="https://img.shields.io/badge/Razorpay-Test_Mode-0C2451?style=for-the-badge&logo=razorpay&logoColor=white" alt="Razorpay Test Mode">
+  <img src="https://img.shields.io/badge/AI-Advisory_Layer-8B5CF6?style=for-the-badge" alt="AI Advisory">
+  <img src="https://img.shields.io/badge/Project-Research_Prototype-16A34A?style=for-the-badge" alt="Research Prototype">
+</p>
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white)
-![SQLite](https://img.shields.io/badge/SQLite-Database-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
-![Razorpay](https://img.shields.io/badge/Razorpay-Test_Mode-0C2451?style=for-the-badge&logo=razorpay&logoColor=white)
-![AI](https://img.shields.io/badge/AI-Advisory_Layer-8B5CF6?style=for-the-badge)
-![Status](https://img.shields.io/badge/Project-Research_Prototype-16A34A?style=for-the-badge)
-![License](https://img.shields.io/badge/License-Not_Yet_Specified-lightgrey?style=for-the-badge)
+<p align="center">
+  <a href="#-overview">Overview</a> ?
+  <a href="#-system-architecture">Architecture</a> ?
+  <a href="#-evaluation">Evaluation</a> ?
+  <a href="#-installation">Installation</a> ?
+  <a href="#-api-reference">API</a> ?
+  <a href="#-screenshots">Screenshots</a>
+</p>
 
-<br/>
+---
 
-[Overview](#-overview) • [Architecture](#️-system-architecture) •
-[Evaluation](#-evaluation) • [Installation](#️-installation) •
-[API](#-api-reference) • [Screenshots](#-screenshots)
-:::
-
-------------------------------------------------------------------------
-
-# 📸 Project Preview
+## ?? Project Preview
 
 <p align="center">
 <img src="./screenshots/01-dashboard.png" alt="DunnFlow Main Dashboard" width="96%">
@@ -314,45 +318,6 @@ failed-payment state.
 
 ------------------------------------------------------------------------
 
-# 🧠 AI Advisory and Policy Reconciliation
-
-DunnFlow includes an AI recovery advisor that can use invoice details,
-subscription context, failure information, and historical decision
-context to recommend a bounded recovery action.
-
-Supported recommendation categories include:
-
--   `retry_payment`
--   `auto_retry_same_card`
--   `customer_action`
--   `payment_method_update`
--   `manual_review`
--   `no_action`
-
-The recommendation is then compared with the deterministic policy
-decision.
-
-<p align="center">
-<img src="./screenshots/06-ai-inspection.png" alt="DunnFlow AI Inspection and Policy Comparison" width="100%">
-</p>
-## Separation of authority
-
-  Component                       Authority
-  ------------------------------- -----------------------------------------
-  AI Recovery Advisor             Advisory recommendation and explanation
-  Deterministic Decision Engine   Final policy decision
-  Scheduler                       Timing and eligibility control
-  Guarded Execution Engine        Authorized action execution
-  Outcome Tracker                 Reconciled recovery outcome
-
-> \[!NOTE\] AI confidence is not a probability that a payment will
-> succeed. It describes the model's recommendation confidence and must
-> not be presented as a financial success probability.
-
-The AI layer can be configured with supported provider adapters. If an
-AI provider is unavailable, the deterministic recovery workflow remains
-the policy authority.
-
 ------------------------------------------------------------------------
 
 # 🛡️ Safety and Guardrails
@@ -441,6 +406,47 @@ subscription activation, and recovery confirmation.
 > \[!WARNING\] Before publishing this screenshot publicly, redact the
 > visible phone number and payment identifier. Never publish API keys,
 > secrets, customer details, or other sensitive payment information.
+
+
+# 🧠 AI Advisory and Policy Reconciliation
+
+DunnFlow includes an AI recovery advisor that can use invoice details,
+subscription context, failure information, and historical decision
+context to recommend a bounded recovery action.
+
+Supported recommendation categories include:
+
+-   `retry_payment`
+-   `auto_retry_same_card`
+-   `customer_action`
+-   `payment_method_update`
+-   `manual_review`
+-   `no_action`
+
+The recommendation is then compared with the deterministic policy
+decision.
+
+<p align="center">
+<img src="./screenshots/06-ai-inspection.png" alt="DunnFlow AI Inspection and Policy Comparison" width="100%">
+</p>
+## Separation of authority
+
+  Component                       Authority
+  ------------------------------- -----------------------------------------
+  AI Recovery Advisor             Advisory recommendation and explanation
+  Deterministic Decision Engine   Final policy decision
+  Scheduler                       Timing and eligibility control
+  Guarded Execution Engine        Authorized action execution
+  Outcome Tracker                 Reconciled recovery outcome
+
+> \[!NOTE\] AI confidence is not a probability that a payment will
+> succeed. It describes the model's recommendation confidence and must
+> not be presented as a financial success probability.
+
+The AI layer can be configured with supported provider adapters. If an
+AI provider is unavailable, the deterministic recovery workflow remains
+the policy authority.
+
 
 ### Understanding the two evaluations
 
