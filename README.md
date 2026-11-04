@@ -1,369 +1,646 @@
+```{=html}
+<p align="center">
+```
+`<img src="https://capsule-render.vercel.app/api?type=waving&height=260&color=0:07111F,45:123B65,100:6D45D9&text=⚡%20DunnFlow&fontSize=58&fontAlign=50&fontAlignY=35&fontColor=ffffff&animation=fadeIn&desc=AI-Assisted%20Subscription%20Revenue%20Recovery%20Control%20Center&descAlignY=58&descAlign=50&descSize=19" />`{=html}
+```{=html}
+</p>
+```
 ::: {align="center"}
-`<img src="static/images/dunnflow-logo.png" alt="DunnFlow logo" width="132" />`{=html}
+# ⚡ DunnFlow
 
-# DunnFlow
+### AI-Assisted Subscription Revenue Recovery Framework
 
-### Recover Revenue. Intelligently.
+**Detect payment failures. Diagnose the cause. Recommend safe recovery
+actions. Execute only within deterministic guardrails. Verify the
+financial outcome.**
 
-**An AI-assisted, guardrail-driven subscription revenue recovery
-platform.**
+DunnFlow is an AI-assisted subscription payment recovery system designed
+to help identify at-risk recurring revenue and coordinate bounded
+recovery workflows. It combines deterministic recovery policies, an
+advisory AI layer, scheduled actions, guarded payment execution,
+Razorpay Test Mode integration, webhook reconciliation, and an auditable
+outcome-tracking layer.
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![SQLite](https://img.shields.io/badge/Database-SQLite-003B57?logo=sqlite&logoColor=white)](https://sqlite.org/)
-[![Razorpay](https://img.shields.io/badge/Payments-Razorpay_Test_Mode-0C2451)](https://razorpay.com/)
-[![AI](https://img.shields.io/badge/AI-Multi--provider-7C3AED)](#ai-advisory-layer)
+`<br/>`{=html}
 
-[Architecture](#how-it-works) · [Getting started](#getting-started) ·
-[API](#api-overview) · [Evaluation](#evaluation)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-Database-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
+![Razorpay](https://img.shields.io/badge/Razorpay-Test_Mode-0C2451?style=for-the-badge&logo=razorpay&logoColor=white)
+![AI](https://img.shields.io/badge/AI-Advisory_Layer-8B5CF6?style=for-the-badge)
+![Status](https://img.shields.io/badge/Project-Research_Prototype-16A34A?style=for-the-badge)
+![License](https://img.shields.io/badge/License-Not_Yet_Specified-lightgrey?style=for-the-badge)
+
+`<br/>`{=html}
+
+[Overview](#-overview) • [Architecture](#️-system-architecture) •
+[Evaluation](#-evaluation) • [Installation](#️-installation) •
+[API](#-api-reference) • [Screenshots](#-screenshots)
 :::
 
 ------------------------------------------------------------------------
 
-## The problem
+# 📸 Project Preview
 
-A failed subscription payment is not necessarily lost revenue. It may
-result from insufficient funds, a bank timeout, an expired card, or an
-authentication issue. Treating every failure identically can create
-unnecessary retries, frustrate customers, and increase operational risk.
+```{=html}
+<p align="center">
+```
+`<img src="screenshots/01-dashboard.png" alt="DunnFlow Main Dashboard" width="96%">`{=html}
+```{=html}
+</p>
+```
+```{=html}
+<p align="center">
+```
+`<em>`{=html}DunnFlow --- Revenue Recovery Control Center`</em>`{=html}
+```{=html}
+</p>
+```
 
-DunnFlow is designed to make recovery more deliberate: understand why a
-payment failed, select a bounded response, enforce policy limits, and
-verify whether revenue was actually recovered.
+------------------------------------------------------------------------
 
-## What is DunnFlow?
-
-**DunnFlow is an AI-assisted subscription revenue recovery system** that
-coordinates the lifecycle from revenue-at-risk detection to verified
-payment outcome.
-
-It combines failure-aware diagnosis, multi-provider AI recommendations,
-deterministic decision-making, bounded scheduling and execution,
-Razorpay integration, outcome reconciliation, metrics, and an audit
-trail.
-
-> \[!IMPORTANT\] **AI advises. Deterministic policy decides. Guarded
-> execution acts. Verified payment events establish financial
-> outcomes.**
->
-> AI recommendations cannot authorize a payment, bypass a guardrail, or
-> independently modify financial state.
-
-## Why DunnFlow?
+# 🚀 Project at a Glance
 
   -----------------------------------------------------------------------
-  Common failure-handling approach    DunnFlow approach
+  Area                                What DunnFlow provides
   ----------------------------------- -----------------------------------
-  Apply identical retries to          Diagnose the failure category first
-  different failures                  
+  Revenue-risk detection              Identifies invoices eligible for
+                                      recovery workflows
 
-  Treat an AI suggestion as an        Keep AI advisory and policy
-  instruction                         authoritative
+  Failure diagnosis                   Interprets payment failure reasons
+                                      and subscription context
 
-  Retry without clear limits          Enforce retry budgets and minimum
-                                      intervals
+  AI assistance                       Produces bounded recovery
+                                      recommendations with explanations
 
-  Count attempted retries as          Measure reconciled recovery
-  recovered revenue                   outcomes
+  Deterministic authorization         Keeps final recovery authority in
+                                      policy-controlled logic
 
-  Make decisions difficult to explain Record decisions, guardrails, and
-                                      outcomes
+  Recovery scheduling                 Plans retries and customer actions
+                                      subject to timing limits
+
+  Guarded execution                   Executes only actions permitted by
+                                      the deterministic workflow
+
+  Payment integration                 Supports isolated Razorpay Test
+                                      Mode order and payment flows
+
+  Reconciliation                      Uses payment status and webhook
+                                      events to reconcile outcomes
+
+  Auditability                        Records decisions, actions, events
+                                      and state changes
   -----------------------------------------------------------------------
 
-## Core capabilities
+> \[!IMPORTANT\] **AI is advisory, not financially authoritative.**
+> DunnFlow's deterministic policy and guarded execution flow retain
+> control over whether a recovery action is allowed. An AI
+> recommendation does not independently authorize a payment, mark an
+> invoice as paid, or bypass recovery limits.
+
+------------------------------------------------------------------------
+
+# 📚 Table of Contents
+
+-   [Overview](#-overview)
+-   [Why DunnFlow](#-why-dunnflow)
+-   [Core Features](#-core-features)
+-   [System Architecture](#️-system-architecture)
+-   [Recovery Pipeline](#-recovery-pipeline)
+-   [AI Advisory and Policy
+    Reconciliation](#-ai-advisory-and-policy-reconciliation)
+-   [Safety and Guardrails](#️-safety-and-guardrails)
+-   [Evaluation](#-evaluation)
+-   [Razorpay Test Mode Integration](#-razorpay-test-mode-integration)
+-   [Auditability](#-auditability)
+-   [Technology Stack](#️-technology-stack)
+-   [Project Structure](#-project-structure)
+-   [Installation](#️-installation)
+-   [Environment Configuration](#-environment-configuration)
+-   [Run Locally](#-run-locally)
+-   [API Reference](#-api-reference)
+-   [Screenshots](#-screenshots)
+-   [Limitations and Scope](#️-limitations-and-scope)
+-   [Roadmap](#️-roadmap)
+-   [Contributing](#-contributing)
+-   [Security](#️-security)
+-   [Author](#-author)
+
+------------------------------------------------------------------------
+
+# 📖 Overview
+
+Subscription businesses depend on recurring payments. A failed renewal
+can create involuntary churn, interrupt service, and put expected
+revenue at risk. A useful recovery system must do more than retry a
+payment: it must understand the failure, select an appropriate next
+step, respect customer and payment constraints, and verify the final
+outcome.
+
+**DunnFlow** is an AI-assisted revenue recovery framework that
+coordinates this process through a modular backend and a browser-based
+control center.
+
+The system follows a controlled lifecycle:
+
+1.  Detect invoices that may require recovery.
+2.  Diagnose the payment failure using available invoice, subscription,
+    and attempt context.
+3.  Generate an AI recommendation when the advisory layer is available.
+4.  Compare the recommendation with deterministic policy.
+5.  Schedule an eligible action.
+6.  Execute the action through guarded orchestration.
+7.  Reconcile gateway and webhook evidence.
+8.  Record the final outcome, revenue event, and audit history.
+
+The goal is to demonstrate a transparent and bounded recovery
+workflow---not unrestricted autonomous control over financial
+transactions.
+
+------------------------------------------------------------------------
+
+# 💡 Why DunnFlow?
+
+A basic payment retry script often treats every failed payment in the
+same way. Real payment failures are different: insufficient funds,
+expired cards, temporary bank errors, and uncertain gateway outcomes may
+require different responses.
+
+DunnFlow explores a more structured approach:
+
+  -----------------------------------------------------------------------
+  Common challenge                    DunnFlow approach
+  ----------------------------------- -----------------------------------
+  Failed payments are difficult to    Detect and classify invoices at
+  prioritize                          risk
+
+  A single retry rule does not fit    Diagnose failure context before
+  every failure                       selecting an action
+
+  AI suggestions can be unpredictable Keep AI recommendations advisory
+                                      and reconcile them with
+                                      deterministic policy
+
+  Repeated retries can frustrate      Enforce retry limits and minimum
+  customers                           time intervals
+
+  A gateway response may not be the   Reconcile payment and webhook
+  final source of truth               evidence
+
+  Recovery decisions can be difficult Maintain decision and execution
+  to explain                          audit records
+  -----------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+# ✨ Core Features
+
+  Recovery intelligence             Reliability and control
+  --------------------------------- ------------------------------------
+  Invoice risk detection            Deterministic policy authorization
+  Payment failure diagnosis         Bounded retry scheduling
+  AI recovery recommendations       Guarded execution
+  Historical decision context       Razorpay Test Mode integration
+  AI-versus-policy comparison       Webhook signature verification
+  Recovery outcome classification   Idempotent webhook processing
+  Batch-level metrics               Audit logging and revenue events
+
+### Recovery outcomes
+
+DunnFlow tracks recovery outcomes using distinct categories:
+
+-   **Recovered:** recovery has been confirmed.
+-   **In progress:** the recovery workflow has not reached a final
+    outcome.
+-   **Exhausted:** the permitted recovery path has been used without
+    recovery.
+-   **Blocked:** a policy or guardrail prevented the action.
+-   **Manual review:** the case requires human assessment.
+
+------------------------------------------------------------------------
+
+# 🏗️ System Architecture
+
+DunnFlow separates the browser interface, API layer, recovery modules,
+AI advisory components, Razorpay integration, and persistent data layer.
 
 ```{=html}
-<details open>
+<p align="center">
 ```
+`<img src="screenshots/02-system-architecture.png" alt="DunnFlow System Architecture" width="100%">`{=html}
 ```{=html}
-<summary>
+</p>
 ```
-`<strong>`{=html}Failure detection and diagnosis`</strong>`{=html}
-```{=html}
-</summary>
-```
-Detect eligible invoices and classify failure information into
-categories such as insufficient funds, bank timeout, authentication
-failure, expired card, and unclassified failure. Unknown errors are
-handled conservatively.
-```{=html}
-</details>
-```
-```{=html}
-<details>
-```
-```{=html}
-<summary>
-```
-`<strong>`{=html}Multi-provider AI recovery advisor`</strong>`{=html}
-```{=html}
-</summary>
-```
-Provider adapters are implemented for OpenAI, Google Gemini, OpenRouter,
-and NVIDIA. The advisor produces structured recommendations containing
-an action, urgency, priority, confidence, reason, and customer strategy.
-Recommendations are validated and reconciled against deterministic
-policy.
-```{=html}
-</details>
-```
-```{=html}
-<details>
-```
-```{=html}
-<summary>
-```
-`<strong>`{=html}Deterministic policy and guardrails`</strong>`{=html}
-```{=html}
-</summary>
-```
-  Policy limit                                   Current implementation
-  -------------------------------------------- ------------------------
-  Maximum automated payment recovery retries                          3
-  Minimum interval between payment retries                     24 hours
-  Maximum recovery messages                                           2
-  Minimum interval between recovery messages                   48 hours
+## Architecture layers
 
-The original failed subscription charge is distinguished from subsequent
-DunnFlow recovery attempts. The decision engine decides; it does not
-itself execute payments.
-```{=html}
-</details>
-```
-```{=html}
-<details>
-```
-```{=html}
-<summary>
-```
-`<strong>`{=html}Scheduling and guarded execution`</strong>`{=html}
-```{=html}
-</summary>
-```
-Actions are scheduled and passed through the execution layer. The code
-supports synthetic test execution and a Razorpay Test Mode path. Demo
-execution uses a virtual clock based on the stored schedule without
-rewriting the persisted schedule.
-```{=html}
-</details>
-```
-```{=html}
-<details>
-```
-```{=html}
-<summary>
-```
-`<strong>`{=html}Razorpay integration and webhook
-reconciliation`</strong>`{=html}
-```{=html}
-</summary>
-```
-A dedicated client isolates Razorpay communication from business
-modules. The integration includes order creation, payment retrieval,
-response normalization, invoice/order/payment correlation, webhook
-signature verification, duplicate-event protection, and payment-state
-reconciliation.
-```{=html}
-</details>
-```
-```{=html}
-<details>
-```
-```{=html}
-<summary>
-```
-`<strong>`{=html}Outcome measurement and auditability`</strong>`{=html}
-```{=html}
-</summary>
-```
-DunnFlow tracks recovered, in-progress, exhausted, blocked, and
-manual-review outcomes. Payment attempts, recovery actions, revenue
-events, and audit entries are stored separately. An attempted
-intervention is not automatically counted as recovered revenue;
-confirmed recovery is represented through reconciled financial events.
-```{=html}
-</details>
-```
-```{=html}
-<details>
-```
-```{=html}
-<summary>
-```
-`<strong>`{=html}Dashboard and reporting`</strong>`{=html}
-```{=html}
-</summary>
-```
-The frontend includes the main dashboard, demo workflows, metrics, live
-activity feed, audit trail, batch reports, and a standalone AI
-inspection page.
-```{=html}
-</details>
-```
-## How it works
+  -----------------------------------------------------------------------
+  Layer                               Responsibility
+  ----------------------------------- -----------------------------------
+  Frontend                            Dashboard, Demo Lab, reports, AI
+                                      inspection and audit views
 
-``` mermaid
-flowchart TD
-    A["Revenue at risk"] --> B["Detect eligible invoice"]
-    B --> C["Diagnose payment failure"]
-    C --> D["Build recovery context"]
-    D --> E["AI advisor — advisory"]
-    D --> F["Deterministic decision engine"]
-    E --> G["AI-policy reconciliation"]
-    F --> G
-    G --> H{"Policy permits action?"}
-    H -- "No" --> I["Block, no-op or manual review"]
-    H -- "Yes" --> J["Schedule bounded action"]
-    J --> K["Guarded execution"]
-    K --> L["Payment provider / customer action"]
-    L --> M["Webhook and payment reconciliation"]
-    M --> N["Outcome tracker"]
-    N --> O["Metrics, revenue events and audit trail"]
+  FastAPI backend                     Exposes application, batch, demo,
+                                      metrics and webhook endpoints
+
+  Detection and diagnosis             Identifies at-risk invoices and
+                                      interprets failure context
+
+  Decision engine                     Selects the deterministic recovery
+                                      action
+
+  AI advisory                         Recommends a bounded action and
+                                      provides an explanation
+
+  Policy reconciliation               Compares AI advice with the
+                                      deterministic decision
+
+  Scheduler                           Plans eligible actions and enforces
+                                      timing constraints
+
+  Execution                           Performs authorized recovery
+                                      operations
+
+  Outcome tracker                     Reconciles results and classifies
+                                      the final outcome
+
+  Razorpay integration                Creates test orders and retrieves
+                                      payment information
+
+  Webhook layer                       Verifies and processes gateway
+                                      events
+
+  SQLite data layer                   Persists invoices, subscriptions,
+                                      attempts, actions, events and audit
+                                      records
+  -----------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+# 🔄 Recovery Pipeline
+
+The recovery workflow is organized as a sequence of controlled stages.
+
+```{=html}
+<p align="center">
+```
+`<img src="screenshots/03-recovery-pipeline.png" alt="DunnFlow Recovery Pipeline" width="100%">`{=html}
+```{=html}
+</p>
+```
+## Pipeline stages
+
+  -----------------------------------------------------------------------
+  Stage                   Module                  Responsibility
+  ----------------------- ----------------------- -----------------------
+  01                      Detection               Finds invoices matching
+                                                  recovery eligibility
+                                                  conditions
+
+  02                      Diagnosis               Analyzes failure reason
+                                                  and
+                                                  subscription/payment
+                                                  context
+
+  03                      Decision                Selects a permitted
+                                                  action using
+                                                  deterministic policy
+
+  04                      Scheduling              Plans when an eligible
+                                                  recovery action may run
+
+  05                      Execution               Executes the authorized
+                                                  action through guarded
+                                                  logic
+
+  06                      Verification            Reconciles payment and
+                                                  webhook evidence
+
+  07                      Measurement             Updates outcome
+                                                  classification, revenue
+                                                  events and metrics
+  -----------------------------------------------------------------------
+
+### Detection condition
+
+The current detection logic identifies candidate invoices using the
+following state condition:
+
+``` python
+invoice.status == "issued"
+subscription.status == "pending"
 ```
 
-### Authority boundaries
+This is an eligibility condition used by the current implementation; it
+should not be interpreted as a universal definition of every
+failed-payment state.
 
--   **AI advisor:** provides a recommendation only.
--   **Deterministic decision engine:** selects the authoritative action
-    and enforces guardrails.
--   **Scheduler and execution engine:** process permitted actions.
--   **Webhook and outcome tracker:** reconcile payment state and record
-    financial outcomes.
+------------------------------------------------------------------------
 
-The AI layer can agree or disagree with deterministic policy. A
-disagreement does not replace the policy decision.
+# 🧠 AI Advisory and Policy Reconciliation
 
-## Safety by design
+DunnFlow includes an AI recovery advisor that can use invoice details,
+subscription context, failure information, and historical decision
+context to recommend a bounded recovery action.
 
--   AI does not create payment attempts, execute Razorpay payments, mark
-    invoices paid, or bypass decision-engine guardrails.
--   Deterministic policy remains the financial authority.
--   Retry and customer-message limits are checked before actions.
--   Webhook signatures are verified against the raw request body using
-    HMAC-SHA256.
--   Webhook event IDs are tracked to protect against duplicate delivery.
--   Attempted actions and confirmed recoveries are represented
-    separately.
--   Scoped audit endpoints expose decision and recovery history.
+Supported recommendation categories include:
 
-> \[!WARNING\] This is a development and evaluation project, not a
-> production-certified payment system. The presence of a Razorpay
-> Live-mode configuration option does not establish production
-> readiness. Use Razorpay Test Mode for evaluation. Never commit payment
-> credentials, API keys, webhook secrets, or customer data.
+-   `retry_payment`
+-   `auto_retry_same_card`
+-   `customer_action`
+-   `payment_method_update`
+-   `manual_review`
+-   `no_action`
 
-## Evaluation
+The recommendation is then compared with the deterministic policy
+decision.
 
-### Recorded 60-invoice benchmark
+```{=html}
+<p align="center">
+```
+`<img src="screenshots/06-ai-inspection.png" alt="DunnFlow AI Inspection and Policy Comparison" width="100%">`{=html}
+```{=html}
+</p>
+```
+## Separation of authority
 
-  Metric                      Recorded result
-  ------------------------- -----------------
-  Invoices evaluated                       60
-  Recovered invoices                       29
-  Revenue at risk                     ₹63,540
-  Recovered value                     ₹31,471
-  Recovered invoice share               48.3%
-  Value recovery ratio                  49.5%
+  Component                       Authority
+  ------------------------------- -----------------------------------------
+  AI Recovery Advisor             Advisory recommendation and explanation
+  Deterministic Decision Engine   Final policy decision
+  Scheduler                       Timing and eligibility control
+  Guarded Execution Engine        Authorized action execution
+  Outcome Tracker                 Reconciled recovery outcome
 
-Calculations: 29 / 60 = 48.3%; ₹31,471 / ₹63,540 = 49.5%. These are
-recorded project benchmark results, not production customer outcomes or
-a guarantee of future performance.
+> \[!NOTE\] AI confidence is not a probability that a payment will
+> succeed. It describes the model's recommendation confidence and must
+> not be presented as a financial success probability.
 
-### Razorpay Test Mode verification
+The AI layer can be configured with supported provider adapters. If an
+AI provider is unavailable, the deterministic recovery workflow remains
+the policy authority.
 
-`backend/verification/final_razorpay_e2e_verification.py` checks
-existing evidence for order/payment correlation, captured payment,
-invoice-paid state, subscription activation, revenue events, audit
-records, batch metrics, and webhook security/idempotency boundaries.
+------------------------------------------------------------------------
 
-The verifier describes itself as read-only: it does not create orders,
-execute payments, replay webhooks, or mutate benchmark data. It requires
-relevant local database evidence to exist.
+# 🛡️ Safety and Guardrails
 
-> \[!NOTE\] Synthetic benchmark results, automated tests, live
-> AI-provider tests, and Razorpay Test Mode checks are different forms
-> of evidence. Passing an integration verifier does not establish
-> production-scale reliability or a guaranteed recovery rate.
+Automated recovery must be bounded. The current deterministic policy
+includes limits such as:
 
-## Technology stack
+  Guardrail                                      Current policy
+  -------------------------------------------- ----------------
+  Maximum automated recovery retries                          3
+  Minimum interval between retries                     24 hours
+  Maximum recovery messages                                   2
+  Minimum interval between recovery messages           48 hours
 
-  Layer             Technology
-  ----------------- -------------------------------------------
-  Backend API       Python, FastAPI
-  ASGI server       Uvicorn
-  AI providers      OpenAI, Google Gemini, OpenRouter, NVIDIA
-  Payment gateway   Razorpay API and webhooks
-  Persistence       SQLite
-  Frontend          HTML, CSS, vanilla JavaScript
-  PDF reporting     ReportLab
-  Testing           pytest and project verification scripts
+The original failed charge is not counted as a DunnFlow recovery retry.
 
-## Project structure
+These limits help prevent repeated payment attempts and excessive
+customer communication. Manual review remains an available outcome when
+automated action is not appropriate.
+
+------------------------------------------------------------------------
+
+# 📊 Evaluation
+
+DunnFlow has been evaluated in two separate environments. The results
+below are taken from the supplied dashboard screenshots and should be
+interpreted within their respective test contexts.
+
+## 1. Synthetic Test Mode
+
+```{=html}
+<p align="center">
+```
+`<img src="screenshots/03-synthetic-metrics.png" alt="DunnFlow Synthetic Benchmark Metrics" width="100%">`{=html}
+```{=html}
+</p>
+```
+`<em>`{=html}Displayed benchmark batch:
+benchmark_60_subscription_failures`</em>`{=html}
+
+  Metric                Displayed result
+  ------------------- ------------------
+  Total cases                         60
+  Recovered cases                     27
+  Recovery rate                    45.0%
+  Revenue at risk                ₹63,540
+  Recovered revenue              ₹27,273
+  Guardrail blocks                     4
+  Manual review                        6
+  In progress                         23
+
+The screenshot also reports 27 endpoint successes and 33 safely skipped
+cases. The displayed outcome categories are retained as shown in the
+captured dashboard.
+
+## 2. Razorpay Test Mode
+
+```{=html}
+<p align="center">
+```
+`<img src="screenshots/04-razorpay-metrics.png" alt="DunnFlow Razorpay Test Mode Metrics" width="100%">`{=html}
+```{=html}
+</p>
+```
+`<em>`{=html}Displayed batch: razorpay_isolated_test_002`</em>`{=html}
+
+  Metric                Displayed result
+  ------------------- ------------------
+  Total cases                         13
+  Recovered cases                     10
+  Recovery rate                    76.9%
+  Revenue at risk                   ₹897
+  Recovered revenue               ₹2,990
+  Guardrail blocks                     0
+  Manual review                        0
+  In progress                          3
+
+These are Razorpay **Test Mode** results, not live production revenue.
+The dashboard values are reported as displayed; the recovered-revenue
+amount should not be interpreted as a percentage of the displayed
+revenue-at-risk amount without checking the underlying metric
+definitions and aggregation logic.
+
+## 3. Successful Razorpay payment evidence
+
+```{=html}
+<p align="center">
+```
+`<img src="screenshots/05-razorpay-payment-success.png" alt="DunnFlow Razorpay Test Mode Payment Success" width="96%">`{=html}
+```{=html}
+</p>
+```
+The supplied checkout screenshot shows a successful ₹299 Razorpay Test
+Mode payment. The audit and reconciliation views provide additional
+evidence of the application recording payment capture, invoice payment,
+subscription activation, and recovery confirmation.
+
+> \[!WARNING\] Before publishing this screenshot publicly, redact the
+> visible phone number and payment identifier. Never publish API keys,
+> secrets, customer details, or other sensitive payment information.
+
+### Understanding the two evaluations
+
+-   **Synthetic Test Mode** evaluates recovery behavior against a
+    controlled benchmark dataset.
+-   **Razorpay Test Mode** exercises the payment gateway integration in
+    a test environment.
+-   Neither result establishes production payment performance or live
+    customer revenue recovery.
+
+------------------------------------------------------------------------
+
+# 🧾 Auditability
+
+Recovery automation needs an explainable history. DunnFlow maintains
+audit records for important decisions, policy checks, execution steps,
+webhook events, and state changes.
+
+```{=html}
+<p align="center">
+```
+`<img src="screenshots/07-audit.png" alt="DunnFlow Audit Log and Recovery Activity Feed" width="100%">`{=html}
+```{=html}
+</p>
+```
+The audit view is intended to help reviewers follow the recovery
+lifecycle, including:
+
+-   Initial payment failure detection.
+-   Recovery order preparation.
+-   Detection and diagnosis.
+-   Authorized execution.
+-   Payment capture.
+-   Invoice and subscription state changes.
+-   Recovery confirmation.
+-   Backend reconciliation.
+
+The database also stores revenue events and webhook event records to
+support outcome verification and idempotent processing.
+
+------------------------------------------------------------------------
+
+# 🛠️ Technology Stack
+
+  -----------------------------------------------------------------------
+  Layer                   Technology              Purpose
+  ----------------------- ----------------------- -----------------------
+  Language                Python                  Backend and recovery
+                                                  logic
+
+  API framework           FastAPI                 REST API and webhook
+                                                  endpoints
+
+  ASGI server             Uvicorn                 Local application
+                                                  server
+
+  Database                SQLite                  Application and
+                                                  recovery state
+
+  AI integrations         OpenAI, Gemini,         Advisory
+                          OpenRouter, NVIDIA      recommendations
+                          adapters                
+
+  Payment gateway         Razorpay Test Mode      Test order and payment
+                                                  integration
+
+  Webhook security        HMAC-SHA256             Signature validation
+                          verification            
+
+  Frontend                HTML, CSS, JavaScript   Browser-based control
+                                                  center
+
+  Testing                 Pytest and verification Functional and
+                          scripts                 integration checks
+
+  Version control         Git and GitHub          Source control
+  -----------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+# 📂 Project Structure
+
+The repository is organized around the API, agent, AI, integration,
+recovery-module, persistence, and frontend layers.
 
 ``` text
 DunnFlow/
+│
 ├── backend/
 │   ├── agent/
 │   │   └── recovery_agent.py
+│   │
 │   ├── ai/
 │   │   ├── recovery_advisor.py
-│   │   ├── recovery_context.py
-│   │   ├── historical_decision_context.py
-│   │   └── ai_policy_reconciliation.py
+│   │   ├── ai_policy_reconciliation.py
+│   │   └── historical_decision_context.py
+│   │
 │   ├── data/
 │   │   ├── db.py
-│   │   ├── schema.sql
-│   │   ├── seed_data.py
-│   │   ├── demo_runs.py
-│   │   └── razorpay_demo.py
+│   │   └── schema.sql
+│   │
 │   ├── integrations/
 │   │   ├── razorpay_client.py
 │   │   ├── razorpay_adapter.py
 │   │   └── razorpay_ingestion.py
+│   │
 │   ├── modules/
 │   │   ├── detection.py
 │   │   ├── diagnosis.py
 │   │   ├── decision_engine.py
 │   │   ├── scheduler.py
 │   │   ├── execution.py
-│   │   ├── customer_response.py
 │   │   ├── outcome_tracker.py
-│   │   └── report.py
-│   ├── verification/
+│   │   └── customer_response.py
+│   │
 │   ├── webhooks/
 │   │   ├── handler.py
 │   │   └── verifier.py
-│   ├── api.py
-│   └── main.py
+│   │
+│   ├── verification/
+│   └── api.py
+│
 ├── static/
 │   ├── css/
-│   ├── images/
 │   └── js/
+│
 ├── templates/
-├── reports/
-├── orchestrator.py
+│   └── index.html
+│
+├── screenshots/
+│
+├── main.py
 ├── requirements.txt
+├── .gitignore
 └── README.md
 ```
 
-## Getting started
+*This is a high-level map of the principal components; it is not an
+exhaustive listing of every repository file.*
 
-### Prerequisites
+------------------------------------------------------------------------
 
--   Python 3.10 or later.
--   Git.
--   Optional: API credentials for one supported AI provider.
--   Optional: Razorpay Test Mode API credentials for payment integration
-    testing.
+# ⚙️ Installation
 
-### 1. Clone the repository
+## Prerequisites
+
+  Software              Requirement
+  --------------------- -------------------------------------------
+  Python                3.10 or later
+  Git                   Installed
+  pip                   Available
+  Razorpay account      Test Mode credentials for gateway testing
+  AI provider account   Optional; only if enabling an AI provider
+
+## 1. Clone the repository
 
 ``` bash
 git clone https://github.com/Anujku007/DunnFlow.git
 cd DunnFlow
 ```
 
-### 2. Create a virtual environment
+## 2. Create a virtual environment
 
 **Windows PowerShell**
 
@@ -372,349 +649,302 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-**macOS / Linux**
+**Linux / macOS**
 
 ``` bash
-python3 -m venv .venv
+python -m venv .venv
 source .venv/bin/activate
 ```
 
-### 3. Install dependencies
+## 3. Install dependencies
 
-The repository's current `requirements.txt` does not yet list every
-runtime dependency imported by the application. Until the dependency
-manifest is consolidated, install the required packages explicitly:
+The repository's dependency manifest may not include every optional
+integration used by the application. Install the dependencies required
+by the modules you intend to run.
+
+A baseline installation used during project setup is:
 
 ``` bash
 python -m pip install --upgrade pip
-python -m pip install fastapi "uvicorn[standard]" requests python-dotenv openai google-genai reportlab pytest
+pip install fastapi "uvicorn[standard]" requests python-dotenv openai google-genai reportlab pytest
 ```
 
-Verify a clean installation after changing dependencies.
+If your checked-out branch has an updated `requirements.txt`, review it
+and install from that file as well:
 
-### 4. Configure environment variables
+``` bash
+pip install -r requirements.txt
+```
 
-Create a `.env` file in the repository root. Do not commit it.
+------------------------------------------------------------------------
 
-``` dotenv
-# Application
-DUNNFLOW_DB_PATH=dunnflow.db
-DUNNFLOW_EXECUTION_MODE=synthetic_test_mode
+# 🔐 Environment Configuration
 
-# AI
+Create a `.env` file in the project root. Add only the credentials for
+the integrations you intend to use.
+
+``` env
+# Application AI configuration
 DUNNFLOW_AI_ENABLED=true
-DUNNFLOW_AI_PROVIDER=nvidia
-DUNNFLOW_AI_MODEL=nvidia/nemotron-3.5-super-vl-120b-a12b
+DUNNFLOW_AI_PROVIDER=openai
+DUNNFLOW_AI_MODEL=
 DUNNFLOW_AI_TIMEOUT_SECONDS=30
 
-# Add the key for the selected provider
+# AI provider keys (configure the provider you use)
+OPENAI_API_KEY=
+GEMINI_API_KEY=
+OPENROUTER_API_KEY=
 NVIDIA_API_KEY=
 
-# Alternative provider keys (only if using that provider)
-# OPENAI_API_KEY=
-# GEMINI_API_KEY=
-# OPENROUTER_API_KEY=
+# Database
+DUNNFLOW_DB_PATH=dunnflow.db
 
-# Razorpay — use Test Mode credentials for development
+# Execution mode
+DUNNFLOW_EXECUTION_MODE=synthetic_test_mode
+
+# Razorpay Test Mode
 RAZORPAY_MODE=test
 RAZORPAY_KEY_ID=
 RAZORPAY_KEY_SECRET=
 RAZORPAY_WEBHOOK_SECRET=
 ```
 
-**Provider-to-key mapping**
+### Configuration notes
 
-  `DUNNFLOW_AI_PROVIDER`   Environment variable
-  ------------------------ ----------------------
-  `openai`                 `OPENAI_API_KEY`
-  `gemini`                 `GEMINI_API_KEY`
-  `openrouter`             `OPENROUTER_API_KEY`
-  `nvidia`                 `NVIDIA_API_KEY`
+-   `DUNNFLOW_AI_PROVIDER` selects the configured AI provider adapter.
+-   `DUNNFLOW_AI_MODEL` selects the model used by that provider.
+-   `DUNNFLOW_AI_ENABLED` controls whether AI recommendations are
+    enabled.
+-   `DUNNFLOW_DB_PATH` can be used to set the SQLite database path.
+-   `DUNNFLOW_EXECUTION_MODE` selects the execution mode. The default is
+    `synthetic_test_mode`; Razorpay Test Mode is configured separately.
+-   Keep Razorpay credentials in Test Mode while developing and
+    validating the integration.
 
-The selected AI provider and model are read when the application process
-initializes. Restart the API server after changing provider environment
-variables.
+> \[!CAUTION\] Never commit `.env`, API keys, webhook secrets, database
+> files containing private data, or customer payment information to a
+> public repository.
 
-Use Razorpay Test Mode credentials and the matching Test Mode webhook
-secret. Never place credentials in frontend JavaScript or commit them to
-source control.
+------------------------------------------------------------------------
 
-### 5. Run the application
+# ▶️ Run Locally
+
+Start the FastAPI application from the repository root:
 
 ``` bash
 python -m uvicorn backend.api:app --host 127.0.0.1 --port 8080
 ```
 
-Open the following URLs:
-
--   Dashboard: <http://127.0.0.1:8080/>
--   AI inspection: <http://127.0.0.1:8080/ai-inspection>
--   Health check: <http://127.0.0.1:8080/api/health>
--   Interactive API docs: <http://127.0.0.1:8080/docs>
-
-The application initializes the SQLite schema on startup. By default,
-the database is `dunnflow.db` in the repository root. `DUNNFLOW_DB_PATH`
-can override its location.
-
-## Razorpay Test Mode setup
-
-1.  Enable Test Mode in your Razorpay account.
-
-2.  Generate Test Mode API credentials.
-
-3.  Set `RAZORPAY_MODE=test`, `RAZORPAY_KEY_ID`, and
-    `RAZORPAY_KEY_SECRET` in `.env`.
-
-4.  Configure a webhook endpoint pointing to your reachable development
-    server, for example:
-
-    ``` text
-    https://<your-tunnel-host>/api/webhooks/razorpay
-    ```
-
-5.  Set `RAZORPAY_WEBHOOK_SECRET` to the matching webhook secret.
-
-6.  Subscribe to the payment events used by your configured flow,
-    including `payment.authorized`, `payment.captured`, and `order.paid`
-    where applicable.
-
-7.  Verify delivery and reconciliation using the project's verification
-    scripts.
-
-A secure tunnel can expose a local webhook endpoint during development.
-Keep tunnel URLs and secrets out of source control.
-
-## API overview
-
-The interactive `/docs` page is the authoritative request/response
-reference.
-
-  ---------------------------------------------------------------------------------------------------
-  Method                  Endpoint                                            Purpose
-  ----------------------- --------------------------------------------------- -----------------------
-  `GET`                   `/api/health`                                       Service health
-
-  `POST`                  `/api/webhooks/razorpay`                            Verify and process
-                                                                              Razorpay webhooks
-
-  `POST`                  `/api/demo/runs`                                    Create an isolated
-                                                                              synthetic demo run
-
-  `GET`                   `/api/demo/runs/{run_id}`                           Inspect demo-run
-                                                                              metadata
-
-  `GET`                   `/api/audit`                                        Read scoped
-                                                                              audit/timeline events
-
-  `GET`                   `/api/batches/{batch_id}`                           Retrieve batch
-                                                                              information
-
-  `POST`                  `/api/batches/{batch_id}/detect`                    Detect revenue at risk
-
-  `POST`                  `/api/batches/{batch_id}/decide`                    Generate deterministic
-                                                                              decisions
-
-  `POST`                  `/api/batches/{batch_id}/execute`                   Execute due batch
-                                                                              actions
-
-  `GET`                   `/api/batches/{batch_id}/metrics`                   Retrieve batch metrics
-
-  `GET`                   `/api/batches/{batch_id}/agent`                     Inspect agent result
-
-  `GET`                   `/api/demo/cases/{invoice_id}`                      Inspect a demo invoice
-
-  `GET`                   `/api/demo/cases/{invoice_id}/inspect`              Read-only AI and policy
-                                                                              inspection
-
-  `POST`                  `/api/demo/cases/{invoice_id}/decide`               Persist a demo decision
-
-  `POST`                  `/api/demo/cases/{invoice_id}/execute`              Execute a planned demo
-                                                                              action
-
-  `POST`                  `/api/demo/razorpay/session`                        Create an isolated
-                                                                              Razorpay demo session
-
-  `GET`                   `/api/demo/razorpay/session/{session_id}`           Inspect Razorpay demo
-                                                                              session
-
-  `POST`                  `/api/demo/razorpay/session/{session_id}/recover`   Start demo recovery
-
-  `GET`                   `/api/demo/razorpay/inspect/{invoice_id}`           Inspect a Razorpay demo
-                                                                              invoice
-
-  `GET`                   `/api/demo/razorpay/metrics`                        Isolated Razorpay demo
-                                                                              metrics
-
-  `GET`                   `/api/batches/{batch_id}/razorpay-checkout`         Retrieve checkout
-                                                                              information
-
-  `GET`                   `/reports/{batch_id}`                               View a batch report
-
-  `GET`                   `/api/batches/{batch_id}/report`                    Download a batch report
-  ---------------------------------------------------------------------------------------------------
-
-> \[!CAUTION\] Some `POST` endpoints persist decisions or execute
-> recovery actions. Read their behavior before calling them. Use
-> isolated demo data and synthetic execution mode while learning the
-> workflow. Do not test execution against live customer payments.
-
-### Read-only inspection example
-
-The isolated demo inspection endpoint requires a `run_id` query
-parameter:
-
-``` http
-GET /api/demo/cases/{invoice_id}/inspect?run_id={run_id}
-```
-
-It returns invoice and diagnosis information, the deterministic
-decision, AI-policy reconciliation, and historical context. It is
-intended as a read-only inspection path.
-
-## Testing and verification
-
-Run scripts from the repository root with the virtual environment
-activated.
-
-**AI policy hardening**
-
-``` bash
-python backend/verification/verify_ai_hardening.py
-```
-
-**NVIDIA provider connectivity and structured recommendation**
-
-``` bash
-python backend/verification/test_live_nvidia.py
-```
-
-This test makes a live request to NVIDIA. It requires a valid key,
-network access, and available provider quota.
-
-**NVIDIA scenario evaluation**
-
-``` bash
-python backend/verification/test_nvidia_scenarios.py
-```
-
-**AI-policy reconciliation**
-
-``` bash
-python backend/verification/test_live_ai_reconciliation.py
-```
-
-**Razorpay end-to-end evidence verification**
-
-``` bash
-python backend/verification/final_razorpay_e2e_verification.py
-```
-
-The Razorpay verifier checks existing local evidence. It expects
-relevant database records and prior Test Mode activity to exist; it does
-not create orders, initiate payments, replay webhooks, or mutate
-benchmark data.
-
-Additional focused tests are located under `backend/ai/` and
-`backend/data/`. Review their setup and side effects before running them
-against a database containing data you care about.
-
-## Data model
-
-The SQLite schema in `backend/data/schema.sql` defines these core
-tables:
-
-  -----------------------------------------------------------------------
-  Table                               Responsibility
-  ----------------------------------- -----------------------------------
-  `batch_runs`                        Batch execution and metrics
-
-  `subscriptions`                     Subscription lifecycle and
-                                      customer/plan context
-
-  `invoices`                          Revenue obligations and payment
-                                      state
-
-  `payment_attempts`                  Initial and recovery payment
-                                      attempts
-
-  `recovery_actions`                  Planned, executed, blocked, or
-                                      cancelled actions
-
-  `revenue_events`                    Revenue-at-risk and recovery
-                                      evidence
-
-  `audit_log`                         Explainability and operational
-                                      history
-
-  `razorpay_webhook_events`           Webhook event idempotency
-  -----------------------------------------------------------------------
-
-Amounts are stored in the smallest currency unit (paise for INR). For
-example, ₹299.00 is stored as `29900`.
-
-## Roadmap
-
-These are potential next steps, not claims that they are already
-implemented:
-
--   [ ] Publish a complete dependency manifest and clean-install
-    verification.
--   [ ] Add automated CI checks for tests, linting, and type checks.
--   [ ] Add deployment and operational runbooks.
--   [ ] Expand reproducible benchmark reporting across failure
-    categories.
--   [ ] Review observability, secrets management, access control, and
-    operational recovery for production use.
--   [ ] Add maintained screenshots and a concise demo walkthrough.
-
-## Contributing
-
-Contributions, bug reports, and architecture discussions are welcome.
-
-1.  Fork the repository.
-2.  Create a focused feature branch.
-3.  Make the change and add tests where appropriate.
-4.  Verify that deterministic authority and execution guardrails remain
-    intact.
-5.  Open a pull request explaining the motivation, implementation, and
-    verification performed.
-
-Do not publish credentials, payment identifiers, customer data, or
-exploit details in public issues.
-
-## Security
-
--   Never commit `.env`, API keys, webhook secrets, database files, or
-    customer/payment data.
--   Use Razorpay Test Mode for development and demonstrations.
--   Rotate credentials that may have been exposed.
--   Avoid sharing raw production webhook payloads or personal
-    information in issue reports.
--   Report security concerns privately to the repository maintainer.
-
-## License
-
-No license file was present in the repository when this README was
-prepared. Until a license is added, do not assume the project grants
-permission to reuse, distribute, or modify its code. Add an explicit
-`LICENSE` file before presenting the repository as open source.
+Open the application:
+
+  Service                   Local URL
+  ------------------------- ----------------------------------
+  DunnFlow Control Center   http://127.0.0.1:8080
+  API health                http://127.0.0.1:8080/api/health
+  Swagger UI                http://127.0.0.1:8080/docs
+
+If your local branch uses a different entry point, follow the launch
+command defined by that branch.
 
 ------------------------------------------------------------------------
 
-## Project
+# 📡 API Reference
 
-**DunnFlow --- AI-assisted subscription revenue recovery**
+The following table summarizes the principal API routes implemented in
+the project.
 
-Built for the Razorpay AI Buildathon, Track 03: AI Revenue Recovery.
+  ----------------------------------------------------------------------------------------
+  Method                  Endpoint                                 Purpose
+  ----------------------- ---------------------------------------- -----------------------
+  GET                     `/api/health`                            Application health
+                                                                   check
 
--   Repository: <https://github.com/Anujku007/DunnFlow>
--   Backend entry point: `backend/api.py`
--   Main orchestrator: `orchestrator.py`
--   Database schema: `backend/data/schema.sql`
+  GET                     `/api/audit`                             Retrieve audit records
+
+  GET                     `/api/batches/{batch_id}`                Retrieve batch
+                                                                   information
+
+  GET                     `/api/batches/{batch_id}/metrics`        Retrieve batch metrics
+
+  GET                     `/api/batches/{batch_id}/agent`          Inspect agent
+                                                                   preparation output
+
+  POST                    `/api/batches/{batch_id}/detect`         Run batch detection
+
+  POST                    `/api/batches/{batch_id}/decide`         Run batch decision
+                                                                   workflow
+
+  POST                    `/api/batches/{batch_id}/execute`        Execute eligible batch
+                                                                   actions
+
+  POST                    `/api/webhooks/razorpay`                 Receive Razorpay
+                                                                   webhook events
+
+  POST                    `/api/demo/runs`                         Create a demo run
+
+  GET                     `/api/demo/cases/{invoice_id}`           Inspect a demo invoice
+                                                                   case
+
+  POST                    `/api/demo/cases/{invoice_id}/execute`   Execute an eligible
+                                                                   demo recovery
+
+  GET                     `/reports/{batch_id}`                    View a batch report
+  ----------------------------------------------------------------------------------------
+
+For the current request and response schemas, use the interactive API
+documentation at `/docs` while the application is running.
+
+------------------------------------------------------------------------
+
+# 🧪 Verification
+
+The repository includes verification scripts for checking application
+behavior and integration flows.
+
+Run the relevant checks from the project root. For example:
+
+``` bash
+pytest
+```
+
+A Razorpay verification script is also available in the backend
+verification directory:
+
+``` bash
+python .\backend\verification\final_razorpay_e2e_verification.py
+```
+
+Review the script and its output before running it. Verification scripts
+can differ in whether they are read-only or perform test actions; use
+the appropriate test environment and inspect the code first.
+
+------------------------------------------------------------------------
+
+# 🖼️ Screenshots
+
+The following screenshots are included in this README in the agreed
+order:
+
+  -----------------------------------------------------------------------------------------------
+  No.                     Screenshot              File
+  ----------------------- ----------------------- -----------------------------------------------
+  01                      Main Dashboard          `screenshots/01-dashboard.png`
+
+  02                      System Architecture     `screenshots/02-system-architecture.png`
+
+  03                      Synthetic Test Mode     `screenshots/03-synthetic-metrics.png`
+                          Metrics                 
+
+  04                      Razorpay Test Mode      `screenshots/04-razorpay-metrics.png`
+                          Metrics                 
+
+  05                      Razorpay Payment        `screenshots/05-razorpay-payment-success.png`
+                          Success                 
+
+  06                      AI Inspection           `screenshots/06-ai-inspection.png`
+
+  07                      Audit                   `screenshots/07-audit.png`
+  -----------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+# ⚠️ Limitations and Scope
+
+DunnFlow is a research and engineering prototype demonstrating an
+AI-assisted, policy-governed revenue recovery workflow.
+
+-   Razorpay results shown here are from Test Mode, not live production
+    payments.
+-   Synthetic benchmark results are controlled evaluation results and
+    should not be generalized to production populations.
+-   AI output depends on the configured provider, model availability,
+    and supplied context.
+-   AI recommendations remain advisory; deterministic policy is the
+    financial authority.
+-   Payment-state reconciliation depends on gateway responses, webhook
+    delivery, signature verification, and local event processing.
+-   Production deployment would require additional operational,
+    security, compliance, monitoring, and reliability validation.
+
+------------------------------------------------------------------------
+
+# 🗺️ Roadmap
+
+-   [x] Modular recovery workflow
+-   [x] Invoice detection and payment diagnosis
+-   [x] Deterministic recovery decision engine
+-   [x] AI recovery advisor integration
+-   [x] AI-policy reconciliation
+-   [x] Guarded execution and scheduling
+-   [x] Recovery outcome tracking
+-   [x] Razorpay Test Mode order/payment integration
+-   [x] Webhook signature verification and event handling
+-   [x] Audit and revenue event tracking
+-   [ ] Broader automated test coverage
+-   [ ] Production-grade observability and alerting
+-   [ ] More extensive multi-provider gateway testing
+-   [ ] Deployment hardening and operational review
+
+------------------------------------------------------------------------
+
+# 🤝 Contributing
+
+Contributions, bug reports, and suggestions are welcome.
+
+1.  Fork the repository.
+2.  Create a feature branch.
+3.  Make a focused change.
+4.  Add or update tests where appropriate.
+5.  Open a pull request with a clear description.
+
+``` bash
+git checkout -b feature/your-feature
+git add .
+git commit -m "Describe your change"
+git push origin feature/your-feature
+```
+
+------------------------------------------------------------------------
+
+# 🔒 Security
+
+Please do not disclose security vulnerabilities publicly in an issue.
+
+-   Never commit secrets or credentials.
+-   Use Razorpay Test Mode for development.
+-   Keep webhook signature verification enabled.
+-   Avoid sharing unredacted payment screenshots, phone numbers, payment
+    IDs, or customer data.
+-   Review changes to payment execution and authorization logic
+    carefully.
+
+------------------------------------------------------------------------
+
+# 📄 License
+
+No license file was present in the repository at the time this README
+was prepared. Until a license is added, do not assume that the project
+is licensed for unrestricted reuse, modification, or redistribution.
+
+------------------------------------------------------------------------
 
 ::: {align="center"}
-**Detect intelligently. Decide responsibly. Recover measurably.**
+# 👨‍💻 Author
 
-`<sub>`{=html}Built with Python, FastAPI, AI provider integrations,
-SQLite, and Razorpay Test Mode.`</sub>`{=html}
+### Anuj Kumar
+
+**Machine Learning • Backend Engineering • AI Systems**
+
+[![GitHub](https://img.shields.io/badge/GitHub-Anujku007-181717?style=for-the-badge&logo=github)](https://github.com/Anujku007)
+
+[GitHub Repository](https://github.com/Anujku007/DunnFlow)
+
+------------------------------------------------------------------------
+
+### ⭐ Support the Project
+
+If DunnFlow is useful or interesting, consider giving the repository a
+star.
+
+`<img src="https://capsule-render.vercel.app/api?type=waving&color=0:07111F,45:123B65,100:6D45D9&height=120&section=footer" />`{=html}
 :::
