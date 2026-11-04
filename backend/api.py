@@ -1076,6 +1076,56 @@ def inspect_razorpay_demo_invoice(invoice_id: str):
     else:
         decision = decide_for_invoice(invoice_id, persist=False)
 
+    # AI inspection is advisory and read-only for paid and unpaid invoices.
+    # Paid invoices receive retrospective analysis, but deterministic policy
+    # remains no_action. This endpoint never executes payments or recovery.
+    is_paid = (
+        invoice.get("status") == "paid"
+        or session.get("status") == "paid"
+    )
+
+    if is_paid:
+        decision = {
+            "action": "no_action",
+            "reason": (
+                "Invoice/session is already paid; retrospective analysis only. "
+                "No further recovery action is permitted."
+            ),
+            "source": "read_only_paid_state",
+            "persisted": False,
+        }
+
+    try:
+        reconciliation = reconcile_invoice(
+            invoice_id=invoice_id,
+            deterministic_decision=decision,
+            advisor=RecoveryAdvisor(),
+            audit_logger=lambda event: None,
+        )
+        ai_reconciliation = reconciliation.to_dict()
+        ai_reconciliation["inspection_mode"] = (
+            "retrospective_read_only" if is_paid else "recovery_advisory"
+        )
+        # Inspection is never authorized to execute a financial action.
+        ai_reconciliation["financial_action_permitted"] = False
+
+    except Exception as exc:
+        ai_reconciliation = {
+            "ai_available": False,
+            "ai_action": None,
+            "deterministic_action": decision.get(
+                "action_type", decision.get("action", "no_action")
+            ),
+            "result": "ai_unavailable",
+            "detail": f"AI inspection could not complete: {exc}",
+            "learning_influence": {"used": False},
+            "ai_recommendation": None,
+            "inspection_mode": (
+                "retrospective_read_only" if is_paid else "recovery_advisory"
+            ),
+            "financial_action_permitted": False,
+        }
+
     return {
         "invoice_id": invoice_id,
         "invoice": invoice,
@@ -1092,10 +1142,7 @@ def inspect_razorpay_demo_invoice(invoice_id: str):
         },
         "diagnosis": diagnosis,
         "decision": decision,
-        "ai_reconciliation": {
-            "result": "not_evaluated",
-            "detail": "Read-only inspection; no AI request or decision was executed.",
-        },
+        "ai_reconciliation": ai_reconciliation,
         "historical_context": historical_context,
         "payment_attempts": payment_attempts,
         "audit": {

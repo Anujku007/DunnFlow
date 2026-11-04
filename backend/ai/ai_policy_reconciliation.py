@@ -35,6 +35,7 @@ class AIPolicyReconciliation:
     result: str
     detail: str
     learning_influence: dict[str, Any]
+    ai_recommendation: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -45,6 +46,7 @@ class AIPolicyReconciliation:
             "result": self.result,
             "detail": self.detail,
             "learning_influence": self.learning_influence,
+            "ai_recommendation": self.ai_recommendation,
         }
 
 
@@ -154,6 +156,15 @@ def reconcile_ai_with_policy(
         result=result,
         detail=detail,
         learning_influence=learning_influence,
+        ai_recommendation={
+            "recommended_action": ai_result.recommended_action,
+            "priority_score": ai_result.priority_score,
+            "urgency": ai_result.urgency,
+            "confidence": ai_result.confidence,
+            "reason": ai_result.reason,
+            "customer_strategy": ai_result.customer_strategy,
+            "learning_influence": learning_influence,
+        },
     )
 
     audit_logger(
@@ -182,6 +193,7 @@ def reconcile_invoice(
     deterministic_decision: dict[str, Any],
     advisor: RecoveryAdvisor,
     as_of=None,
+    audit_logger=log_audit_entry,
 ) -> AIPolicyReconciliation:
     """
     Build deterministic context and reconcile AI advice against
@@ -200,4 +212,5 @@ def reconcile_invoice(
         context=context,
         deterministic_decision=deterministic_decision,
         advisor=advisor,
+        audit_logger=audit_logger,
     )
