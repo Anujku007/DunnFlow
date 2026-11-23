@@ -1,4 +1,5 @@
-﻿from pathlib import Path
+import os
+from pathlib import Path
 
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
@@ -21,8 +22,8 @@ from backend.data.db import (
 )
 
 
-REPORT_DIR = Path("reports")
-REPORT_DIR.mkdir(exist_ok=True)
+REPORT_DIR = Path("/tmp/reports") if os.environ.get("VERCEL") else Path("reports")
+REPORT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def generate_batch_report(batch_id: str) -> str:

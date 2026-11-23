@@ -3,3 +3,5 @@ python-dotenv>=1.0.0
 pytest
 fastapi
 reportlab
+requests
+google-genai

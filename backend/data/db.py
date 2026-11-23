@@ -31,7 +31,14 @@ import sqlite3
 # Paths / time
 # ---------------------------------------------------------------------------
 
-_DEFAULT_DB_PATH = Path(__file__).resolve().parents[2] / "dunnflow.db"
+_REPO_DB_PATH = Path(__file__).resolve().parents[2] / "dunnflow.db"
+if os.environ.get("VERCEL"):
+    _DEFAULT_DB_PATH = Path("/tmp/dunnflow.db")
+    if _REPO_DB_PATH.exists() and not _DEFAULT_DB_PATH.exists():
+        import shutil
+        shutil.copy2(_REPO_DB_PATH, _DEFAULT_DB_PATH)
+else:
+    _DEFAULT_DB_PATH = _REPO_DB_PATH
 DB_PATH = Path(os.environ.get("DUNNFLOW_DB_PATH", str(_DEFAULT_DB_PATH))).expanduser().resolve()
 SCHEMA_PATH = Path(__file__).resolve().parent / "schema.sql"
 

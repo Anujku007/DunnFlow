@@ -7,7 +7,9 @@ dependencies = [
   "python-dotenv>=1.0.0",
   "pytest",
   "fastapi",
-  "reportlab"
+  "reportlab",
+  "requests",
+  "google-genai"
 ]
 
 [tool.vercel]
